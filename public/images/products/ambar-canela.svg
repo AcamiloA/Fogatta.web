@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="Vela Ambar Canela">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f5d9b8"/>
+      <stop offset="100%" stop-color="#b97644"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#g1)"/>
+  <circle cx="900" cy="180" r="180" fill="#fff5e6" opacity="0.32"/>
+  <text x="80" y="780" fill="#3b2211" font-size="72" font-family="Georgia, serif">Ambar Canela</text>
+</svg>

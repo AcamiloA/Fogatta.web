@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="Vela Te Blanco Higo">
+  <defs>
+    <linearGradient id="g4" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f2eddb"/>
+      <stop offset="100%" stop-color="#c5bb87"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#g4)"/>
+  <circle cx="240" cy="220" r="180" fill="#ffffff" opacity="0.3"/>
+  <text x="80" y="780" fill="#4a4322" font-size="72" font-family="Georgia, serif">Te Blanco Higo</text>
+</svg>

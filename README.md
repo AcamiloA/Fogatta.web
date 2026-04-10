@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fogatta Web MVP (Escalable)
 
-## Getting Started
+Sitio comercial para Fogatta construido con Next.js + API interna modular, preparado para evolucionar a un sistema interno sin rehacer front ni contratos.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js (App Router, TypeScript)
+- Prisma + PostgreSQL
+- Tailwind CSS v4
+- Zod para contratos
+- Vitest para pruebas de contratos y dominio
+
+## Modulos
+
+- `catalogo`: productos, categorias y variantes
+- `checkout-whatsapp`: armado de pedido y trazabilidad
+- `contenido`: contenido editorial y fallback local (con opcion headless CMS)
+- `analytics`: eventos base de conversion
+- `leads`: formulario de contacto
+
+## Endpoints
+
+- `GET /api/catalogo/productos`
+- `GET /api/catalogo/productos/:slug`
+- `POST /api/checkout/whatsapp-preview`
+- `POST /api/leads/contacto`
+
+## Variables de entorno
+
+Copia `.env.example` a `.env` y ajusta:
+
+```env
+DATABASE_URL="postgresql://..."
+NEXT_PUBLIC_WHATSAPP_PHONE="573001234567"
+NEXT_PUBLIC_GA_MEASUREMENT_ID="G-XXXXXXXXXX"
+NEXT_PUBLIC_THEME_PRESET="warm"
+HEADLESS_CMS_BASE_URL=""
+HEADLESS_CMS_TOKEN=""
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="cambia-esto"
+ADMIN_SESSION_SECRET="cambia-esto-por-un-secreto-largo"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Desarrollo
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run prisma:generate
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Si tienes PostgreSQL listo:
 
-## Learn More
+```bash
+npm run prisma:migrate
+npm run prisma:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Pruebas
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run test
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Escalabilidad prevista
 
-## Deploy on Vercel
+- Contratos API tipados y versionables
+- Separacion por modulos de dominio
+- Capa de persistencia desacoplada (Prisma/fallback)
+- Lista para agregar `auth/roles`, `stock admin` y extraccion gradual de servicios en fases futuras
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Administracion de catalogo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Login admin: `/admin/login`
+- Panel de catalogo: `/admin`
+- Credenciales por entorno:
+  - `ADMIN_USERNAME`
+  - `ADMIN_PASSWORD`
+  - `ADMIN_SESSION_SECRET`
+
+Con el panel puedes:
+- Crear categorías
+- Crear, editar y eliminar productos
+- Subir imagenes de producto desde el panel (se guardan en `public/images/products`)
+- Crear, editar y eliminar variantes (nombre, SKU, stock, delta de precio)

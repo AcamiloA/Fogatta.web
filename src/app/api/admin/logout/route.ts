@@ -1,0 +1,15 @@
+import { NextResponse } from "next/server";
+
+import { ADMIN_SESSION_COOKIE } from "@/modules/admin/auth";
+
+export async function POST() {
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set({
+    name: ADMIN_SESSION_COOKIE,
+    value: "",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
+  return response;
+}

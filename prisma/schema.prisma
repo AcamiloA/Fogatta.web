@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  nombre      String
+  descripcion String?
+  productos   Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id              String              @id @default(cuid())
+  slug            String              @unique
+  nombre          String
+  descripcion     String
+  precioReferencia Int
+  imagenes        String[]
+  activo          Boolean             @default(true)
+  categoryId      String
+  category        Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  variantes       Variant[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model Variant {
+  id            String   @id @default(cuid())
+  productId     String
+  nombreVariante String
+  sku           String   @unique
+  stockVirtual  Int      @default(0)
+  precioDelta   Int      @default(0)
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model WhatsappOrder {
+  id               String             @id @default(cuid())
+  clienteNombre    String
+  clienteCiudad    String
+  telefono         String
+  subtotalReferencia Int
+  estado           String             @default("pending")
+  mensaje          String
+  items            WhatsappOrderItem[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model WhatsappOrderItem {
+  id              String         @id @default(cuid())
+  orderId         String
+  productId       String?
+  variantId       String?
+  nombreProducto  String
+  nombreVariante  String?
+  precioUnitario  Int
+  cantidad        Int
+  subtotal        Int
+  order           WhatsappOrder  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model ContactLead {
+  id          String   @id @default(cuid())
+  nombre      String
+  correo      String
+  telefono    String
+  mensaje     String
+  ciudad      String?
+  source      String?
+  createdAt   DateTime @default(now())
+}

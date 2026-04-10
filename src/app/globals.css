@@ -1,26 +1,122 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #fbf7f0;
+  --bg-overlay: rgba(251, 247, 240, 0.93);
+  --fg-strong: #2c1f14;
+  --fg: #3e2f23;
+  --fg-muted: #5b493a;
+  --fg-soft: #7d6654;
+  --surface: #fffaf3;
+  --surface-2: #f5ecdf;
+  --surface-3: #efe3d3;
+  --card: #f7ecdf;
+  --border: #d3b89a;
+  --border-soft: #e4d2bd;
+  --accent: #b76a36;
+  --accent-soft: #d99563;
+  --accent-hover: #cb7d48;
+  --accent-contrast: #fff8f2;
+  --accent-disabled: #b89a81;
+  --accent-outline: #a46a42;
+  --accent-outline-contrast: #fff6ee;
+  --input-border: #c6a88b;
+  --ink: #2c1f14;
+  --ink-muted: #5b493a;
+  --ink-soft: #7d6654;
+  --hero-a: #f3dac0;
+  --hero-b: #eec69b;
+  --hero-c: #f7e6d2;
+}
+
+body[data-theme="night"] {
+  --bg: #040c16;
+  --bg-overlay: rgba(4, 12, 22, 0.9);
+  --fg-strong: #f6ecdd;
+  --fg: #efe5d3;
+  --fg-muted: #d8cab6;
+  --fg-soft: #c9b69e;
+  --surface: #0f1a27;
+  --surface-2: #111f2d;
+  --surface-3: #182738;
+  --card: #ede4d4;
+  --border: #b87345;
+  --border-soft: rgba(184, 115, 69, 0.35);
+  --accent: #bb7241;
+  --accent-soft: #dfab74;
+  --accent-hover: #d08a58;
+  --accent-contrast: #170e09;
+  --accent-disabled: #8b6646;
+  --accent-outline: #e6c29b;
+  --accent-outline-contrast: #26170c;
+  --input-border: #9b7b5b;
+  --ink: #2c1f14;
+  --ink-muted: #4f3c2d;
+  --ink-soft: #705037;
+  --hero-a: #223349;
+  --hero-b: #7f4b2a;
+  --hero-c: #182131;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --font-sans: var(--font-manrope);
+  --font-serif: var(--font-fraunces);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-manrope), sans-serif;
+  background-image: radial-gradient(
+      circle at 85% 2%,
+      color-mix(in oklab, var(--hero-a) 40%, transparent 60%) 0,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 10% 25%,
+      color-mix(in oklab, var(--hero-b) 20%, transparent 80%) 0,
+      transparent 40%
+    );
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-fraunces), serif;
+}
+
+.hero-gradient {
+  background-image: radial-gradient(
+      circle at 5% 15%,
+      color-mix(in oklab, var(--hero-a) 75%, transparent 25%) 0,
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 95% 10%,
+      color-mix(in oklab, var(--hero-b) 65%, transparent 35%) 0,
+      transparent 45%
+    ),
+    linear-gradient(
+      130deg,
+      color-mix(in oklab, var(--hero-c) 65%, var(--bg) 35%) 0%,
+      color-mix(in oklab, var(--hero-c) 45%, var(--bg) 55%) 100%
+    );
+}
+
+.glass-card {
+  background: color-mix(in oklab, var(--surface) 88%, transparent 12%);
+  border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent 65%);
+  backdrop-filter: blur(6px);
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

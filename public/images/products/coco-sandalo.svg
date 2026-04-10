@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="Vela Coco Sandalo">
+  <defs>
+    <linearGradient id="g3" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#efe2d1"/>
+      <stop offset="100%" stop-color="#996f4d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#g3)"/>
+  <circle cx="920" cy="240" r="220" fill="#fff9f2" opacity="0.22"/>
+  <text x="80" y="780" fill="#3b281a" font-size="72" font-family="Georgia, serif">Coco Sandalo</text>
+</svg>

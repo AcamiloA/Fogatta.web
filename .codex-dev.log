@@ -1,0 +1,470 @@
+
+> fogatta_app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.6:3000
+- Environments: .env.local
+✓ Ready in 968ms
+Creating turbopack project { dir: 'C:\\Users\\acala\\source\\repos\\Fogatta', testMode: true }
+
+ GET /admin/login 200 in 1734ms (next.js: 1042ms, application-code: 692ms)
+ GET /admin/login 200 in 111ms (next.js: 8ms, application-code: 103ms)
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 477ms (next.js: 123ms, application-code: 355ms)
+ GET /admin/login 200 in 78ms (next.js: 15ms, application-code: 63ms)
+ POST /api/admin/login 200 in 292ms (next.js: 261ms, application-code: 31ms)
+ GET /admin 200 in 977ms (next.js: 912ms, application-code: 65ms)
+ GET /admin 200 in 108ms (next.js: 13ms, application-code: 95ms)
+[fogatta] admin_catalog_operation_failed {
+  error: Error [PrismaClientInitializationError]: 
+  Invalid `db.category.findMany()` invocation in
+  C:\Users\acala\source\repos\Fogatta\.next\dev\server\chunks\[root-of-the-server]__0..l1-4._.js:373:25
+  
+    370 async listCatalog() {
+    371     const db = ensurePrisma();
+    372     const [categories, products] = await Promise.all([
+  → 373         db.category.findMany(
+  Authentication failed against database server, the provided database credentials for `(not available)` are not valid.
+  
+  Please make sure to provide valid database credentials for the database server at the configured address.
+      at <unknown> (src\modules\catalog\admin-service.ts:55:19)
+      at async AdminCatalogService.listCatalog (src\modules\catalog\admin-service.ts:54:36)
+      at async GET (src\app\api\admin\catalogo\route.ts:28:21)
+    53 |
+    54 |     const [categories, products] = await Promise.all([
+  > 55 |       db.category.findMany({
+       |                   ^
+    56 |         orderBy: {
+    57 |           nombre: "asc",
+    58 |         }, {
+    clientVersion: '6.16.2',
+    errorCode: undefined,
+    retryable: undefined
+  },
+  route: 'admin_catalog_get'
+}
+[fogatta] admin_catalog_operation_failed {
+  error: Error [PrismaClientInitializationError]: 
+  Invalid `db.category.findMany()` invocation in
+  C:\Users\acala\source\repos\Fogatta\.next\dev\server\chunks\[root-of-the-server]__0..l1-4._.js:373:25
+  
+    370 async listCatalog() {
+    371     const db = ensurePrisma();
+    372     const [categories, products] = await Promise.all([
+  → 373         db.category.findMany(
+  Authentication failed against database server, the provided database credentials for `(not available)` are not valid.
+  
+  Please make sure to provide valid database credentials for the database server at the configured address.
+      at <unknown> (src\modules\catalog\admin-service.ts:55:19)
+      at async AdminCatalogService.listCatalog (src\modules\catalog\admin-service.ts:54:36)
+      at async GET (src\app\api\admin\catalogo\route.ts:28:21)
+    53 |
+    54 |     const [categories, products] = await Promise.all([
+  > 55 |       db.category.findMany({
+       |                   ^
+    56 |         orderBy: {
+    57 |           nombre: "asc",
+    58 |         }, {
+    clientVersion: '6.16.2',
+    errorCode: undefined,
+    retryable: undefined
+  },
+  route: 'admin_catalog_get'
+}
+ GET /api/admin/catalogo 500 in 1108ms (next.js: 421ms, application-code: 687ms)
+ GET /api/admin/catalogo 500 in 1104ms (next.js: 436ms, application-code: 669ms)
+[fogatta] admin_catalog_operation_failed {
+  error: Error [PrismaClientInitializationError]: 
+  Invalid `db.category.create()` invocation in
+  C:\Users\acala\source\repos\Fogatta\.next\dev\server\chunks\[root-of-the-server]__0..l1-4._.js:404:28
+  
+    401 }
+    402 async createCategory(input) {
+    403     const db = ensurePrisma();
+  → 404     return db.category.create(
+  Authentication failed against database server, the provided database credentials for `(not available)` are not valid.
+  
+  Please make sure to provide valid database credentials for the database server at the configured address.
+      at <unknown> (src\modules\catalog\admin-service.ts:88:24)
+      at async POST (src\app\api\admin\categorias\route.ts:25:21)
+    86 |   async createCategory(input: { slug: string; nombre: string; descripcion?: string }) {
+    87 |     const db = ensurePrisma();
+  > 88 |     return db.category.create({
+       |                        ^
+    89 |       data: {
+    90 |         slug: input.slug.trim(),
+    91 |         nombre: input.nombre.trim(), {
+    clientVersion: '6.16.2',
+    errorCode: undefined,
+    retryable: undefined
+  },
+  route: 'admin_category_create'
+}
+ POST /api/admin/categorias 500 in 970ms (next.js: 441ms, application-code: 528ms)
+ POST /api/admin/upload-image 200 in 268ms (next.js: 228ms, application-code: 40ms)
+[browser] ⨯ unhandledRejection: TypeError: Cannot set properties of null (setting 'value')
+    at onChange (src/components/admin/admin-catalog-manager.tsx:471:42)
+  469 |                   setNewProduct((current) => ({ ...current, imagenUrl: url }));
+  470 |                 }
+> 471 |                 event.currentTarget.value = "";
+      |                                          ^
+  472 |               }}
+  473 |               className="mt-1 block w-full text-xs text-[var(--fg-muted)]"
+  474 |             />
+ GET / 200 in 105ms (next.js: 9ms, application-code: 96ms)
+ GET /admin/login 200 in 75ms (next.js: 7ms, application-code: 68ms)
+ GET /admin 200 in 145ms (next.js: 13ms, application-code: 132ms)
+ GET /admin 200 in 71ms (next.js: 8ms, application-code: 64ms)
+[fogatta] admin_catalog_operation_failed {
+  error: Error [PrismaClientInitializationError]: 
+  Invalid `db.category.findMany()` invocation in
+  C:\Users\acala\source\repos\Fogatta\.next\dev\server\chunks\[root-of-the-server]__0..l1-4._.js:373:25
+  
+    370 async listCatalog() {
+    371     const db = ensurePrisma();
+    372     const [categories, products] = await Promise.all([
+  → 373         db.category.findMany(
+  Authentication failed against database server, the provided database credentials for `(not available)` are not valid.
+  
+  Please make sure to provide valid database credentials for the database server at the configured address.
+      at <unknown> (src\modules\catalog\admin-service.ts:55:19)
+      at async AdminCatalogService.listCatalog (src\modules\catalog\admin-service.ts:54:36)
+      at async GET (src\app\api\admin\catalogo\route.ts:28:21)
+    53 |
+    54 |     const [categories, products] = await Promise.all([
+  > 55 |       db.category.findMany({
+       |                   ^
+    56 |         orderBy: {
+    57 |           nombre: "asc",
+    58 |         }, {
+    clientVersion: '6.16.2',
+    errorCode: undefined,
+    retryable: undefined
+  },
+  route: 'admin_catalog_get'
+}
+[fogatta] admin_catalog_operation_failed {
+  error: Error [PrismaClientInitializationError]: 
+  Invalid `db.category.findMany()` invocation in
+  C:\Users\acala\source\repos\Fogatta\.next\dev\server\chunks\[root-of-the-server]__0..l1-4._.js:373:25
+  
+    370 async listCatalog() {
+    371     const db = ensurePrisma();
+    372     const [categories, products] = await Promise.all([
+  → 373         db.category.findMany(
+  Authentication failed against database server, the provided database credentials for `(not available)` are not valid.
+  
+  Please make sure to provide valid database credentials for the database server at the configured address.
+      at <unknown> (src\modules\catalog\admin-service.ts:55:19)
+      at async AdminCatalogService.listCatalog (src\modules\catalog\admin-service.ts:54:36)
+      at async GET (src\app\api\admin\catalogo\route.ts:28:21)
+    53 |
+    54 |     const [categories, products] = await Promise.all([
+  > 55 |       db.category.findMany({
+       |                   ^
+    56 |         orderBy: {
+    57 |           nombre: "asc",
+    58 |         }, {
+    clientVersion: '6.16.2',
+    errorCode: undefined,
+    retryable: undefined
+  },
+  route: 'admin_catalog_get'
+}
+ GET /api/admin/catalogo 500 in 742ms (next.js: 10ms, application-code: 733ms)
+ GET /api/admin/catalogo 500 in 718ms (next.js: 6ms, application-code: 713ms)
+ POST /api/admin/logout 200 in 214ms (next.js: 199ms, application-code: 14ms)
+ GET /admin/login 200 in 67ms (next.js: 8ms, application-code: 59ms)
+ GET /admin/login 200 in 69ms (next.js: 6ms, application-code: 64ms)
+ GET / 200 in 77ms (next.js: 9ms, application-code: 67ms)
+ GET /nosotros 200 in 95ms (next.js: 54ms, application-code: 42ms)
+ GET / 200 in 64ms (next.js: 7ms, application-code: 57ms)
+ GET /catalogo 200 in 162ms (next.js: 75ms, application-code: 87ms)
+ GET / 200 in 72ms (next.js: 8ms, application-code: 64ms)
+ GET / 200 in 61ms (next.js: 8ms, application-code: 53ms)
+ GET /catalogo 200 in 61ms (next.js: 6ms, application-code: 54ms)
+ GET / 200 in 69ms (next.js: 7ms, application-code: 62ms)
+✓ Compiled in 188ms
+✓ Compiled in 300ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 742ms (next.js: 265ms, application-code: 477ms)
+ GET / 200 in 317ms (next.js: 8ms, application-code: 309ms)
+ GET / 200 in 255ms (next.js: 10ms, application-code: 244ms)
+ GET / 200 in 255ms (next.js: 77ms, application-code: 178ms)
+ GET / 200 in 255ms (next.js: 121ms, application-code: 134ms)
+✓ Compiled in 237ms
+ GET /catalogo 200 in 97ms (next.js: 34ms, application-code: 63ms)
+✓ Compiled in 320ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 835ms (next.js: 290ms, application-code: 545ms)
+ GET / 200 in 446ms (next.js: 10ms, application-code: 435ms)
+ GET / 200 in 310ms (next.js: 11ms, application-code: 300ms)
+ GET / 200 in 312ms (next.js: 59ms, application-code: 253ms)
+ GET / 200 in 313ms (next.js: 110ms, application-code: 203ms)
+ GET / 200 in 368ms (next.js: 174ms, application-code: 195ms)
+ GET / 200 in 381ms (next.js: 5ms, application-code: 376ms)
+ GET / 200 in 381ms (next.js: 14ms, application-code: 366ms)
+ GET / 200 in 322ms (next.js: 10ms, application-code: 311ms)
+ GET / 200 in 322ms (next.js: 80ms, application-code: 242ms)
+ GET / 200 in 323ms (next.js: 136ms, application-code: 186ms)
+ GET / 200 in 196ms (next.js: 8ms, application-code: 187ms)
+ GET / 200 in 353ms (next.js: 5ms, application-code: 348ms)
+ GET / 200 in 298ms (next.js: 13ms, application-code: 285ms)
+ GET / 200 in 296ms (next.js: 12ms, application-code: 284ms)
+ GET / 200 in 296ms (next.js: 58ms, application-code: 238ms)
+ GET / 200 in 355ms (next.js: 102ms, application-code: 253ms)
+ GET / 200 in 214ms (next.js: 13ms, application-code: 201ms)
+ GET / 200 in 389ms (next.js: 9ms, application-code: 380ms)
+ GET / 200 in 332ms (next.js: 12ms, application-code: 320ms)
+ GET / 200 in 266ms (next.js: 10ms, application-code: 256ms)
+ GET / 200 in 267ms (next.js: 74ms, application-code: 193ms)
+ GET / 200 in 139ms (next.js: 13ms, application-code: 126ms)
+ GET / 200 in 139ms (next.js: 64ms, application-code: 75ms)
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 490ms (next.js: 162ms, application-code: 328ms)
+✓ Compiled in 100ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 564ms (next.js: 271ms, application-code: 293ms)
+✓ Compiled in 71ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 562ms (next.js: 275ms, application-code: 287ms)
+ GET / 200 in 154ms (next.js: 12ms, application-code: 142ms)
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 516ms (next.js: 209ms, application-code: 306ms)
+✓ Compiled in 98ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 870ms (next.js: 313ms, application-code: 557ms)
+ GET / 200 in 378ms (next.js: 8ms, application-code: 371ms)
+ GET / 200 in 365ms (next.js: 61ms, application-code: 304ms)
+ GET / 200 in 368ms (next.js: 12ms, application-code: 356ms)
+ GET / 200 in 375ms (next.js: 102ms, application-code: 273ms)
+ GET / 200 in 376ms (next.js: 144ms, application-code: 232ms)
+ GET / 200 in 123ms (next.js: 9ms, application-code: 114ms)
+ GET / 200 in 71ms (next.js: 7ms, application-code: 63ms)
+✓ Compiled in 71ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 844ms (next.js: 258ms, application-code: 587ms)
+ GET / 200 in 417ms (next.js: 11ms, application-code: 406ms)
+ GET / 200 in 373ms (next.js: 41ms, application-code: 332ms)
+ GET / 200 in 374ms (next.js: 95ms, application-code: 278ms)
+ GET / 200 in 373ms (next.js: 184ms, application-code: 189ms)
+ GET / 200 in 376ms (next.js: 138ms, application-code: 238ms)
+ GET / 200 in 73ms (next.js: 7ms, application-code: 66ms)
+✓ Compiled in 108ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 642ms (next.js: 322ms, application-code: 320ms)
+✓ Compiled in 76ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 508ms (next.js: 207ms, application-code: 302ms)
+ GET / 200 in 441ms (next.js: 7ms, application-code: 435ms)
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET /catalogo 200 in 586ms (next.js: 302ms, application-code: 285ms)
+ GET /nosotros 200 in 371ms (next.js: 243ms, application-code: 129ms)
+ GET /faq 200 in 124ms (next.js: 71ms, application-code: 54ms)
+ GET /blog 200 in 128ms (next.js: 71ms, application-code: 57ms)
+ GET /contacto 200 in 91ms (next.js: 56ms, application-code: 35ms)
+[fogatta] create_lead_failed {
+  error: Error [PrismaClientInitializationError]: 
+  Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].contactLead.create()` invocation in
+  C:\Users\acala\source\repos\Fogatta\.next\dev\server\chunks\[root-of-the-server]__0gg1p~k._.js:133:176
+  
+    130 async createLead(input) {
+    131     try {
+    132         if (__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"]) {
+  → 133             const created = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].contactLead.create(
+  Authentication failed against database server, the provided database credentials for `(not available)` are not valid.
+  
+  Please make sure to provide valid database credentials for the database server at the configured address.
+      at <unknown> (src\modules\leads\service.ts:11:50)
+      at async LeadsService.createLead (src\modules\leads\service.ts:11:25)
+      at async POST (src\app\api\leads\contacto\route.ts:12:20)
+     9 |     try {
+    10 |       if (prisma) {
+  > 11 |         const created = await prisma.contactLead.create({
+       |                                                  ^
+    12 |           data: {
+    13 |             nombre: input.nombre,
+    14 |             correo: input.correo, {
+    clientVersion: '6.16.2',
+    errorCode: undefined,
+    retryable: undefined
+  },
+  input: {
+    nombre: 'Andres',
+    correo: 'acalarcon7@gmail.com',
+    telefono: '3229421283',
+    mensaje: 'quiero algo que huela rico'
+  }
+}
+[fogatta] api_create_lead_failed {
+  error: Error [PrismaClientInitializationError]: 
+  Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].contactLead.create()` invocation in
+  C:\Users\acala\source\repos\Fogatta\.next\dev\server\chunks\[root-of-the-server]__0gg1p~k._.js:133:176
+  
+    130 async createLead(input) {
+    131     try {
+    132         if (__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"]) {
+  → 133             const created = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].contactLead.create(
+  Authentication failed against database server, the provided database credentials for `(not available)` are not valid.
+  
+  Please make sure to provide valid database credentials for the database server at the configured address.
+      at <unknown> (src\modules\leads\service.ts:11:50)
+      at async LeadsService.createLead (src\modules\leads\service.ts:11:25)
+      at async POST (src\app\api\leads\contacto\route.ts:12:20)
+     9 |     try {
+    10 |       if (prisma) {
+  > 11 |         const created = await prisma.contactLead.create({
+       |                                                  ^
+    12 |           data: {
+    13 |             nombre: input.nombre,
+    14 |             correo: input.correo, {
+    clientVersion: '6.16.2',
+    errorCode: undefined,
+    retryable: undefined
+  }
+}
+ POST /api/leads/contacto 500 in 1133ms (next.js: 433ms, application-code: 700ms)
+ GET / 200 in 85ms (next.js: 8ms, application-code: 77ms)
+ GET /catalogo 200 in 83ms (next.js: 8ms, application-code: 75ms)
+ GET /nosotros 200 in 52ms (next.js: 7ms, application-code: 46ms)
+ GET /faq 200 in 61ms (next.js: 7ms, application-code: 54ms)
+ GET /blog 200 in 64ms (next.js: 6ms, application-code: 58ms)
+ GET /blog/ritual-nocturno-con-velas 200 in 2.0s (next.js: 1855ms, application-code: 146ms)
+ GET / 200 in 59ms (next.js: 7ms, application-code: 52ms)
+ GET / 200 in 17ms (next.js: 5ms, application-code: 12ms)
+ GET / 200 in 61ms (next.js: 13ms, application-code: 48ms)
+✓ Compiled in 78ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 867ms (next.js: 215ms, application-code: 652ms)
+ GET / 200 in 525ms (next.js: 29ms, application-code: 496ms)
+ GET / 200 in 343ms (next.js: 10ms, application-code: 333ms)
+ GET / 200 in 345ms (next.js: 100ms, application-code: 245ms)
+ GET / 200 in 346ms (next.js: 154ms, application-code: 192ms)
+ GET / 200 in 347ms (next.js: 200ms, application-code: 147ms)
+ GET / 200 in 92ms (next.js: 7ms, application-code: 85ms)
+✓ Compiled in 76ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 604ms (next.js: 221ms, application-code: 383ms)
+ GET / 200 in 255ms (next.js: 10ms, application-code: 245ms)
+ GET / 200 in 190ms (next.js: 7ms, application-code: 182ms)
+ GET / 200 in 190ms (next.js: 46ms, application-code: 144ms)
+ GET / 200 in 190ms (next.js: 89ms, application-code: 101ms)
+✓ Compiled in 79ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 734ms (next.js: 219ms, application-code: 515ms)
+ GET / 200 in 368ms (next.js: 7ms, application-code: 361ms)
+ GET / 200 in 280ms (next.js: 33ms, application-code: 248ms)
+ GET / 200 in 271ms (next.js: 172ms, application-code: 100ms)
+ GET / 200 in 282ms (next.js: 132ms, application-code: 150ms)
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 501ms (next.js: 218ms, application-code: 283ms)
+ GET / 200 in 132ms (next.js: 7ms, application-code: 125ms)
+✓ Compiled in 63ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 664ms (next.js: 261ms, application-code: 403ms)
+ GET / 200 in 282ms (next.js: 9ms, application-code: 273ms)
+ GET / 200 in 216ms (next.js: 9ms, application-code: 208ms)
+ GET / 200 in 218ms (next.js: 55ms, application-code: 163ms)
+ GET / 200 in 220ms (next.js: 95ms, application-code: 126ms)
+✓ Compiled in 260ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 906ms (next.js: 331ms, application-code: 575ms)
+ GET / 200 in 401ms (next.js: 8ms, application-code: 393ms)
+ GET / 200 in 374ms (next.js: 12ms, application-code: 362ms)
+ GET / 200 in 374ms (next.js: 139ms, application-code: 235ms)
+ GET / 200 in 377ms (next.js: 74ms, application-code: 302ms)
+ GET / 200 in 426ms (next.js: 187ms, application-code: 239ms)
+ GET / 200 in 320ms (next.js: 7ms, application-code: 313ms)
+ GET / 200 in 259ms (next.js: 13ms, application-code: 246ms)
+ GET / 200 in 202ms (next.js: 8ms, application-code: 194ms)
+ GET / 200 in 203ms (next.js: 52ms, application-code: 151ms)
+ GET / 200 in 204ms (next.js: 94ms, application-code: 109ms)
+ GET / 200 in 71ms (next.js: 6ms, application-code: 65ms)
+✓ Compiled in 301ms
+⚠ Fast Refresh had to perform a full reload when ./node_modules/next/dist/client/image-component.js changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET / 404 in 1085ms (next.js: 294ms, application-code: 791ms)
+ GET / 404 in 211ms (next.js: 26ms, application-code: 186ms)
+ GET / 404 in 204ms (next.js: 115ms, application-code: 90ms)
+ GET / 404 in 207ms (next.js: 52ms, application-code: 156ms)
+ GET / 404 in 556ms (next.js: 63ms, application-code: 493ms)
+✓ Compiled in 279ms
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET / 200 in 892ms (next.js: 311ms, application-code: 581ms)
+ GET / 200 in 463ms (next.js: 6ms, application-code: 458ms)
+ GET / 200 in 820ms (next.js: 10ms, application-code: 811ms)
+ GET / 200 in 825ms (next.js: 67ms, application-code: 758ms)
+ GET / 200 in 900ms (next.js: 128ms, application-code: 772ms)
+ GET / 200 in 150ms (next.js: 28ms, application-code: 122ms)
+ GET / 200 in 959ms (next.js: 171ms, application-code: 787ms)
+ GET / 200 in 595ms (next.js: 12ms, application-code: 583ms)
+ GET / 200 in 184ms (next.js: 8ms, application-code: 176ms)
+ GET /catalogo/te-blanco-higo 200 in 1348ms (next.js: 1268ms, application-code: 80ms)
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET /catalogo 200 in 590ms (next.js: 242ms, application-code: 349ms)
+ GET /catalogo/ambar-canela 200 in 73ms (next.js: 15ms, application-code: 58ms)
+ GET /catalogo 200 in 70ms (next.js: 6ms, application-code: 64ms)
+  Reload env: .env
+✓ Compiled in 294ms
+⚠ Fast Refresh had to perform a full reload when ./node_modules/next/dist/client/image-component.js changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET /catalogo 200 in 262ms (next.js: 127ms, application-code: 134ms)
+ GET /catalogo 200 in 265ms (next.js: 16ms, application-code: 249ms)
+ GET /catalogo 200 in 263ms (next.js: 194ms, application-code: 69ms)
+ GET /catalogo 200 in 1002ms (next.js: 523ms, application-code: 479ms)
+ GET /catalogo 200 in 1663ms (next.js: 380ms, application-code: 1283ms)
+ GET /catalogo 200 in 1023ms (next.js: 8ms, application-code: 1016ms)
+  Reload env: .env
+⚠ Fast Refresh had to perform a full reload when ./node_modules/next/dist/client/image-component.js changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+[fogatta] catalog_repository_unavailable_using_fallback { reason: 'list_products' }
+ GET /catalogo 200 in 199ms (next.js: 85ms, application-code: 114ms)
+ GET /catalogo 200 in 199ms (next.js: 131ms, application-code: 68ms)
+ GET /catalogo 200 in 724ms (next.js: 377ms, application-code: 347ms)
+ GET /catalogo 200 in 206ms (next.js: 15ms, application-code: 191ms)
+ GET /catalogo 200 in 1127ms (next.js: 259ms, application-code: 868ms)
+ GET /catalogo 200 in 752ms (next.js: 8ms, application-code: 744ms)

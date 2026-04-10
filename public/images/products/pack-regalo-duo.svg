@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="Pack Regalo Duo">
+  <defs>
+    <linearGradient id="g5" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f6e6d7"/>
+      <stop offset="100%" stop-color="#8e4b2f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#g5)"/>
+  <circle cx="970" cy="190" r="170" fill="#fff2e8" opacity="0.26"/>
+  <text x="80" y="780" fill="#3f1f14" font-size="68" font-family="Georgia, serif">Pack Regalo Duo</text>
+</svg>
