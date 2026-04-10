@@ -83,3 +83,4 @@ Con el panel puedes:
 - Crear, editar y eliminar productos
 - Subir imagenes de producto desde el panel (se guardan en `public/images/products`)
 - Crear, editar y eliminar variantes (nombre, SKU, stock, delta de precio)
+"# Fogatta.web" 
