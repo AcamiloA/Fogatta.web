@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --header-height: 84px;
   --bg: #fbf7f0;
   --bg-overlay: rgba(251, 247, 240, 0.93);
   --fg-strong: #2c1f14;
@@ -69,6 +70,17 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-manrope), sans-serif;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--bg);
   background-image: radial-gradient(
       circle at 85% 2%,
       color-mix(in oklab, var(--hero-a) 40%, transparent 60%) 0,
@@ -79,6 +91,9 @@ body {
       color-mix(in oklab, var(--hero-b) 20%, transparent 80%) 0,
       transparent 40%
     );
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }
 
 h1,

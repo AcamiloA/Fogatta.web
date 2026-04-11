@@ -11,6 +11,7 @@ export const blogPostSchema = z.object({
   id: z.string(),
   slug: z.string(),
   titulo: z.string(),
+  autor: z.string(),
   extracto: z.string(),
   contenido: z.string(),
   imagen: z.string(),

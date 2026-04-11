@@ -39,6 +39,13 @@ HEADLESS_CMS_TOKEN=""
 ADMIN_USERNAME="admin"
 ADMIN_PASSWORD="cambia-esto"
 ADMIN_SESSION_SECRET="cambia-esto-por-un-secreto-largo"
+LEADS_NOTIFICATION_TO="acalarcon7@gmail.com"
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="465"
+SMTP_SECURE="true"
+SMTP_USER="tu_correo@gmail.com"
+SMTP_PASS="app_password_de_gmail"
+SMTP_FROM="Fogatta <tu_correo@gmail.com>"
 ```
 
 ## Desarrollo

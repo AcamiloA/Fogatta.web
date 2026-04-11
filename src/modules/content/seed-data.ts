@@ -36,6 +36,7 @@ export const fallbackContent: ContentPayload = {
       id: "blog_1",
       slug: "como-elegir-aroma-segun-espacio",
       titulo: "Cómo elegir el aroma ideal según tu espacio",
+      autor: "",
       extracto: "Una guía simple para combinar ambientes y fragancias en casa.",
       contenido:
         "Los espacios pequeños suelen agradecer notas frescas y limpias. Para salas, las mezclas ámbar y amaderadas aportan profundidad. En dormitorios recomendamos perfiles suaves que inviten a bajar el ritmo.",
@@ -46,6 +47,7 @@ export const fallbackContent: ContentPayload = {
       id: "blog_2",
       slug: "ritual-nocturno-con-velas",
       titulo: "Ritual nocturno de 10 minutos para cerrar el día",
+      autor: "",
       extracto: "Un hábito breve para desconectar del ruido y descansar mejor.",
       contenido:
         "Apaga pantallas, enciende una vela de perfil cálido, respira profundo por 2 minutos y escribe tres cosas por agradecer. Esta secuencia ayuda a preparar mente y cuerpo para el descanso.",

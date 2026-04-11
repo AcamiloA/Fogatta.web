@@ -71,7 +71,7 @@ function toDetailDTO(product: {
     nombreVariante: string;
     sku: string;
     stockVirtual: number;
-    precioDelta: number;
+    precio: number;
   }[];
 }): ProductDetailDTO {
   return productDetailSchema.parse({

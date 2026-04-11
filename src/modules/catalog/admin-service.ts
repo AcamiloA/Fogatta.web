@@ -2,6 +2,27 @@ import { prisma } from "@/lib/db";
 import { logError } from "@/lib/logger";
 import { ProductDetailDTO, productDetailSchema } from "@/modules/catalog/contracts";
 
+export class CategoryNotFoundError extends Error {
+  constructor() {
+    super("Categoría no encontrada.");
+    this.name = "CategoryNotFoundError";
+  }
+}
+
+export class CategoryInUseError extends Error {
+  readonly productsCount: number;
+
+  constructor(productsCount: number) {
+    super(
+      productsCount === 1
+        ? "No se puede eliminar la categoría porque tiene 1 producto asociado."
+        : `No se puede eliminar la categoría porque tiene ${productsCount} productos asociados.`,
+    );
+    this.name = "CategoryInUseError";
+    this.productsCount = productsCount;
+  }
+}
+
 function ensurePrisma() {
   if (!prisma) {
     throw new Error("DATABASE_URL is not configured");
@@ -32,7 +53,7 @@ function toDetailDTO(product: {
     nombreVariante: string;
     sku: string;
     stockVirtual: number;
-    precioDelta: number;
+    precio: number;
   }[];
 }): ProductDetailDTO {
   return productDetailSchema.parse({
@@ -98,12 +119,39 @@ export class AdminCatalogService {
     });
   }
 
+  async deleteCategory(id: string) {
+    const db = ensurePrisma();
+    const category = await db.category.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        _count: {
+          select: {
+            productos: true,
+          },
+        },
+      },
+    });
+
+    if (!category) {
+      throw new CategoryNotFoundError();
+    }
+
+    const productsCount = category._count.productos;
+    if (productsCount > 0) {
+      throw new CategoryInUseError(productsCount);
+    }
+
+    return db.category.delete({
+      where: { id },
+    });
+  }
+
   async createProduct(input: {
     slug: string;
     nombre: string;
     descripcion: string;
-    precioReferencia: number;
-    imagenUrl: string;
+    imagenes: string[];
     activo: boolean;
     categoryId: string;
   }) {
@@ -113,8 +161,8 @@ export class AdminCatalogService {
         slug: input.slug.trim(),
         nombre: input.nombre.trim(),
         descripcion: input.descripcion.trim(),
-        precioReferencia: input.precioReferencia,
-        imagenes: [input.imagenUrl.trim()],
+        precioReferencia: 0,
+        imagenes: input.imagenes.map((image) => image.trim()).filter(Boolean),
         activo: input.activo,
         categoryId: input.categoryId,
       },
@@ -127,8 +175,7 @@ export class AdminCatalogService {
       slug?: string;
       nombre?: string;
       descripcion?: string;
-      precioReferencia?: number;
-      imagenUrl?: string;
+      imagenes?: string[];
       activo?: boolean;
       categoryId?: string;
     },
@@ -139,7 +186,6 @@ export class AdminCatalogService {
       slug?: string;
       nombre?: string;
       descripcion?: string;
-      precioReferencia?: number;
       imagenes?: string[];
       activo?: boolean;
       categoryId?: string;
@@ -148,14 +194,31 @@ export class AdminCatalogService {
     if (input.slug !== undefined) data.slug = input.slug.trim();
     if (input.nombre !== undefined) data.nombre = input.nombre.trim();
     if (input.descripcion !== undefined) data.descripcion = input.descripcion.trim();
-    if (input.precioReferencia !== undefined) data.precioReferencia = input.precioReferencia;
-    if (input.imagenUrl !== undefined) data.imagenes = [input.imagenUrl.trim()];
+    if (input.imagenes !== undefined) {
+      data.imagenes = input.imagenes.map((image) => image.trim()).filter(Boolean);
+    }
     if (input.activo !== undefined) data.activo = input.activo;
     if (input.categoryId !== undefined) data.categoryId = input.categoryId;
 
     return db.product.update({
       where: { id },
       data,
+    });
+  }
+
+  private async syncProductReferencePrice(productId: string) {
+    const db = ensurePrisma();
+    const variants = await db.variant.findMany({
+      where: { productId },
+      select: { precio: true },
+      orderBy: { precio: "asc" },
+      take: 1,
+    });
+
+    const minPrice = variants[0]?.precio ?? 0;
+    await db.product.update({
+      where: { id: productId },
+      data: { precioReferencia: minPrice },
     });
   }
 
@@ -171,18 +234,20 @@ export class AdminCatalogService {
     nombreVariante: string;
     sku: string;
     stockVirtual: number;
-    precioDelta: number;
+    precio: number;
   }) {
     const db = ensurePrisma();
-    return db.variant.create({
+    const created = await db.variant.create({
       data: {
         productId: input.productId,
         nombreVariante: input.nombreVariante.trim(),
         sku: input.sku.trim(),
         stockVirtual: input.stockVirtual,
-        precioDelta: input.precioDelta,
+        precio: input.precio,
       },
     });
+    await this.syncProductReferencePrice(input.productId);
+    return created;
   }
 
   async updateVariant(
@@ -191,7 +256,7 @@ export class AdminCatalogService {
       nombreVariante?: string;
       sku?: string;
       stockVirtual?: number;
-      precioDelta?: number;
+      precio?: number;
     },
   ) {
     const db = ensurePrisma();
@@ -200,25 +265,29 @@ export class AdminCatalogService {
       nombreVariante?: string;
       sku?: string;
       stockVirtual?: number;
-      precioDelta?: number;
+      precio?: number;
     } = {};
 
     if (input.nombreVariante !== undefined) data.nombreVariante = input.nombreVariante.trim();
     if (input.sku !== undefined) data.sku = input.sku.trim();
     if (input.stockVirtual !== undefined) data.stockVirtual = input.stockVirtual;
-    if (input.precioDelta !== undefined) data.precioDelta = input.precioDelta;
+    if (input.precio !== undefined) data.precio = input.precio;
 
-    return db.variant.update({
+    const updated = await db.variant.update({
       where: { id },
       data,
     });
+    await this.syncProductReferencePrice(updated.productId);
+    return updated;
   }
 
   async deleteVariant(id: string) {
     const db = ensurePrisma();
-    return db.variant.delete({
+    const deleted = await db.variant.delete({
       where: { id },
     });
+    await this.syncProductReferencePrice(deleted.productId);
+    return deleted;
   }
 
   isConfigured() {

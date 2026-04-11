@@ -3,6 +3,10 @@ import { ZodError } from "zod";
 
 import { logError } from "@/lib/logger";
 import { createLeadInputSchema } from "@/modules/leads/contracts";
+import {
+  LeadEmailConfigurationError,
+  LeadEmailSendError,
+} from "@/modules/leads/email-notifier";
 import { LeadsService } from "@/modules/leads/service";
 
 export async function POST(request: Request) {
@@ -17,6 +21,12 @@ export async function POST(request: Request) {
         { error: "Datos inválidos en formulario.", details: error.flatten() },
         { status: 400 },
       );
+    }
+    if (error instanceof LeadEmailConfigurationError) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+    if (error instanceof LeadEmailSendError) {
+      return NextResponse.json({ error: error.message }, { status: 502 });
     }
 
     logError("api_create_lead_failed", { error });

@@ -38,7 +38,7 @@ model Variant {
   nombreVariante String
   sku           String   @unique
   stockVirtual  Int      @default(0)
-  precioDelta   Int      @default(0)
+  precio        Int      @default(0) @map("precioDelta")
   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -81,4 +81,17 @@ model ContactLead {
   ciudad      String?
   source      String?
   createdAt   DateTime @default(now())
+}
+
+model BlogPost {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  titulo          String
+  autor           String
+  extracto        String
+  contenido       String
+  imagen          String
+  fechaPublicacion DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

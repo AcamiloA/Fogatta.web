@@ -17,8 +17,7 @@ export const createProductInputSchema = z.object({
   slug: z.string().min(2).max(120),
   nombre: z.string().min(2).max(160),
   descripcion: z.string().min(5).max(1000),
-  precioReferencia: z.number().int().nonnegative(),
-  imagenUrl: z.string().min(1),
+  imagenes: z.array(z.string().min(1)).min(1).max(8),
   activo: z.boolean().default(true),
   categoryId: z.string().min(2),
 });
@@ -32,7 +31,7 @@ export const createVariantInputSchema = z.object({
   nombreVariante: z.string().min(2).max(80),
   sku: z.string().min(2).max(80),
   stockVirtual: z.number().int().nonnegative(),
-  precioDelta: z.number().int(),
+  precio: z.number().int().nonnegative(),
 });
 
 export const updateVariantInputSchema = z
@@ -41,7 +40,7 @@ export const updateVariantInputSchema = z
     nombreVariante: z.string().min(2).max(80).optional(),
     sku: z.string().min(2).max(80).optional(),
     stockVirtual: z.number().int().nonnegative().optional(),
-    precioDelta: z.number().int().optional(),
+    precio: z.number().int().nonnegative().optional(),
   })
   .refine(
     (value) =>
@@ -49,7 +48,7 @@ export const updateVariantInputSchema = z
         value.nombreVariante !== undefined ||
           value.sku !== undefined ||
           value.stockVirtual !== undefined ||
-          value.precioDelta !== undefined,
+          value.precio !== undefined,
       ),
     {
       message: "No hay campos para actualizar.",

@@ -21,6 +21,7 @@ export default async function BlogPostPage({ params }: Props) {
       <p className="mt-4 text-lg text-[var(--fg-muted)]">{post.extracto}</p>
       <div className="mt-8 rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface-2)] p-6">
         <p className="leading-8 text-[var(--fg-muted)]">{post.contenido}</p>
+        <p className="mt-6 text-left text-sm text-[var(--fg-soft)]">Escrito por: {post.autor}</p>
       </div>
     </article>
   );

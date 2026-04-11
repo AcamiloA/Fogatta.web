@@ -13,7 +13,7 @@ export const variantSchema = z.object({
   nombreVariante: z.string(),
   sku: z.string(),
   stockVirtual: z.number().int(),
-  precioDelta: z.number().int(),
+  precio: z.number().int(),
 });
 
 export const productSummarySchema = z.object({

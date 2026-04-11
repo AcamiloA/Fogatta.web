@@ -1,6 +1,14 @@
+import { prisma } from "@/lib/db";
 import { logError } from "@/lib/logger";
-import { ContentPayload, contentPayloadSchema } from "@/modules/content/contracts";
+import { blogPostSchema, ContentPayload, contentPayloadSchema } from "@/modules/content/contracts";
 import { fallbackContent } from "@/modules/content/seed-data";
+
+function isMissingBlogTableError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  return "code" in error && (error as { code?: string }).code === "P2021";
+}
 
 async function fetchCMSContent(): Promise<ContentPayload | null> {
   const cmsBaseUrl = process.env.HEADLESS_CMS_BASE_URL;
@@ -43,11 +51,61 @@ export class ContentService {
   }
 
   async getBlogPosts() {
+    if (prisma) {
+      try {
+        const dbPosts = await prisma.blogPost.findMany({
+          orderBy: [{ fechaPublicacion: "desc" }, { createdAt: "desc" }],
+        });
+        if (dbPosts.length > 0) {
+          return dbPosts.map((post) =>
+            blogPostSchema.parse({
+              id: post.id,
+              slug: post.slug,
+              titulo: post.titulo,
+              autor: post.autor,
+              extracto: post.extracto,
+              contenido: post.contenido,
+              imagen: post.imagen,
+              fechaPublicacion: post.fechaPublicacion.toISOString().slice(0, 10),
+            }),
+          );
+        }
+      } catch (error) {
+        if (!isMissingBlogTableError(error)) {
+          logError("blog_posts_db_fetch_failed", { error });
+        }
+      }
+    }
+
     const content = await this.getContent();
     return [...content.blog].sort((a, b) => b.fechaPublicacion.localeCompare(a.fechaPublicacion));
   }
 
   async getBlogPostBySlug(slug: string) {
+    if (prisma) {
+      try {
+        const post = await prisma.blogPost.findUnique({
+          where: { slug },
+        });
+        if (post) {
+          return blogPostSchema.parse({
+            id: post.id,
+            slug: post.slug,
+            titulo: post.titulo,
+            autor: post.autor,
+            extracto: post.extracto,
+            contenido: post.contenido,
+            imagen: post.imagen,
+            fechaPublicacion: post.fechaPublicacion.toISOString().slice(0, 10),
+          });
+        }
+      } catch (error) {
+        if (!isMissingBlogTableError(error)) {
+          logError("blog_post_db_fetch_by_slug_failed", { error, slug });
+        }
+      }
+    }
+
     const posts = await this.getBlogPosts();
     return posts.find((post) => post.slug === slug) ?? null;
   }

@@ -20,6 +20,7 @@ export default async function BlogPage() {
           <article key={post.id} className="rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface-2)] p-5">
             <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">{post.fechaPublicacion}</p>
             <h2 className="mt-2 text-2xl text-[var(--fg-strong)]">{post.titulo}</h2>
+            {post.autor.trim() ? <p className="mt-1 text-sm text-[var(--fg-muted)]">Por {post.autor}</p> : null}
             <p className="mt-3 text-[var(--fg-muted)]">{post.extracto}</p>
             <Link
               href={`/blog/${post.slug}`}

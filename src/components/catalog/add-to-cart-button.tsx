@@ -22,7 +22,7 @@ export function AddToCartButton({ product }: Props) {
     [product.variantes, variantId],
   );
 
-  const unitPrice = product.precioReferencia + (selectedVariant?.precioDelta ?? 0);
+  const unitPrice = selectedVariant?.precio ?? product.precioReferencia;
 
   function handleAdd() {
     if (!selectedVariant) {
@@ -57,8 +57,7 @@ export function AddToCartButton({ product }: Props) {
           >
             {product.variantes.map((variant) => (
               <option key={variant.id} value={variant.id}>
-                {variant.nombreVariante}
-                {variant.precioDelta > 0 ? ` (+${formatCOP(variant.precioDelta)})` : ""}
+                {variant.nombreVariante} - {formatCOP(variant.precio)}
               </option>
             ))}
           </select>

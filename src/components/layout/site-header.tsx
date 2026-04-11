@@ -1,8 +1,8 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 
 import { navLinks } from "@/config/site";
@@ -19,7 +19,6 @@ const ThemeToggle = dynamic(
         aria-label="Cambiar tema"
         title="Cambiar tema"
       >
-        <span aria-hidden>◐</span>
         <span>Tema</span>
       </button>
     ),
@@ -32,13 +31,9 @@ export function SiteHeader() {
   const { totalItems } = useCart();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border)]/25 bg-[var(--bg)]/90 backdrop-blur-sm">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-4">
-        <Link
-          href="/"
-          className="inline-flex items-center"
-          aria-label="Fogatta inicio"
-        >
+    <header className="sticky top-0 z-30 bg-[var(--bg-overlay)] backdrop-blur-sm">
+      <div className="mx-auto flex h-[var(--header-height)] w-full max-w-6xl items-center justify-between px-5">
+        <Link href="/" className="inline-flex items-center" aria-label="Fogatta inicio">
           <Image
             src="/brand/flame.png"
             alt="Fogatta"
@@ -62,7 +57,9 @@ export function SiteHeader() {
                 key={item.href}
                 href={item.href}
                 className={`text-sm transition-colors ${
-                  active ? "text-[var(--accent-soft)]" : "text-[var(--fg-muted)] hover:text-[var(--fg-strong)]"
+                  active
+                    ? "text-[var(--accent-soft)]"
+                    : "text-[var(--fg-muted)] hover:text-[var(--fg-strong)]"
                 }`}
               >
                 {item.label}

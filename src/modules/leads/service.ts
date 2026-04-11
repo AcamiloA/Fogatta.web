@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { logError, logInfo } from "@/lib/logger";
 import { CreateLeadInput, createLeadResponseSchema } from "@/modules/leads/contracts";
+import { sendLeadNotificationEmail } from "@/modules/leads/email-notifier";
 
 export class LeadsService {
   async createLead(input: CreateLeadInput) {
@@ -18,6 +19,7 @@ export class LeadsService {
             source: "web_contacto",
           },
         });
+        await sendLeadNotificationEmail(created.id, input);
 
         return createLeadResponseSchema.parse({
           ok: true,
@@ -27,6 +29,7 @@ export class LeadsService {
 
       const offlineId = randomUUID();
       logInfo("lead_received_without_database", { offlineId, input });
+      await sendLeadNotificationEmail(offlineId, input);
 
       return createLeadResponseSchema.parse({
         ok: true,

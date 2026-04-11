@@ -26,8 +26,11 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   icons: {
-    icon: "/brand/flame.png",
-    shortcut: "/brand/flame.png",
+    icon: [
+      { url: "/brand/favicon.ico", type: "image/x-icon" },
+      { url: "/brand/flame.png", type: "image/png" },
+    ],
+    shortcut: "/brand/favicon.ico",
     apple: "/brand/flame.png",
   },
 };
@@ -49,7 +52,12 @@ export default function RootLayout({
         <GAScript />
         <AppProviders>
           <SiteHeader />
-          <main className="flex-1">{children}</main>
+          <main
+            className="flex-1"
+            style={{ minHeight: "calc(100vh - var(--header-height) + 1px)" }}
+          >
+            {children}
+          </main>
           <SiteFooter />
         </AppProviders>
       </body>
