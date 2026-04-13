@@ -7,6 +7,7 @@ import { ThemePreset } from "@/config/theme";
 
 type ThemeContextValue = {
   theme: ThemePreset;
+  canToggle: boolean;
   toggleTheme: () => void;
 };
 
@@ -19,35 +20,42 @@ function getInitialTheme(): ThemePreset {
     return siteConfig.themePreset;
   }
 
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored === "warm" || stored === "night") {
-    return stored;
-  }
-
   const bodyTheme = document.body.getAttribute("data-theme");
   if (bodyTheme === "warm" || bodyTheme === "night") {
     return bodyTheme;
   }
 
-  return siteConfig.themePreset;
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  if (stored === "warm" || stored === "night") {
+    return stored;
+  }
+
+  return siteConfig.themePreset === "night" ? "night" : "warm";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<ThemePreset>(() => getInitialTheme());
+  const canToggle = true;
 
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
-    window.localStorage.setItem(STORAGE_KEY, theme);
+    if (theme === "warm" || theme === "night") {
+      window.localStorage.setItem(STORAGE_KEY, theme);
+    }
   }, [theme]);
 
   const value = useMemo<ThemeContextValue>(
     () => ({
       theme,
+      canToggle,
       toggleTheme: () => {
+        if (!canToggle) {
+          return;
+        }
         setTheme((current) => (current === "warm" ? "night" : "warm"));
       },
     }),
-    [theme],
+    [canToggle, theme],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

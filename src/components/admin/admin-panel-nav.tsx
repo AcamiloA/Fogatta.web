@@ -21,6 +21,11 @@ const navItems: AdminNavItem[] = [
     helper: "Categorias, productos y variantes",
   },
   {
+    href: "/admin/inventario",
+    label: "Inventario",
+    helper: "Stock disponible y alertas por variante",
+  },
+  {
     href: "/admin/contenido",
     label: "Contenido",
     helper: "Textos, FAQ y blog",
@@ -44,7 +49,7 @@ export function AdminPanelNav() {
 
   return (
     <nav aria-label="Navegacion de administracion" className="mb-6">
-      <ul className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+      <ul className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
         {navItems.map((item) => {
           const active = isItemActive(pathname, item.href);
           return (

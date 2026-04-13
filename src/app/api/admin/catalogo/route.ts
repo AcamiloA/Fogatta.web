@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { isAdminRequestAuthenticated } from "@/modules/admin/session";
 import { adminCatalogResponseSchema } from "@/modules/catalog/admin-contracts";
 import { AdminCatalogService } from "@/modules/catalog/admin-service";
+import { isInventoryRequestAuthenticated } from "@/modules/inventory/auth";
 
 function unauthorized() {
   return NextResponse.json({ error: "No autorizado." }, { status: 401 });
 }
 
 export async function GET(request: NextRequest) {
-  if (!isAdminRequestAuthenticated(request)) {
+  if (!isInventoryRequestAuthenticated(request)) {
     return unauthorized();
   }
 

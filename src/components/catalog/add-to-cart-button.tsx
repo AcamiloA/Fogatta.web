@@ -12,6 +12,14 @@ type Props = {
   product: ProductDetailDTO;
 };
 
+function getDiscountedPrice(variant: ProductDetailDTO["variantes"][number]) {
+  if (!variant.descuentoActivo) {
+    return variant.precio;
+  }
+  const safePercentage = Math.min(Math.max(variant.descuentoPorcentaje, 0), 100);
+  return Math.max(Math.round((variant.precio * (100 - safePercentage)) / 100), 0);
+}
+
 export function AddToCartButton({ product }: Props) {
   const { addItem } = useCart();
   const [variantId, setVariantId] = useState(product.variantes[0]?.id ?? "");
@@ -22,12 +30,20 @@ export function AddToCartButton({ product }: Props) {
     [product.variantes, variantId],
   );
 
-  const unitPrice = selectedVariant?.precio ?? product.precioReferencia;
+  const unitPrice = selectedVariant ? getDiscountedPrice(selectedVariant) : product.precioReferencia;
+  const selectedStock = selectedVariant
+    ? (selectedVariant.stockDisponible ?? selectedVariant.stockVirtual)
+    : 0;
 
   function handleAdd() {
     if (!selectedVariant) {
       return;
     }
+    if (selectedStock <= 0) {
+      return;
+    }
+
+    const safeQuantity = Math.min(Math.max(quantity, 1), selectedStock);
 
     addItem({
       productId: product.id,
@@ -36,12 +52,14 @@ export function AddToCartButton({ product }: Props) {
       nombreProducto: product.nombre,
       nombreVariante: selectedVariant.nombreVariante,
       precioUnitario: unitPrice,
-      cantidad: quantity,
+      cantidad: safeQuantity,
     });
 
-    trackEvent(analyticsEvents.viewProduct, {
+    trackEvent(analyticsEvents.addToCart, {
       item_name: product.nombre,
       item_variant: selectedVariant.nombreVariante,
+      value: unitPrice,
+      quantity: safeQuantity,
     });
   }
 
@@ -57,7 +75,8 @@ export function AddToCartButton({ product }: Props) {
           >
             {product.variantes.map((variant) => (
               <option key={variant.id} value={variant.id}>
-                {variant.nombreVariante} - {formatCOP(variant.precio)}
+                {variant.nombreVariante} - {formatCOP(getDiscountedPrice(variant))}
+                {variant.descuentoActivo ? ` (${variant.descuentoPorcentaje}% OFF)` : ""}
               </option>
             ))}
           </select>
@@ -70,20 +89,38 @@ export function AddToCartButton({ product }: Props) {
             min={1}
             value={quantity}
             onChange={(event) => setQuantity(Math.max(1, Number(event.target.value)))}
+            max={selectedStock > 0 ? selectedStock : undefined}
             className="w-24 rounded-lg border border-[var(--input-border)] bg-[var(--card)] px-2 py-2"
           />
         </label>
 
         <p className="text-sm text-[var(--ink-muted)]">
-          Precio por unidad: <strong>{formatCOP(unitPrice)}</strong>
+          Precio por unidad:{" "}
+          {selectedVariant?.descuentoActivo ? (
+            <span className="inline-flex items-center gap-2">
+              <strong>{formatCOP(unitPrice)}</strong>
+              <span className="rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-xs font-semibold text-[var(--accent)]">
+                {selectedVariant.descuentoPorcentaje}% OFF
+              </span>
+              <span className="font-medium text-rose-600 line-through">{formatCOP(selectedVariant.precio)}</span>
+            </span>
+          ) : (
+            <strong>{formatCOP(unitPrice)}</strong>
+          )}
         </p>
+        {selectedVariant ? (
+          <p className="text-xs text-[var(--ink-soft)]">
+            Stock disponible: <strong>{selectedStock}</strong>
+          </p>
+        ) : null}
       </div>
       <button
         type="button"
         onClick={handleAdd}
-        className="mt-4 w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--accent-contrast)] transition hover:bg-[var(--accent-hover)]"
+        disabled={!selectedVariant || selectedStock <= 0}
+        className="mt-4 w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--accent-contrast)] transition hover:bg-[var(--accent-hover)] disabled:bg-[var(--accent-disabled)]"
       >
-        Agregar al carrito
+        {selectedVariant && selectedStock <= 0 ? "Sin stock disponible" : "Agregar al carrito"}
       </button>
     </div>
   );

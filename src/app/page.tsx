@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { FeaturedCarousel } from "@/components/catalog/featured-carousel";
 import { homeCatalogConfig, siteConfig } from "@/config/site";
 import { buildHomeCatalogSections } from "@/modules/catalog/home-sections";
@@ -24,9 +25,11 @@ export default async function Home() {
       <section className="hero-gradient overflow-hidden rounded-3xl border border-[var(--accent)]/40 p-8 md:p-12">
         <p className="text-sm uppercase tracking-[0.25em] text-[var(--accent-soft)]">Artesanal premium</p>
         <h1 className="mt-4 max-w-2xl text-4xl leading-tight text-[var(--fg-strong)] md:text-6xl">
-          Velas que convierten cada noche en un ritual con presencia.
+          {content.hero.titulo}
         </h1>
-        <p className="mt-5 max-w-2xl text-base text-[var(--fg-muted)] md:text-lg">{siteConfig.description}</p>
+        <p className="mt-5 max-w-2xl text-base text-[var(--fg-muted)] md:text-lg">
+          {content.hero.descripcion || siteConfig.description}
+        </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/catalogo"
@@ -42,22 +45,35 @@ export default async function Home() {
           </Link>
           <Link
             href="/admin/login"
-            className="rounded-full border border-[var(--border)] px-6 py-3 text-sm font-medium text-[var(--fg-muted)] transition hover:text-[var(--fg-strong)]"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)]/65 bg-[var(--surface-2)]/65 text-[var(--fg-muted)] transition hover:border-[var(--accent)]/45 hover:text-[var(--fg-strong)]"
+            aria-label="Ingreso interno"
+            title="Ingreso interno"
           >
-            Acceso admin
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="4" />
+              <path d="M5 20a7 7 0 0 1 14 0" />
+            </svg>
           </Link>
         </div>
       </section>
 
       <section className="mt-14">
-        <div className="mb-6 flex items-end justify-between">
-          <div>
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
             <h2 className="text-3xl text-[var(--fg-strong)]">Lo nuevo</h2>
             <p className="mt-1 text-sm text-[var(--fg-muted)]">
               Productos creados o actualizados recientemente.
             </p>
           </div>
-          <Link href="/catalogo" className="text-sm text-[var(--fg-muted)] hover:text-[var(--fg-strong)]">
+          <Link href="/catalogo" className="self-start text-sm text-[var(--fg-muted)] hover:text-[var(--fg-strong)] sm:self-auto">
             Ver todo
           </Link>
         </div>
@@ -71,14 +87,16 @@ export default async function Home() {
       </section>
 
       <section className="mt-14">
-        <div className="mb-6 flex items-end justify-between">
-          <div>
-            <h2 className="text-3xl text-[var(--fg-strong)]">Selección Fogatta</h2>
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-3xl text-[var(--fg-strong)]">
+              Selección <BrandWordmark />
+            </h2>
             <p className="mt-1 text-sm text-[var(--fg-muted)]">
               Rotación automática con {homeCatalogConfig.selectionSize} productos destacados.
             </p>
           </div>
-          <Link href="/catalogo" className="text-sm text-[var(--fg-muted)] hover:text-[var(--fg-strong)]">
+          <Link href="/catalogo" className="self-start text-sm text-[var(--fg-muted)] hover:text-[var(--fg-strong)] sm:self-auto">
             Ver todo
           </Link>
         </div>

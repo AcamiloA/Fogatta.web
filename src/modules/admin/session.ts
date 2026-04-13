@@ -4,23 +4,38 @@ import { NextRequest } from "next/server";
 
 import { ADMIN_SESSION_COOKIE, verifyAdminSessionToken } from "@/modules/admin/auth";
 
-export async function isAdminAuthenticated() {
+type SessionPayload = NonNullable<ReturnType<typeof verifyAdminSessionToken>>;
+
+export async function getAdminSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
-  return Boolean(verifyAdminSessionToken(token));
+  return verifyAdminSessionToken(token);
+}
+
+export async function isAdminAuthenticated() {
+  return Boolean(await getAdminSession());
 }
 
 export async function requireAdminAuthentication() {
-  const isAuthenticated = await isAdminAuthenticated();
-  if (!isAuthenticated) {
+  if (!(await isAdminAuthenticated())) {
     redirect("/admin/login");
   }
 }
 
-export function isAdminRequestAuthenticated(request: NextRequest | Request) {
+export async function requireAdminRole() {
+  const session = await getAdminSession();
+  if (!session) {
+    redirect("/admin/login");
+  }
+  if (session.role !== "admin") {
+    redirect("/admin");
+  }
+}
+
+export function getAdminRequestSession(request: NextRequest | Request): SessionPayload | null {
   const rawCookie = request.headers.get("cookie");
   if (!rawCookie) {
-    return false;
+    return null;
   }
 
   const found = rawCookie
@@ -29,9 +44,24 @@ export function isAdminRequestAuthenticated(request: NextRequest | Request) {
     .find((entry) => entry.startsWith(`${ADMIN_SESSION_COOKIE}=`));
 
   if (!found) {
-    return false;
+    return null;
   }
 
   const token = found.split("=").slice(1).join("=");
-  return Boolean(verifyAdminSessionToken(token));
+  return verifyAdminSessionToken(token);
+}
+
+export function isAdminRequestAuthenticated(request: NextRequest | Request) {
+  return Boolean(getAdminRequestSession(request));
+}
+
+export function isAdminRequestWithRole(
+  request: NextRequest | Request,
+  roles: Array<"admin" | "editor">,
+) {
+  const session = getAdminRequestSession(request);
+  if (!session) {
+    return false;
+  }
+  return roles.includes(session.role);
 }

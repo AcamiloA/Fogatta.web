@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 
+import { BlogComments } from "@/components/blog/blog-comments";
+import { BlogCommentsService } from "@/modules/blog/comments-service";
 import { ContentService } from "@/modules/content/service";
 
 type Props = {
@@ -8,7 +10,10 @@ type Props = {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
-  const post = await new ContentService().getBlogPostBySlug(slug);
+  const [post, comments] = await Promise.all([
+    new ContentService().getBlogPostBySlug(slug),
+    new BlogCommentsService().listByPostSlug(slug),
+  ]);
 
   if (!post) {
     notFound();
@@ -23,6 +28,7 @@ export default async function BlogPostPage({ params }: Props) {
         <p className="leading-8 text-[var(--fg-muted)]">{post.contenido}</p>
         <p className="mt-6 text-left text-sm text-[var(--fg-soft)]">Escrito por: {post.autor}</p>
       </div>
+      <BlogComments slug={slug} initialComments={comments} />
     </article>
   );
 }

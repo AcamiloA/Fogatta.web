@@ -12,6 +12,12 @@ const sections = [
     cta: "Ir a Catalogo",
   },
   {
+    title: "Inventario",
+    description: "Controla stock por producto y variante, con foco en disponibilidad real.",
+    href: "/admin/inventario",
+    cta: "Ir a Inventario",
+  },
+  {
     title: "Contenido",
     description: "Administra textos del sitio, FAQ y articulos del blog.",
     href: "/admin/contenido",
@@ -33,7 +39,7 @@ export default function AdminHomePage() {
         Este es el punto principal de administracion. Desde aqui puedes ir a cada configuracion.
       </p>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {sections.map((section) => (
           <article
             key={section.href}

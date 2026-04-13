@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { logError } from "@/lib/logger";
 import { ProductDetailDTO, productDetailSchema } from "@/modules/catalog/contracts";
+import { sendLowStockVariantNotificationEmail } from "@/modules/catalog/stock-alert-email-notifier";
+import { expirePendingReservations } from "@/modules/checkout-whatsapp/reservation-expiration";
 
 export class CategoryNotFoundError extends Error {
   constructor() {
@@ -30,6 +32,18 @@ function ensurePrisma() {
   return prisma;
 }
 
+function getEffectiveVariantPrice(variant: {
+  precio: number;
+  descuentoActivo: boolean;
+  descuentoPorcentaje: number;
+}) {
+  if (!variant.descuentoActivo) {
+    return variant.precio;
+  }
+  const safePercentage = Math.min(Math.max(variant.descuentoPorcentaje, 0), 100);
+  return Math.max(Math.round((variant.precio * (100 - safePercentage)) / 100), 0);
+}
+
 function toDetailDTO(product: {
   id: string;
   slug: string;
@@ -53,7 +67,12 @@ function toDetailDTO(product: {
     nombreVariante: string;
     sku: string;
     stockVirtual: number;
+    stockDisponible?: number;
+    stockMinimoAlerta: number;
     precio: number;
+    imagenes: string[];
+    descuentoActivo: boolean;
+    descuentoPorcentaje: number;
   }[];
 }): ProductDetailDTO {
   return productDetailSchema.parse({
@@ -75,6 +94,7 @@ function toDetailDTO(product: {
 export class AdminCatalogService {
   async listCatalog() {
     const db = ensurePrisma();
+    await expirePendingReservations(db, { olderThanHours: 24 });
 
     const [categories, products] = await Promise.all([
       db.category.findMany({
@@ -97,6 +117,28 @@ export class AdminCatalogService {
       }),
     ]);
 
+    const variantIds = products.flatMap((product) => product.variantes.map((variant) => variant.id));
+    const pendingByVariant = new Map<string, number>();
+
+    if (variantIds.length > 0) {
+      const grouped = await db.stockReservation.groupBy({
+        by: ["variantId"],
+        where: {
+          status: "pending",
+          variantId: {
+            in: variantIds,
+          },
+        },
+        _sum: {
+          cantidad: true,
+        },
+      });
+
+      for (const row of grouped) {
+        pendingByVariant.set(row.variantId, row._sum.cantidad ?? 0);
+      }
+    }
+
     return {
       categories: categories.map((category) => ({
         id: category.id,
@@ -104,7 +146,18 @@ export class AdminCatalogService {
         nombre: category.nombre,
         descripcion: category.descripcion,
       })),
-      products: products.map(toDetailDTO),
+      products: products.map((product) =>
+        toDetailDTO({
+          ...product,
+          variantes: product.variantes.map((variant) => {
+            const pendingReserved = pendingByVariant.get(variant.id) ?? 0;
+            return {
+              ...variant,
+              stockDisponible: Math.max(variant.stockVirtual - pendingReserved, 0),
+            };
+          }),
+        }),
+      ),
     };
   }
 
@@ -210,16 +263,67 @@ export class AdminCatalogService {
     const db = ensurePrisma();
     const variants = await db.variant.findMany({
       where: { productId },
-      select: { precio: true },
-      orderBy: { precio: "asc" },
-      take: 1,
+      select: {
+        precio: true,
+        descuentoActivo: true,
+        descuentoPorcentaje: true,
+      },
     });
-
-    const minPrice = variants[0]?.precio ?? 0;
+    const minPrice =
+      variants.length > 0 ? Math.min(...variants.map((variant) => getEffectiveVariantPrice(variant))) : 0;
     await db.product.update({
       where: { id: productId },
       data: { precioReferencia: minPrice },
     });
+  }
+
+  private isLowStock(stockVirtual: number, stockMinimoAlerta: number) {
+    return stockMinimoAlerta > 0 && stockVirtual <= stockMinimoAlerta;
+  }
+
+  private async notifyLowStock(variantId: string) {
+    const db = ensurePrisma();
+    const variant = await db.variant.findUnique({
+      where: { id: variantId },
+      select: {
+        id: true,
+        productId: true,
+        nombreVariante: true,
+        sku: true,
+        stockVirtual: true,
+        stockMinimoAlerta: true,
+        product: {
+          select: {
+            nombre: true,
+          },
+        },
+      },
+    });
+
+    if (!variant) {
+      return;
+    }
+
+    if (!this.isLowStock(variant.stockVirtual, variant.stockMinimoAlerta)) {
+      return;
+    }
+
+    try {
+      await sendLowStockVariantNotificationEmail({
+        productId: variant.productId,
+        productNombre: variant.product.nombre,
+        variantId: variant.id,
+        nombreVariante: variant.nombreVariante,
+        sku: variant.sku,
+        stockVirtual: variant.stockVirtual,
+        stockMinimoAlerta: variant.stockMinimoAlerta,
+      });
+    } catch (error) {
+      logError("stock_low_notification_failed", {
+        error,
+        variantId,
+      });
+    }
   }
 
   async deleteProduct(id: string) {
@@ -234,19 +338,33 @@ export class AdminCatalogService {
     nombreVariante: string;
     sku: string;
     stockVirtual: number;
+    stockMinimoAlerta: number;
     precio: number;
+    imagenes: string[];
+    descuentoActivo: boolean;
+    descuentoPorcentaje: number;
   }) {
     const db = ensurePrisma();
+    if (input.descuentoActivo && (input.descuentoPorcentaje < 1 || input.descuentoPorcentaje > 100)) {
+      throw new Error("El porcentaje de descuento debe estar entre 1 y 100.");
+    }
     const created = await db.variant.create({
       data: {
         productId: input.productId,
         nombreVariante: input.nombreVariante.trim(),
         sku: input.sku.trim(),
         stockVirtual: input.stockVirtual,
+        stockMinimoAlerta: input.stockMinimoAlerta,
         precio: input.precio,
+        imagenes: input.imagenes.map((image) => image.trim()).filter(Boolean).slice(0, 3),
+        descuentoActivo: input.descuentoActivo,
+        descuentoPorcentaje: input.descuentoActivo ? input.descuentoPorcentaje : 0,
       },
     });
     await this.syncProductReferencePrice(input.productId);
+    if (this.isLowStock(created.stockVirtual, created.stockMinimoAlerta)) {
+      await this.notifyLowStock(created.id);
+    }
     return created;
   }
 
@@ -256,7 +374,11 @@ export class AdminCatalogService {
       nombreVariante?: string;
       sku?: string;
       stockVirtual?: number;
+      stockMinimoAlerta?: number;
       precio?: number;
+      imagenes?: string[];
+      descuentoActivo?: boolean;
+      descuentoPorcentaje?: number;
     },
   ) {
     const db = ensurePrisma();
@@ -265,19 +387,66 @@ export class AdminCatalogService {
       nombreVariante?: string;
       sku?: string;
       stockVirtual?: number;
+      stockMinimoAlerta?: number;
       precio?: number;
+      imagenes?: string[];
+      descuentoActivo?: boolean;
+      descuentoPorcentaje?: number;
     } = {};
 
     if (input.nombreVariante !== undefined) data.nombreVariante = input.nombreVariante.trim();
     if (input.sku !== undefined) data.sku = input.sku.trim();
     if (input.stockVirtual !== undefined) data.stockVirtual = input.stockVirtual;
+    if (input.stockMinimoAlerta !== undefined) data.stockMinimoAlerta = input.stockMinimoAlerta;
     if (input.precio !== undefined) data.precio = input.precio;
+    if (input.imagenes !== undefined) {
+      data.imagenes = input.imagenes.map((image) => image.trim()).filter(Boolean).slice(0, 3);
+    }
+    if (input.descuentoActivo !== undefined) data.descuentoActivo = input.descuentoActivo;
+    if (input.descuentoPorcentaje !== undefined) data.descuentoPorcentaje = input.descuentoPorcentaje;
+
+    const current = await db.variant.findUnique({
+      where: { id },
+      select: {
+        stockVirtual: true,
+        stockMinimoAlerta: true,
+        precio: true,
+        descuentoActivo: true,
+        descuentoPorcentaje: true,
+      },
+    });
+
+    if (!current) {
+      throw new Error("Variante no encontrada.");
+    }
+
+    const nextDescuentoActivo = input.descuentoActivo ?? current.descuentoActivo;
+    const nextDescuentoPorcentaje = input.descuentoPorcentaje ?? current.descuentoPorcentaje;
+    const nextStockVirtual = input.stockVirtual ?? current.stockVirtual;
+    const nextStockMinimoAlerta = input.stockMinimoAlerta ?? current.stockMinimoAlerta;
+
+    if (
+      nextDescuentoActivo &&
+      (nextDescuentoPorcentaje < 1 || nextDescuentoPorcentaje > 100)
+    ) {
+      throw new Error("El porcentaje de descuento debe estar entre 1 y 100.");
+    }
+
+    if (nextDescuentoActivo === false) {
+      data.descuentoPorcentaje = 0;
+    }
+
+    const stockLowBeforeUpdate = this.isLowStock(current.stockVirtual, current.stockMinimoAlerta);
+    const stockLowAfterUpdate = this.isLowStock(nextStockVirtual, nextStockMinimoAlerta);
 
     const updated = await db.variant.update({
       where: { id },
       data,
     });
     await this.syncProductReferencePrice(updated.productId);
+    if (stockLowAfterUpdate && !stockLowBeforeUpdate) {
+      await this.notifyLowStock(updated.id);
+    }
     return updated;
   }
 

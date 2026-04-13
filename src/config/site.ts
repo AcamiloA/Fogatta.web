@@ -1,4 +1,4 @@
-import { ThemePreset } from "@/config/theme";
+import { resolveThemePreset } from "@/config/theme";
 
 function readIntEnv(name: string, fallback: number, min: number, max: number) {
   const raw = process.env[name];
@@ -17,10 +17,10 @@ export const siteConfig = {
   market: "Colombia",
   locale: "es-CO",
   whatsappPhone: process.env.NEXT_PUBLIC_WHATSAPP_PHONE ?? "573001234567",
-  supportHours: "Lunes a sábado 8:00 a.m. - 8:00 p.m.",
-  themePreset: (process.env.NEXT_PUBLIC_THEME_PRESET ?? "warm") as ThemePreset,
+  supportHours: "Lunes a sábado 9:00 a.m. - 5:00 p.m.",
+  themePreset: resolveThemePreset(process.env.NEXT_PUBLIC_THEME_PRESET),
   social: {
-    instagram: "https://instagram.com/fogatta",
+    instagram: "https://www.instagram.com/fogatta.co",
   },
 };
 

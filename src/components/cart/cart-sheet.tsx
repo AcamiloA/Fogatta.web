@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 
+import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { formatCOP } from "@/lib/currency";
 import { useCart } from "@/modules/checkout-whatsapp/cart-context";
 
@@ -61,7 +62,9 @@ export function CartSheet() {
         <div className="fixed inset-0 z-50 bg-black/40 p-4">
           <div className="ml-auto h-full w-full max-w-lg overflow-y-auto rounded-2xl bg-[var(--surface)] p-5 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-[var(--fg-strong)]">Carrito Fogatta</h2>
+              <h2 className="text-xl font-semibold text-[var(--fg-strong)]">
+                Carrito <BrandWordmark />
+              </h2>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}

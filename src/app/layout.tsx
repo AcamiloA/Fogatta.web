@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { AppProviders } from "@/components/providers/app-providers";
 import { siteConfig } from "@/config/site";
+import { getActiveThemeSettings } from "@/modules/theme/public-service";
 
 import "./globals.css";
 
@@ -21,8 +22,8 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: "Fogatta | Velas artesanales",
-    template: "%s | Fogatta",
+    default: "FOGATTA | Velas artesanales",
+    template: "%s | FOGATTA",
   },
   description: siteConfig.description,
   icons: {
@@ -35,11 +36,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const activeTheme = await getActiveThemeSettings();
+
   return (
     <html
       lang="es"
@@ -47,7 +50,16 @@ export default function RootLayout({
     >
       <body
         className="min-h-full text-[var(--fg)]"
-        data-theme={siteConfig.themePreset}
+        data-theme={activeTheme.basePreset}
+        data-season-theme={activeTheme.seasonalPreset ?? "none"}
+        style={{
+          "--theme-bg-image": activeTheme.backgroundImageUrl
+            ? `url("${activeTheme.backgroundImageUrl}")`
+            : "none",
+          "--theme-hero-image": activeTheme.heroImageUrl
+            ? `url("${activeTheme.heroImageUrl}")`
+            : "none",
+        } as React.CSSProperties}
       >
         <GAScript />
         <AppProviders>

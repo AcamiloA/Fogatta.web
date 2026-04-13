@@ -5,6 +5,14 @@ import { logError, logInfo } from "@/lib/logger";
 import { CreateLeadInput, createLeadResponseSchema } from "@/modules/leads/contracts";
 import { sendLeadNotificationEmail } from "@/modules/leads/email-notifier";
 
+async function notifyLeadEmailSafely(leadId: string, input: CreateLeadInput) {
+  try {
+    await sendLeadNotificationEmail(leadId, input);
+  } catch (error) {
+    logError("lead_notification_email_failed", { error, leadId });
+  }
+}
+
 export class LeadsService {
   async createLead(input: CreateLeadInput) {
     try {
@@ -19,7 +27,7 @@ export class LeadsService {
             source: "web_contacto",
           },
         });
-        await sendLeadNotificationEmail(created.id, input);
+        await notifyLeadEmailSafely(created.id, input);
 
         return createLeadResponseSchema.parse({
           ok: true,

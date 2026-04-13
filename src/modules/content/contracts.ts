@@ -25,6 +25,10 @@ export const legalPageSchema = z.object({
 });
 
 export const contentPayloadSchema = z.object({
+  hero: z.object({
+    titulo: z.string(),
+    descripcion: z.string(),
+  }),
   nosotros: z.object({
     titulo: z.string(),
     historia: z.string(),

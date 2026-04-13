@@ -132,7 +132,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        return { ok: false as const, error: "No fue posible preparar el pedido." };
+        try {
+          const raw = (await response.json()) as { error?: string };
+          return {
+            ok: false as const,
+            error: raw.error ?? "No fue posible preparar el pedido.",
+          };
+        } catch {
+          return { ok: false as const, error: "No fue posible preparar el pedido." };
+        }
       }
 
       const raw = await response.json();

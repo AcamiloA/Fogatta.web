@@ -1,9 +1,14 @@
-import { prisma } from "@/lib/db";
+﻿import { prisma } from "@/lib/db";
 import { logError } from "@/lib/logger";
-import { blogPostSchema, ContentPayload, contentPayloadSchema } from "@/modules/content/contracts";
+import {
+  blogPostSchema,
+  ContentPayload,
+  contentPayloadSchema,
+  legalPageSchema,
+} from "@/modules/content/contracts";
 import { fallbackContent } from "@/modules/content/seed-data";
 
-function isMissingBlogTableError(error: unknown) {
+function isMissingTableError(error: unknown) {
   if (!error || typeof error !== "object") {
     return false;
   }
@@ -37,9 +42,70 @@ async function fetchCMSContent(): Promise<ContentPayload | null> {
     }
 
     const rawPayload = await response.json();
-    return contentPayloadSchema.parse(rawPayload);
+    return contentPayloadSchema.parse({
+      ...rawPayload,
+      hero: rawPayload?.hero ?? fallbackContent.hero,
+    });
   } catch (error) {
     logError("cms_content_fetch_failed", { error });
+    return null;
+  }
+}
+
+async function fetchDbContent(): Promise<ContentPayload | null> {
+  if (!prisma) {
+    return null;
+  }
+
+  try {
+    const [siteContent, faq, legalDocuments] = await Promise.all([
+      prisma.siteContent.findUnique({
+        where: { id: "main" },
+      }),
+      prisma.faqItem.findMany({
+        where: { activo: true },
+        orderBy: [{ orden: "asc" }, { createdAt: "asc" }],
+      }),
+      prisma.legalDocument.findMany({
+        orderBy: { updatedAt: "desc" },
+      }),
+    ]);
+
+    return contentPayloadSchema.parse({
+      hero: {
+        titulo: siteContent?.heroTitulo ?? fallbackContent.hero.titulo,
+        descripcion: siteContent?.heroDescripcion ?? fallbackContent.hero.descripcion,
+      },
+      nosotros: {
+        titulo: siteContent?.nosotrosTitulo ?? fallbackContent.nosotros.titulo,
+        historia: siteContent?.nosotrosHistoria ?? fallbackContent.nosotros.historia,
+        promesa: siteContent?.nosotrosPromesa ?? fallbackContent.nosotros.promesa,
+      },
+      faq:
+        faq.length > 0
+          ? faq.map((item) => ({
+              id: item.id,
+              pregunta: item.pregunta,
+              respuesta: item.respuesta,
+              orden: item.orden,
+            }))
+          : fallbackContent.faq,
+      blog: fallbackContent.blog,
+      legales:
+        legalDocuments.length > 0
+          ? legalDocuments.map((item) =>
+              legalPageSchema.parse({
+                tipo: item.tipo,
+                contenido: item.contenido,
+                fechaVigencia: item.fechaVigencia.toISOString().slice(0, 10),
+              }),
+            )
+          : fallbackContent.legales,
+    });
+  } catch (error) {
+    if (!isMissingTableError(error)) {
+      logError("db_content_fetch_failed", { error });
+    }
     return null;
   }
 }
@@ -47,7 +113,12 @@ async function fetchCMSContent(): Promise<ContentPayload | null> {
 export class ContentService {
   async getContent(): Promise<ContentPayload> {
     const cmsContent = await fetchCMSContent();
-    return cmsContent ?? fallbackContent;
+    if (cmsContent) {
+      return cmsContent;
+    }
+
+    const dbContent = await fetchDbContent();
+    return dbContent ?? fallbackContent;
   }
 
   async getBlogPosts() {
@@ -71,7 +142,7 @@ export class ContentService {
           );
         }
       } catch (error) {
-        if (!isMissingBlogTableError(error)) {
+        if (!isMissingTableError(error)) {
           logError("blog_posts_db_fetch_failed", { error });
         }
       }
@@ -100,7 +171,7 @@ export class ContentService {
           });
         }
       } catch (error) {
-        if (!isMissingBlogTableError(error)) {
+        if (!isMissingTableError(error)) {
           logError("blog_post_db_fetch_by_slug_failed", { error, slug });
         }
       }

@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
-import { isAdminRequestAuthenticated } from "@/modules/admin/session";
 import { createProductInputSchema } from "@/modules/catalog/admin-contracts";
 import { AdminCatalogService } from "@/modules/catalog/admin-service";
+import { isInventoryRequestAuthenticated } from "@/modules/inventory/auth";
 
 function unauthorized() {
   return NextResponse.json({ error: "No autorizado." }, { status: 401 });
 }
 
 export async function POST(request: NextRequest) {
-  if (!isAdminRequestAuthenticated(request)) {
+  if (!isInventoryRequestAuthenticated(request)) {
     return unauthorized();
   }
 

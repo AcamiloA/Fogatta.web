@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
-import { isAdminRequestAuthenticated } from "@/modules/admin/session";
 import { updateProductInputSchema } from "@/modules/catalog/admin-contracts";
 import { AdminCatalogService } from "@/modules/catalog/admin-service";
+import { isInventoryRequestAuthenticated } from "@/modules/inventory/auth";
 
 function unauthorized() {
   return NextResponse.json({ error: "No autorizado." }, { status: 401 });
@@ -14,7 +14,7 @@ type Params = {
 };
 
 export async function PATCH(request: NextRequest, { params }: Params) {
-  if (!isAdminRequestAuthenticated(request)) {
+  if (!isInventoryRequestAuthenticated(request)) {
     return unauthorized();
   }
 
@@ -42,7 +42,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(request: NextRequest, { params }: Params) {
-  if (!isAdminRequestAuthenticated(request)) {
+  if (!isInventoryRequestAuthenticated(request)) {
     return unauthorized();
   }
 

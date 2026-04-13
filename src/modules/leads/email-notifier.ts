@@ -74,9 +74,9 @@ function buildMailContent(leadId: string, input: CreateLeadInput) {
 
   return {
     to,
-    subject: `Nuevo contacto web Fogatta: ${input.nombre}`,
+    subject: `Nuevo contacto en FOGATTA: ${input.nombre}`,
     text: [
-      "Nuevo mensaje desde el formulario de contacto de Fogatta.",
+      "Nuevo mensaje desde el formulario de contacto de FOGATTA.",
       "",
       `Lead ID: ${leadId}`,
       `Nombre: ${input.nombre}`,
@@ -93,80 +93,68 @@ function buildMailContent(leadId: string, input: CreateLeadInput) {
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nuevo contacto Fogatta</title>
+    <title>Nuevo contacto FOGATTA</title>
   </head>
-  <body style="margin:0;padding:0;background:#f3f5f8;font-family:Arial,Helvetica,sans-serif;color:#2c1f14;">
-    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-      Nuevo mensaje de contacto recibido en Fogatta.
-    </div>
-
-    <table
-      role="presentation"
-      cellpadding="0"
-      cellspacing="0"
-      border="0"
-      width="100%"
-      style="background:#f3f5f8;padding:24px 12px;"
-    >
+  <body style="margin:0;padding:0;background:#f4efe7;font-family:Arial,Helvetica,sans-serif;color:#2b1c12;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4efe7;padding:24px 10px;">
       <tr>
         <td align="center">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="640" style="max-width:640px;background:#ffffff;border:1px solid #e3e9f2;border-radius:18px;overflow:hidden;">
+          <table role="presentation" width="620" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;background:#ffffff;border:1px solid #e6d5c3;border-radius:18px;overflow:hidden;">
             <tr>
-              <td style="background:#fff;padding:28px 28px 10px;">
-                <h1 style="margin:0 0 8px;font-size:22px;line-height:1.2;color:#2c1f14;">Nuevo mensaje de contacto</h1>
-                <p style="margin:0;font-size:14px;line-height:1.5;color:#5b493a;">
-                  Se registr&#243; una nueva solicitud desde el formulario de contacto del sitio.
-                </p>
+              <td style="background:linear-gradient(125deg,#0d1a29 0%,#1a2a3d 70%,#8d5430 100%);padding:24px 26px;">
+                <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#e9d7bf;">FOGATTA</p>
+                <h1 style="margin:0;font-size:24px;line-height:1.2;color:#f8efe3;">Nuevo mensaje de contacto</h1>
               </td>
             </tr>
-
             <tr>
-              <td style="padding:14px 28px 8px;background-color:#f8f4ee;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:separate;border-spacing:0 10px;">
+              <td style="padding:20px 26px;">
+                <p style="margin:0 0 12px;font-size:14px;color:#5d4938;">
+                  Se registro una nueva solicitud desde el formulario de contacto del sitio.
+                </p>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:0 10px;">
                   <tr>
-                    <td style="background:#ffffff;border:1px solid #e7dfd1;border-radius:12px;padding:12px 14px;">
-                      <p style="margin:0 0 4px;font-size:12px;color:#7d6654;">Lead ID</p>
-                      <p style="margin:0;font-size:14px;color:#2c1f14;"><strong>${safe.leadId}</strong></p>
+                    <td style="background:#fcf8f3;border:1px solid #ead8c3;border-radius:12px;padding:12px 14px;">
+                      <p style="margin:0 0 4px;font-size:12px;color:#7a6553;">Lead ID</p>
+                      <p style="margin:0;font-size:15px;color:#2b1c12;"><strong>${safe.leadId}</strong></p>
                     </td>
                   </tr>
                   <tr>
-                    <td style="background:#ffffff;border:1px solid #e7dfd1;border-radius:12px;padding:12px 14px;">
-                      <p style="margin:0 0 4px;font-size:12px;color:#7d6654;">Nombre</p>
-                      <p style="margin:0;font-size:14px;color:#2c1f14;"><strong>${safe.nombre}</strong></p>
+                    <td style="background:#fcf8f3;border:1px solid #ead8c3;border-radius:12px;padding:12px 14px;">
+                      <p style="margin:0 0 4px;font-size:12px;color:#7a6553;">Nombre</p>
+                      <p style="margin:0;font-size:14px;color:#2b1c12;"><strong>${safe.nombre}</strong></p>
                     </td>
                   </tr>
                   <tr>
-                    <td style="background:#ffffff;border:1px solid #e7dfd1;border-radius:12px;padding:12px 14px;">
-                      <p style="margin:0 0 4px;font-size:12px;color:#7d6654;">Correo</p>
-                      <p style="margin:0;font-size:14px;color:#2c1f14;"><strong>${safe.correo}</strong></p>
+                    <td style="background:#fcf8f3;border:1px solid #ead8c3;border-radius:12px;padding:12px 14px;">
+                      <p style="margin:0 0 4px;font-size:12px;color:#7a6553;">Correo</p>
+                      <p style="margin:0;font-size:14px;color:#2b1c12;"><strong>${safe.correo}</strong></p>
                     </td>
                   </tr>
                   <tr>
-                    <td style="background:#ffffff;border:1px solid #e7dfd1;border-radius:12px;padding:12px 14px;">
-                      <p style="margin:0 0 4px;font-size:12px;color:#7d6654;">Tel&#233;fono</p>
-                      <p style="margin:0;font-size:14px;color:#2c1f14;"><strong>${safe.telefono}</strong></p>
+                    <td style="background:#fcf8f3;border:1px solid #ead8c3;border-radius:12px;padding:12px 14px;">
+                      <p style="margin:0 0 4px;font-size:12px;color:#7a6553;">Telefono</p>
+                      <p style="margin:0;font-size:14px;color:#2b1c12;"><strong>${safe.telefono}</strong></p>
                     </td>
                   </tr>
                   <tr>
-                    <td style="background:#ffffff;border:1px solid #e7dfd1;border-radius:12px;padding:12px 14px;">
-                      <p style="margin:0 0 4px;font-size:12px;color:#7d6654;">Ciudad</p>
-                      <p style="margin:0;font-size:14px;color:#2c1f14;"><strong>${safe.ciudad}</strong></p>
+                    <td style="background:#fcf8f3;border:1px solid #ead8c3;border-radius:12px;padding:12px 14px;">
+                      <p style="margin:0 0 4px;font-size:12px;color:#7a6553;">Ciudad</p>
+                      <p style="margin:0;font-size:14px;color:#2b1c12;"><strong>${safe.ciudad}</strong></p>
                     </td>
                   </tr>
                   <tr>
-                    <td style="background:#ffffff;border:1px solid #d9c7ab;border-radius:12px;padding:14px;">
-                      <p style="margin:0 0 8px;font-size:12px;color:#7d6654;">Mensaje</p>
-                      <p style="margin:0;font-size:14px;line-height:1.6;color:#2c1f14;">${safe.mensaje}</p>
+                    <td style="background:#fcf8f3;border:1px solid #ead8c3;border-radius:12px;padding:12px 14px;">
+                      <p style="margin:0 0 4px;font-size:12px;color:#7a6553;">Mensaje</p>
+                      <p style="margin:0;font-size:14px;line-height:1.6;color:#2b1c12;">${safe.mensaje}</p>
                     </td>
                   </tr>
                 </table>
               </td>
             </tr>
-
             <tr>
-              <td style="background:#fff;padding:16px 28px 28px;">
+              <td style="padding:0 26px 22px;">
                 <p style="margin:0;font-size:12px;line-height:1.5;color:#7d6654;">
-                  Este correo fue generado autom&#225;ticamente por el sitio web de Fogatta.
+                  Notificacion automatica de FOGATTA. Responde al cliente directamente desde su correo de contacto.
                 </p>
               </td>
             </tr>

@@ -6,6 +6,7 @@ import {
   productSummarySchema,
 } from "@/modules/catalog/contracts";
 import { CatalogRepository } from "@/modules/catalog/repository";
+import { expirePendingReservations } from "@/modules/checkout-whatsapp/reservation-expiration";
 
 function ensurePrisma() {
   if (!prisma) {
@@ -71,7 +72,12 @@ function toDetailDTO(product: {
     nombreVariante: string;
     sku: string;
     stockVirtual: number;
+    stockDisponible?: number;
+    stockMinimoAlerta: number;
     precio: number;
+    imagenes: string[];
+    descuentoActivo: boolean;
+    descuentoPorcentaje: number;
   }[];
 }): ProductDetailDTO {
   return productDetailSchema.parse({
@@ -83,6 +89,8 @@ function toDetailDTO(product: {
 export class PrismaCatalogRepository implements CatalogRepository {
   async listProducts(): Promise<ProductSummaryDTO[]> {
     const db = ensurePrisma();
+    await expirePendingReservations(db, { olderThanHours: 24 });
+
     const products = await db.product.findMany({
       where: { activo: true },
       include: {
@@ -98,6 +106,8 @@ export class PrismaCatalogRepository implements CatalogRepository {
 
   async getProductBySlug(slug: string): Promise<ProductDetailDTO | null> {
     const db = ensurePrisma();
+    await expirePendingReservations(db, { olderThanHours: 24 });
+
     const product = await db.product.findUnique({
       where: { slug },
       include: {
@@ -110,6 +120,37 @@ export class PrismaCatalogRepository implements CatalogRepository {
       return null;
     }
 
-    return toDetailDTO(product);
+    const variantIds = product.variantes.map((variant) => variant.id);
+    const pendingByVariant = new Map<string, number>();
+
+    if (variantIds.length > 0) {
+      const grouped = await db.stockReservation.groupBy({
+        by: ["variantId"],
+        where: {
+          status: "pending",
+          variantId: {
+            in: variantIds,
+          },
+        },
+        _sum: {
+          cantidad: true,
+        },
+      });
+
+      for (const row of grouped) {
+        pendingByVariant.set(row.variantId, row._sum.cantidad ?? 0);
+      }
+    }
+
+    return toDetailDTO({
+      ...product,
+      variantes: product.variantes.map((variant) => {
+        const pendingReserved = pendingByVariant.get(variant.id) ?? 0;
+        return {
+          ...variant,
+          stockDisponible: Math.max(variant.stockVirtual - pendingReserved, 0),
+        };
+      }),
+    });
   }
 }

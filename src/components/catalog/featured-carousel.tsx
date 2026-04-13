@@ -11,45 +11,58 @@ type Props = {
 
 export function FeaturedCarousel({ products }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(true);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
 
-  const updateButtons = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const maxLeft = container.scrollWidth - container.clientWidth;
-    setCanScrollPrev(container.scrollLeft > 8);
-    setCanScrollNext(container.scrollLeft < maxLeft - 8);
-  }, []);
-
-  useEffect(() => {
-    updateButtons();
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    container.addEventListener("scroll", updateButtons, { passive: true });
-    window.addEventListener("resize", updateButtons);
-
-    return () => {
-      container.removeEventListener("scroll", updateButtons);
-      window.removeEventListener("resize", updateButtons);
-    };
-  }, [updateButtons]);
-
-  function scroll(direction: "prev" | "next") {
-    const container = containerRef.current;
-    if (!container) return;
-
+  const getStepSize = useCallback((container: HTMLDivElement) => {
     const firstCard = container.querySelector<HTMLElement>("[data-carousel-card]");
     const cardWidth = firstCard?.offsetWidth ?? container.clientWidth * 0.85;
-    const amount = cardWidth + 20;
+    return cardWidth + 20;
+  }, []);
 
-    container.scrollBy({
-      left: direction === "next" ? amount : -amount,
-      behavior: "smooth",
-    });
+  const scroll = useCallback(
+    (direction: "prev" | "next") => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const amount = getStepSize(container);
+      const maxLeft = container.scrollWidth - container.clientWidth;
+      if (maxLeft <= 0) return;
+
+      const nextLeft =
+        direction === "next" ? container.scrollLeft + amount : container.scrollLeft - amount;
+
+      const targetLeft =
+        direction === "next"
+          ? nextLeft > maxLeft - 2
+            ? 0
+            : nextLeft
+          : nextLeft < 2
+            ? maxLeft
+            : nextLeft;
+
+      container.scrollTo({
+        left: targetLeft,
+        behavior: "smooth",
+      });
+    },
+    [getStepSize],
+  );
+
+  useEffect(() => {
+    if (!autoScrollEnabled || products.length < 2) return;
+
+    const intervalId = window.setInterval(() => {
+      scroll("next");
+    }, 3800);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [autoScrollEnabled, products.length, scroll]);
+
+  function handleArrowClick(direction: "prev" | "next") {
+    setAutoScrollEnabled(false);
+    scroll(direction);
   }
 
   return (
@@ -57,21 +70,21 @@ export function FeaturedCarousel({ products }: Props) {
       <div className="mb-4 flex justify-end gap-2">
         <button
           type="button"
-          onClick={() => scroll("prev")}
-          disabled={!canScrollPrev}
+          onClick={() => handleArrowClick("prev")}
+          disabled={products.length < 2}
           className="rounded-full border border-[var(--border)]/50 bg-[var(--surface-2)] px-3 py-2 text-xs text-[var(--fg-muted)] transition hover:text-[var(--fg-strong)] disabled:opacity-40"
           aria-label="Desplazar productos hacia la izquierda"
         >
-          ←
+          {"\u2190"}
         </button>
         <button
           type="button"
-          onClick={() => scroll("next")}
-          disabled={!canScrollNext}
+          onClick={() => handleArrowClick("next")}
+          disabled={products.length < 2}
           className="rounded-full border border-[var(--border)]/50 bg-[var(--surface-2)] px-3 py-2 text-xs text-[var(--fg-muted)] transition hover:text-[var(--fg-strong)] disabled:opacity-40"
           aria-label="Desplazar productos hacia la derecha"
         >
-          →
+          {"\u2192"}
         </button>
       </div>
 

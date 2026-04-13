@@ -18,6 +18,7 @@ export const whatsappPreviewInputSchema = z.object({
 });
 
 export const whatsappPreviewResponseSchema = z.object({
+  orderId: z.string().optional(),
   subtotalReferencia: z.number().int().nonnegative(),
   mensaje: z.string(),
   mensajeUrlEncoded: z.string(),

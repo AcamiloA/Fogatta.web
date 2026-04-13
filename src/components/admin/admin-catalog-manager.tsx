@@ -16,7 +16,11 @@ type Variant = {
   nombreVariante: string;
   sku: string;
   stockVirtual: string;
+  stockMinimoAlerta: string;
   precio: string;
+  imagenes: string[];
+  descuentoActivo: boolean;
+  descuentoPorcentaje: string;
 };
 
 type Product = {
@@ -37,9 +41,11 @@ type CatalogPayload = {
   products: Product[];
 };
 
-type VariantApi = Omit<Variant, "stockVirtual" | "precio"> & {
+type VariantApi = Omit<Variant, "stockVirtual" | "stockMinimoAlerta" | "precio"> & {
   stockVirtual: number;
+  stockMinimoAlerta: number;
   precio: number;
+  descuentoPorcentaje: number;
 };
 
 type ProductApi = Omit<Product, "variantes"> & {
@@ -75,7 +81,20 @@ function normalizeForMatch(value: string) {
   return value.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-const MAX_PRODUCT_IMAGES = 8;
+const MAX_PRODUCT_IMAGES = 1;
+const MAX_VARIANT_IMAGES = 3;
+
+function normalizeDiscountPercentageInput(rawValue: string) {
+  const digitsOnly = rawValue.replace(/\D/g, "");
+  if (!digitsOnly) {
+    return "";
+  }
+  const parsed = Number.parseInt(digitsOnly, 10);
+  if (!Number.isFinite(parsed)) {
+    return "";
+  }
+  return String(Math.min(100, Math.max(1, parsed)));
+}
 
 function formatValidationMessage(details?: ValidationDetails) {
   const formMessage = details?.formErrors?.find((message) => Boolean(message?.trim()));
@@ -97,6 +116,12 @@ function formatValidationMessage(details?: ValidationDetails) {
     if (field === "precio") {
       return "Precio: ingresa un número válido.";
     }
+    if (field === "descuentoPorcentaje") {
+      return "Descuento (%): ingresa un número entre 1 y 100.";
+    }
+    if (field === "stockMinimoAlerta") {
+      return "Stock mínimo alerta: ingresa un número válido.";
+    }
     if (field === "imagenes") {
       return "Imágenes: agrega al menos una imagen válida.";
     }
@@ -112,6 +137,10 @@ function formatValidationMessage(details?: ValidationDetails) {
                 ? "Categoría"
                 : field === "precio"
                   ? "Precio"
+                : field === "descuentoPorcentaje"
+                  ? "Descuento (%)"
+                : field === "stockMinimoAlerta"
+                  ? "Stock mínimo alerta"
                 : field === "imagenes"
                   ? "Imágenes"
                   : field;
@@ -175,7 +204,10 @@ export function AdminCatalogManager() {
           variantes: product.variantes.map((variant) => ({
             ...variant,
             stockVirtual: variant.stockVirtual > 0 ? String(variant.stockVirtual) : "",
+            stockMinimoAlerta:
+              variant.stockMinimoAlerta > 0 ? String(variant.stockMinimoAlerta) : "",
             precio: variant.precio > 0 ? String(variant.precio) : "",
+            descuentoPorcentaje: variant.descuentoPorcentaje > 0 ? String(variant.descuentoPorcentaje) : "",
           })),
         })),
       });
@@ -278,7 +310,7 @@ export function AdminCatalogManager() {
       return;
     }
     if (newProduct.imagenes.length > MAX_PRODUCT_IMAGES) {
-      setError(`Máximo ${MAX_PRODUCT_IMAGES} imágenes por producto.`);
+      setError(`Maximo ${MAX_PRODUCT_IMAGES} imagen por producto.`);
       return;
     }
 
@@ -405,13 +437,44 @@ export function AdminCatalogManager() {
 
   async function saveVariant(variant: Variant) {
     const stockVirtual = Number.parseInt(variant.stockVirtual, 10);
+    const stockMinimoAlerta = variant.stockMinimoAlerta.trim()
+      ? Number.parseInt(variant.stockMinimoAlerta, 10)
+      : 0;
     const precio = Number.parseInt(variant.precio, 10);
+    const descuentoPorcentaje = variant.descuentoPorcentaje.trim()
+      ? Number.parseInt(variant.descuentoPorcentaje, 10)
+      : 0;
     if (!Number.isFinite(stockVirtual) || stockVirtual < 0) {
       setError("Stock: ingresa un número válido.");
       return;
     }
     if (!Number.isFinite(precio) || precio < 0) {
       setError("Precio final: ingresa un número válido.");
+      return;
+    }
+    if (!Number.isFinite(stockMinimoAlerta) || stockMinimoAlerta < 0) {
+      setError("Stock mínimo alerta: ingresa un número válido.");
+      return;
+    }
+    if (
+      variant.descuentoActivo &&
+      (!Number.isFinite(descuentoPorcentaje) || descuentoPorcentaje < 1 || descuentoPorcentaje > 100)
+    ) {
+      setError("Descuento (%): ingresa un número entre 1 y 100.");
+      return;
+    }
+
+    if (variant.descuentoActivo && descuentoPorcentaje > 20) {
+      const confirmed = window.confirm(
+        `Vas a aplicar ${descuentoPorcentaje}% de descuento en esta variante. ¿Deseas continuar?`,
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    if (!Number.isFinite(descuentoPorcentaje) || descuentoPorcentaje < 0 || descuentoPorcentaje > 100) {
+      setError("Descuento (%): ingresa un número válido.");
       return;
     }
 
@@ -425,7 +488,11 @@ export function AdminCatalogManager() {
           nombreVariante: variant.nombreVariante,
           sku: variant.sku,
           stockVirtual,
+          stockMinimoAlerta,
           precio,
+          imagenes: variant.imagenes,
+          descuentoActivo: variant.descuentoActivo,
+          descuentoPorcentaje: variant.descuentoActivo ? descuentoPorcentaje : 0,
         }),
       });
 
@@ -454,7 +521,11 @@ export function AdminCatalogManager() {
           nombreVariante: "Nueva variante",
           sku: `SKU-${Math.floor(Math.random() * 100000)}`,
           stockVirtual: 0,
+          stockMinimoAlerta: 0,
           precio: 0,
+          imagenes: [],
+          descuentoActivo: false,
+          descuentoPorcentaje: 0,
         }),
       });
 
@@ -669,16 +740,11 @@ export function AdminCatalogManager() {
                 const input = event.currentTarget;
                 const file = input.files?.[0];
                 if (!file) return;
-                if (newProduct.imagenes.length >= MAX_PRODUCT_IMAGES) {
-                  setError(`Máximo ${MAX_PRODUCT_IMAGES} imágenes por producto.`);
-                  input.value = "";
-                  return;
-                }
                 const url = await uploadImage(file, "upload-image-new-product");
                 if (url) {
                   setNewProduct((current) => ({
                     ...current,
-                    imagenes: [...current.imagenes, url].slice(0, MAX_PRODUCT_IMAGES),
+                    imagenes: [url],
                   }));
                 }
                 input.value = "";
@@ -849,16 +915,11 @@ export function AdminCatalogManager() {
                     const input = event.currentTarget;
                     const file = input.files?.[0];
                     if (!file) return;
-                    if (product.imagenes.length >= MAX_PRODUCT_IMAGES) {
-                      setError(`Máximo ${MAX_PRODUCT_IMAGES} imágenes por producto.`);
-                      input.value = "";
-                      return;
-                    }
                     const url = await uploadImage(file, `upload-image-${product.id}`);
                     if (url) {
                       updateProductState(product.id, (current) => ({
                         ...current,
-                        imagenes: [...current.imagenes, url].slice(0, MAX_PRODUCT_IMAGES),
+                        imagenes: [url],
                       }));
                     }
                     input.value = "";
@@ -883,7 +944,7 @@ export function AdminCatalogManager() {
               {product.variantes.map((variant) => (
                 <div
                   key={variant.id}
-                  className="grid gap-2 rounded-lg border border-[var(--border)]/30 bg-[var(--surface-2)] p-3 md:grid-cols-4"
+                  className="grid gap-2 rounded-lg border border-[var(--border)]/30 bg-[var(--surface-2)] p-3 md:grid-cols-6"
                 >
                   <input
                     value={variant.nombreVariante}
@@ -923,6 +984,19 @@ export function AdminCatalogManager() {
                   <input
                     type="number"
                     min={0}
+                    value={variant.stockMinimoAlerta}
+                    onChange={(event) =>
+                      updateVariantState(product.id, variant.id, (current) => ({
+                        ...current,
+                        stockMinimoAlerta: event.target.value,
+                      }))
+                    }
+                    placeholder="Stock mínimo alerta (0 desactiva)"
+                    className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
+                  />
+                  <input
+                    type="number"
+                    min={0}
                     value={variant.precio}
                     onChange={(event) =>
                       updateVariantState(product.id, variant.id, (current) => ({
@@ -933,11 +1007,145 @@ export function AdminCatalogManager() {
                     placeholder="Precio final"
                     className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
                   />
+                  <div className="flex items-center gap-2 rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2">
+                    <label className="flex items-center gap-2 text-xs text-[var(--fg)]">
+                      <input
+                        type="checkbox"
+                        checked={variant.descuentoActivo}
+                        onChange={(event) =>
+                          updateVariantState(product.id, variant.id, (current) => ({
+                            ...current,
+                            descuentoActivo: event.target.checked,
+                            descuentoPorcentaje: event.target.checked
+                              ? current.descuentoPorcentaje || "1"
+                              : "",
+                          }))
+                        }
+                      />
+                      Aplicar descuento
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      disabled={!variant.descuentoActivo}
+                      value={variant.descuentoPorcentaje}
+                      onChange={(event) =>
+                        updateVariantState(product.id, variant.id, (current) => ({
+                          ...current,
+                          descuentoPorcentaje: normalizeDiscountPercentageInput(event.target.value),
+                        }))
+                      }
+                      placeholder="Porcentaje (%)"
+                      className="w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-2)] px-2 py-2 text-xs text-[var(--fg)] disabled:cursor-not-allowed disabled:opacity-60"
+                    />
+                  </div>
+                  <div className="md:col-span-6">
+                    <p className="text-xs text-[var(--fg-muted)]">
+                      Precio que verá el cliente:{" "}
+                      {(() => {
+                        const precioBase = Number.parseInt(variant.precio || "0", 10);
+                        const porcentaje = Number.parseInt(variant.descuentoPorcentaje || "0", 10);
+                        const porcentajeSeguro = Number.isFinite(porcentaje)
+                          ? Math.min(Math.max(porcentaje, 0), 100)
+                          : 0;
+                        const precioFinal =
+                          Number.isFinite(precioBase)
+                            ? Math.max(
+                                Math.round(
+                                  (precioBase * (100 - (variant.descuentoActivo ? porcentajeSeguro : 0))) / 100,
+                                ),
+                                0,
+                              )
+                            : 0;
+                        return `$${precioFinal.toLocaleString("es-CO")}${
+                          variant.descuentoActivo ? ` (${porcentajeSeguro}% OFF)` : ""
+                        }`;
+                      })()}
+                    </p>
+                    {(() => {
+                      const stock = Number.parseInt(variant.stockVirtual || "0", 10);
+                      const minimo = Number.parseInt(variant.stockMinimoAlerta || "0", 10);
+                      if (!Number.isFinite(stock) || !Number.isFinite(minimo) || minimo <= 0) {
+                        return null;
+                      }
+                      if (stock > minimo) {
+                        return null;
+                      }
+                      return (
+                        <p className="mt-1 text-xs font-medium text-amber-500">
+                          Alerta activa: stock bajo ({stock}) en o por debajo del mínimo ({minimo}).
+                        </p>
+                      );
+                    })()}
+                  </div>
+                  <div className="space-y-2 md:col-span-6">
+                    <p className="text-xs text-[var(--fg-muted)]">
+                      Imagenes de la variante ({variant.imagenes.length}/{MAX_VARIANT_IMAGES})
+                    </p>
+                    {variant.imagenes.length ? (
+                      <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
+                        {variant.imagenes.map((image, imageIndex) => (
+                          <div
+                            key={`${variant.id}-image-${imageIndex}-${image}`}
+                            className="relative h-16 overflow-hidden rounded-lg border border-[var(--border)]"
+                          >
+                            <Image
+                              src={image}
+                              alt={`${variant.nombreVariante} ${imageIndex + 1}`}
+                              fill
+                              className="object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateVariantState(product.id, variant.id, (current) => ({
+                                  ...current,
+                                  imagenes: current.imagenes.filter((_, idx) => idx !== imageIndex),
+                                }))
+                              }
+                              className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-white"
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[var(--fg-muted)]">Sin imagenes en esta variante.</p>
+                    )}
+                    <label className="inline-flex cursor-pointer rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)]">
+                      Subir imagen variante
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/avif,image/svg+xml"
+                        className="sr-only"
+                        onChange={async (event) => {
+                          const input = event.currentTarget;
+                          const file = input.files?.[0];
+                          if (!file) return;
+                          if (variant.imagenes.length >= MAX_VARIANT_IMAGES) {
+                            setError(`Maximo ${MAX_VARIANT_IMAGES} imagenes por variante.`);
+                            input.value = "";
+                            return;
+                          }
+                          const url = await uploadImage(file, `upload-variant-image-${variant.id}`);
+                          if (url) {
+                            updateVariantState(product.id, variant.id, (current) => ({
+                              ...current,
+                              imagenes: [...current.imagenes, url].slice(0, MAX_VARIANT_IMAGES),
+                            }));
+                          }
+                          input.value = "";
+                        }}
+                      />
+                    </label>
+                  </div>
                   <button
                     type="button"
                     onClick={() => void saveVariant(variant)}
                     disabled={busyId === `save-variant-${variant.id}`}
-                    className="mt-1 rounded-md bg-[var(--accent)] px-3 py-2 text-xs font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)] md:col-span-2"
+                    className="mt-1 rounded-md bg-[var(--accent)] px-3 py-2 text-xs font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)] md:col-span-3"
                   >
                     {busyId === `save-variant-${variant.id}` ? "Guardando..." : "Guardar variante"}
                   </button>
@@ -945,7 +1153,7 @@ export function AdminCatalogManager() {
                     type="button"
                     onClick={() => void deleteVariant(variant.id)}
                     disabled={busyId === `delete-variant-${variant.id}`}
-                    className="mt-1 rounded-md border border-rose-400 px-3 py-2 text-xs text-rose-600 disabled:opacity-60 md:col-span-2"
+                    className="mt-1 rounded-md border border-rose-400 px-3 py-2 text-xs text-rose-600 disabled:opacity-60 md:col-span-3"
                   >
                     {busyId === `delete-variant-${variant.id}` ? "Eliminando..." : "Eliminar variante"}
                   </button>
@@ -961,3 +1169,4 @@ export function AdminCatalogManager() {
     </div>
   );
 }
+

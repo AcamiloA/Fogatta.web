@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+import { logError } from "@/lib/logger";
 import {
   whatsappPreviewInputSchema,
   whatsappPreviewResponseSchema,
 } from "@/modules/checkout-whatsapp/contracts";
-import { CheckoutWhatsAppService } from "@/modules/checkout-whatsapp/service";
-import { logError } from "@/lib/logger";
+import {
+  CheckoutStockUnavailableError,
+  CheckoutWhatsAppService,
+} from "@/modules/checkout-whatsapp/service";
 
 export async function POST(request: Request) {
   try {
@@ -17,8 +20,18 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: "Datos inválidos para el pedido.", details: error.flatten() },
+        { error: "Datos invalidos para el pedido.", details: error.flatten() },
         { status: 400 },
+      );
+    }
+
+    if (error instanceof CheckoutStockUnavailableError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          details: error.details,
+        },
+        { status: 409 },
       );
     }
 

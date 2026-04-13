@@ -7,6 +7,94 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum LegalType {
+  privacidad
+  terminos
+}
+
+enum CommentStatus {
+  pending
+  approved
+  rejected
+}
+
+enum ThemePalette {
+  warm
+  night
+  navidad
+  octubre
+}
+
+enum StockReservationStatus {
+  pending
+  approved
+  rejected
+  expired
+}
+
+model InventorySupply {
+  id           String                @id @default(cuid())
+  nombre       String
+  unidad       String
+  precioTotal  Int
+  cantidadTotal Float
+  activo       Boolean               @default(true)
+  recipeItems  InventoryRecipeItem[]
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+}
+
+model InventoryBaseProduct {
+  id                   String                @id @default(cuid())
+  nombre               String
+  categoria            String
+  precioBrutoReferencia Int                  @default(0)
+  recipeItems          InventoryRecipeItem[]
+  lots                 InventoryLot[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+}
+
+model InventoryRecipeItem {
+  id            String               @id @default(cuid())
+  baseProductId String
+  supplyId      String
+  cantidadUsada Float
+  baseProduct   InventoryBaseProduct @relation(fields: [baseProductId], references: [id], onDelete: Cascade)
+  supply        InventorySupply      @relation(fields: [supplyId], references: [id], onDelete: Restrict)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@unique([baseProductId, supplyId])
+}
+
+model InventoryLot {
+  id                  String                    @id @default(cuid())
+  baseProductId       String
+  serial              String                    @unique
+  fechaFabricacion    DateTime
+  fechaDisponible     DateTime
+  cantidadFabricada   Int
+  stockActual         Int
+  precioBrutoUnitario Int
+  porcentajeUtilidad  Int
+  precioVentaUnitario Int
+  baseProduct         InventoryBaseProduct      @relation(fields: [baseProductId], references: [id], onDelete: Restrict)
+  assignments         InventoryShelfAssignment[]
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+}
+
+model InventoryShelfAssignment {
+  id              String      @id @default(cuid())
+  lotId           String
+  nombreEstanteria String
+  cantidadAsignada Int
+  lot             InventoryLot @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
 model Category {
   id          String    @id @default(cuid())
   slug        String    @unique
@@ -38,8 +126,13 @@ model Variant {
   nombreVariante String
   sku           String   @unique
   stockVirtual  Int      @default(0)
+  stockMinimoAlerta Int  @default(0)
   precio        Int      @default(0) @map("precioDelta")
+  imagenes      String[] @default([])
+  descuentoActivo Boolean @default(false)
+  descuentoPorcentaje Int @default(0) @map("descuentoValor")
   product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reservas      StockReservation[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -53,6 +146,7 @@ model WhatsappOrder {
   estado           String             @default("pending")
   mensaje          String
   items            WhatsappOrderItem[]
+  reservas         StockReservation[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 }
@@ -68,8 +162,27 @@ model WhatsappOrderItem {
   cantidad        Int
   subtotal        Int
   order           WhatsappOrder  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  reservas        StockReservation[]
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+}
+
+model StockReservation {
+  id         String                @id @default(cuid())
+  orderId    String
+  orderItemId String?
+  variantId  String
+  cantidad   Int
+  status     StockReservationStatus @default(pending)
+  resolvedAt DateTime?
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+  order      WhatsappOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem  WhatsappOrderItem?    @relation(fields: [orderItemId], references: [id], onDelete: SetNull)
+  variant    Variant               @relation(fields: [variantId], references: [id], onDelete: Restrict)
+
+  @@index([variantId, status])
+  @@index([orderId, status])
 }
 
 model ContactLead {
@@ -92,6 +205,58 @@ model BlogPost {
   contenido       String
   imagen          String
   fechaPublicacion DateTime @default(now())
+  comentarios     BlogComment[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model BlogComment {
+  id         String        @id @default(cuid())
+  postId     String
+  mensaje    String
+  status     CommentStatus @default(pending)
+  post       BlogPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  moderatedAt DateTime?
+}
+
+model FaqItem {
+  id         String   @id @default(cuid())
+  pregunta   String
+  respuesta  String
+  orden      Int      @default(1)
+  activo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model LegalDocument {
+  id            String    @id @default(cuid())
+  tipo          LegalType @unique
+  contenido     String
+  fechaVigencia DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model SiteContent {
+  id                String   @id @default("main")
+  nosotrosTitulo    String
+  nosotrosHistoria  String
+  nosotrosPromesa   String
+  heroTitulo        String?
+  heroDescripcion   String?
+  updatedAt         DateTime @updatedAt
+}
+
+model SiteTheme {
+  id                 String       @id @default(cuid())
+  slug               String       @unique
+  nombre             String
+  palette            ThemePalette @default(warm)
+  backgroundImageUrl String?
+  heroImageUrl       String?
+  isActive           Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
 }

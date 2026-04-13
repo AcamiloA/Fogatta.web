@@ -13,7 +13,12 @@ export const variantSchema = z.object({
   nombreVariante: z.string(),
   sku: z.string(),
   stockVirtual: z.number().int(),
+  stockDisponible: z.number().int().nonnegative().optional(),
+  stockMinimoAlerta: z.number().int().nonnegative(),
   precio: z.number().int(),
+  imagenes: z.array(z.string()).max(3),
+  descuentoActivo: z.boolean(),
+  descuentoPorcentaje: z.number().int().min(0).max(100),
 });
 
 export const productSummarySchema = z.object({
