@@ -5,6 +5,8 @@ export const metadata = {
   title: "Nosotros",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function NosotrosPage() {
   const content = await new ContentService().getContent();
 

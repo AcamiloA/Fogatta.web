@@ -6,6 +6,8 @@ export const metadata = {
   title: "Política de privacidad",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function PrivacidadPage() {
   const service = new ContentService();
   const page = await service.getLegalPage("privacidad");

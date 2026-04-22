@@ -131,8 +131,27 @@ export function AdminContentManager() {
   }
 
   async function createFaq() {
-    if (!newFaq.pregunta.trim() || !newFaq.respuesta.trim()) {
+    const pregunta = newFaq.pregunta.trim();
+    const respuesta = newFaq.respuesta.trim();
+    const orden = Number(newFaq.orden);
+
+    if (!pregunta || !respuesta) {
       setError("FAQ: pregunta y respuesta son obligatorias.");
+      return;
+    }
+
+    if (pregunta.length < 6) {
+      setError("FAQ: la pregunta debe tener minimo 6 caracteres.");
+      return;
+    }
+
+    if (respuesta.length < 8) {
+      setError("FAQ: la respuesta debe tener minimo 8 caracteres.");
+      return;
+    }
+
+    if (!Number.isInteger(orden) || orden < 1 || orden > 999) {
+      setError("FAQ: el orden debe estar entre 1 y 999.");
       return;
     }
 
@@ -143,9 +162,9 @@ export function AdminContentManager() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          pregunta: newFaq.pregunta,
-          respuesta: newFaq.respuesta,
-          orden: Number(newFaq.orden),
+          pregunta,
+          respuesta,
+          orden,
         }),
       });
       const payload = await response.json();

@@ -6,6 +6,8 @@ export const metadata = {
   title: "Términos y condiciones",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function TerminosPage() {
   const service = new ContentService();
   const page = await service.getLegalPage("terminos");

@@ -6,6 +6,8 @@ type Props = {
   params: Promise<{ tipo: string }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function LegalPage({ params }: Props) {
   const { tipo } = await params;
 

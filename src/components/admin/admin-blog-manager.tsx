@@ -44,10 +44,6 @@ function resolveApiError(payload: unknown, fallback: string) {
   }
 
   const typed = payload as ApiErrorPayload;
-  if (typed.error && typed.error.trim()) {
-    return typed.error;
-  }
-
   const formError = typed.details?.formErrors?.find((message) => Boolean(message?.trim()));
   if (formError) {
     return formError;
@@ -58,6 +54,10 @@ function resolveApiError(payload: unknown, fallback: string) {
     .find((message) => Boolean(message?.trim()));
   if (firstField) {
     return firstField;
+  }
+
+  if (typed.error && typed.error.trim()) {
+    return typed.error;
   }
 
   return fallback;
@@ -99,21 +99,42 @@ export function AdminBlogManager() {
   }, [loadPosts]);
 
   async function createPost() {
-    const slug = toSlug(newPost.titulo);
-    if (!newPost.titulo.trim() || !slug) {
+    const titulo = newPost.titulo.trim();
+    const autor = newPost.autor.trim();
+    const extracto = newPost.extracto.trim();
+    const contenido = newPost.contenido.trim();
+    const slug = toSlug(titulo);
+
+    if (!titulo || !slug) {
       setError("Ingresa un titulo valido.");
       return;
     }
-    if (!newPost.extracto.trim()) {
+    if (titulo.length < 2 || titulo.length > 180) {
+      setError("El titulo debe tener entre 2 y 180 caracteres.");
+      return;
+    }
+    if (!autor) {
+      setError("Ingresa el autor del articulo.");
+      return;
+    }
+    if (autor.length < 2 || autor.length > 120) {
+      setError("El autor debe tener entre 2 y 120 caracteres.");
+      return;
+    }
+    if (!extracto) {
       setError("Ingresa un extracto.");
       return;
     }
-    if (!newPost.contenido.trim()) {
+    if (extracto.length < 8 || extracto.length > 280) {
+      setError("El extracto debe tener entre 8 y 280 caracteres.");
+      return;
+    }
+    if (!contenido) {
       setError("Ingresa el contenido del articulo.");
       return;
     }
-    if (!newPost.autor.trim()) {
-      setError("Ingresa el autor del articulo.");
+    if (contenido.length < 20 || contenido.length > 12000) {
+      setError("El contenido debe tener entre 20 y 12000 caracteres.");
       return;
     }
 
@@ -125,10 +146,10 @@ export function AdminBlogManager() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           slug,
-          titulo: newPost.titulo,
-          autor: newPost.autor,
-          extracto: newPost.extracto,
-          contenido: newPost.contenido,
+          titulo,
+          autor,
+          extracto,
+          contenido,
         }),
       });
 
@@ -152,17 +173,38 @@ export function AdminBlogManager() {
   }
 
   async function savePost(post: BlogPost) {
-    const slug = toSlug(post.titulo);
-    if (!post.titulo.trim() || !slug) {
+    const titulo = post.titulo.trim();
+    const autor = post.autor.trim();
+    const extracto = post.extracto.trim();
+    const contenido = post.contenido.trim();
+    const slug = toSlug(titulo);
+
+    if (!titulo || !slug) {
       setError("El titulo del articulo no es valido.");
       return;
     }
-    if (!post.extracto.trim() || !post.contenido.trim()) {
+    if (titulo.length < 2 || titulo.length > 180) {
+      setError("El titulo debe tener entre 2 y 180 caracteres.");
+      return;
+    }
+    if (!autor) {
+      setError("Autor: valor obligatorio.");
+      return;
+    }
+    if (autor.length < 2 || autor.length > 120) {
+      setError("El autor debe tener entre 2 y 120 caracteres.");
+      return;
+    }
+    if (!extracto || !contenido) {
       setError("Extracto y contenido son obligatorios.");
       return;
     }
-    if (!post.autor.trim()) {
-      setError("Autor: valor obligatorio.");
+    if (extracto.length < 8 || extracto.length > 280) {
+      setError("El extracto debe tener entre 8 y 280 caracteres.");
+      return;
+    }
+    if (contenido.length < 20 || contenido.length > 12000) {
+      setError("El contenido debe tener entre 20 y 12000 caracteres.");
       return;
     }
 
@@ -174,10 +216,10 @@ export function AdminBlogManager() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           slug,
-          titulo: post.titulo,
-          autor: post.autor,
-          extracto: post.extracto,
-          contenido: post.contenido,
+          titulo,
+          autor,
+          extracto,
+          contenido,
         }),
       });
 

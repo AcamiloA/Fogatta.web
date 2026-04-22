@@ -4,6 +4,8 @@ export const metadata = {
   title: "Preguntas frecuentes",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function FAQPage() {
   const faq = await new ContentService().getFAQ();
 
