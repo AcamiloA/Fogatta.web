@@ -6,7 +6,6 @@ import {
   KeyboardEvent,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -40,8 +39,6 @@ export function AdminLoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const otpCode = useMemo(() => otpDigits.join(""), [otpDigits]);
-
   const requestLogin = useCallback(async (payload: { username: string; password: string; otp?: string }) => {
     const response = await fetch("/api/admin/login", {
       method: "POST",
@@ -70,6 +67,7 @@ export function AdminLoginForm() {
   }
 
   function resetToCredentials(errorMessage: string) {
+    setLoading(false);
     setStep("credentials");
     setPassword("");
     setOtpDigits(createEmptyOtpDigits());
@@ -91,7 +89,47 @@ export function AdminLoginForm() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
-    if (step !== "credentials" || loading) {
+    if (loading) {
+      return;
+    }
+
+    if (step === "credentials") {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { response, data } = await requestLogin({ username, password });
+
+        if (!response.ok) {
+          throw new Error(data?.error ?? "Credenciales invalidas.");
+        }
+
+        if (data?.ok) {
+          router.push("/admin");
+          router.refresh();
+          return;
+        }
+
+        if (data?.requiresTwoFactor) {
+          setStep("otp");
+          setOtpDigits(createEmptyOtpDigits());
+          return;
+        }
+
+        throw new Error("No se pudo iniciar sesion.");
+      } catch (submitError) {
+        const message = submitError instanceof Error ? submitError.message : "No se pudo iniciar sesion.";
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    const code = otpDigits.join("");
+    const isComplete = code.length === OTP_LENGTH && otpDigits.every((digit) => digit.length === 1);
+    if (!isComplete) {
+      setError("Ingresa los 6 digitos.");
       return;
     }
 
@@ -99,28 +137,9 @@ export function AdminLoginForm() {
     setError(null);
 
     try {
-      const { response, data } = await requestLogin({ username, password });
-
-      if (!response.ok) {
-        throw new Error(data?.error ?? "Credenciales invalidas.");
-      }
-
-      if (data?.ok) {
-        router.push("/admin");
-        router.refresh();
-        return;
-      }
-
-      if (data?.requiresTwoFactor) {
-        setStep("otp");
-        setOtpDigits(createEmptyOtpDigits());
-        return;
-      }
-
-      throw new Error("No se pudo iniciar sesion.");
-    } catch (submitError) {
-      const message = submitError instanceof Error ? submitError.message : "No se pudo iniciar sesion.";
-      setError(message);
+      await submitOtpCode(code);
+    } catch {
+      resetToCredentials("Credenciales invalidas.");
     } finally {
       setLoading(false);
     }
@@ -144,6 +163,7 @@ export function AdminLoginForm() {
     }
 
     setOtpDigits(next);
+    setError(null);
 
     const nextFocusIndex = Math.min(cursor, OTP_LENGTH - 1);
     otpInputRefs.current[nextFocusIndex]?.focus();
@@ -196,6 +216,7 @@ export function AdminLoginForm() {
     }
 
     setOtpDigits(next);
+    setError(null);
 
     const nextFocusIndex = Math.min(cursor, OTP_LENGTH - 1);
     otpInputRefs.current[nextFocusIndex]?.focus();
@@ -212,45 +233,11 @@ export function AdminLoginForm() {
     otpInputRefs.current[targetIndex]?.focus();
   }, [step, otpDigits]);
 
-  useEffect(() => {
-    if (step !== "otp" || loading) {
-      return;
-    }
-
-    const isComplete = otpCode.length === OTP_LENGTH && otpDigits.every((digit) => digit.length === 1);
-    if (!isComplete) {
-      return;
-    }
-
-    let active = true;
-
-    void (async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        await submitOtpCode(otpCode);
-      } catch {
-        if (active) {
-          resetToCredentials("Credenciales invalidas.");
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [step, otpCode, otpDigits, loading, submitOtpCode]);
-
   return (
     <form
       onSubmit={handleSubmit}
       autoComplete="off"
-      className="mx-auto w-full max-w-md space-y-4 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-6 shadow-sm"
+      className="mx-auto w-full max-w-md space-y-4 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4 shadow-sm sm:p-6"
     >
       <div className="mb-2 flex items-center justify-center gap-3">
         <Image
@@ -290,9 +277,9 @@ export function AdminLoginForm() {
           </label>
         </>
       ) : (
-        <div className="rounded-xl border border-[var(--accent)]/35 bg-[var(--surface-3)]/65 p-4">
+        <div className="rounded-xl border border-[var(--accent)]/35 bg-[var(--surface-3)]/65 p-3 sm:p-4">
           <label className="block text-sm text-[var(--fg-muted)]"></label>
-          <div className="mt-2 flex items-center justify-center gap-2">
+          <div className="mt-2 grid grid-cols-6 gap-1.5 sm:gap-2">
             {otpDigits.map((digit, index) => (
               <input
                 key={`otp-digit-${index}`}
@@ -310,7 +297,7 @@ export function AdminLoginForm() {
                 onPaste={(event) => handleOtpPaste(index, event)}
                 onFocus={(event) => event.currentTarget.select()}
                 aria-label={`Clave ${index + 1}`}
-                className="h-11 w-11 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] text-center text-lg text-[var(--fg)]"
+                className="h-10 w-full min-w-0 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] text-center text-base text-[var(--fg)] sm:h-11 sm:text-lg"
               />
             ))}
           </div>
@@ -328,9 +315,13 @@ export function AdminLoginForm() {
           {loading ? "Validando..." : "Continuar"}
         </button>
       ) : (
-        <p className="text-center text-xs text-[var(--fg-muted)]">
-          {loading ? "Verificando..." : ""}
-        </p>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
+        >
+          {loading ? "Verificando..." : "Acceder"}
+        </button>
       )}
     </form>
   );
