@@ -27,7 +27,7 @@ export class LeadsService {
             source: "web_contacto",
           },
         });
-        await notifyLeadEmailSafely(created.id, input);
+        void notifyLeadEmailSafely(created.id, input);
 
         return createLeadResponseSchema.parse({
           ok: true,
@@ -37,7 +37,7 @@ export class LeadsService {
 
       const offlineId = randomUUID();
       logInfo("lead_received_without_database", { offlineId, input });
-      await sendLeadNotificationEmail(offlineId, input);
+      void notifyLeadEmailSafely(offlineId, input);
 
       return createLeadResponseSchema.parse({
         ok: true,

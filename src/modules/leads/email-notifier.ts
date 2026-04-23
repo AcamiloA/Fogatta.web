@@ -60,6 +60,18 @@ function requireSmtpConfig() {
   };
 }
 
+function getTimeoutMs(envName: string, fallbackMs: number) {
+  const raw = process.env[envName];
+  if (!raw) {
+    return fallbackMs;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallbackMs;
+  }
+  return parsed;
+}
+
 function buildMailContent(leadId: string, input: CreateLeadInput) {
   const to = process.env.LEADS_NOTIFICATION_TO ?? DEFAULT_NOTIFICATION_EMAIL;
   const city = input.ciudad?.trim() ? input.ciudad.trim() : "No indicada";
@@ -177,6 +189,9 @@ export async function sendLeadNotificationEmail(leadId: string, input: CreateLea
       host: smtp.host,
       port: smtp.port,
       secure: smtp.secure,
+      connectionTimeout: getTimeoutMs("SMTP_CONNECTION_TIMEOUT_MS", 10_000),
+      greetingTimeout: getTimeoutMs("SMTP_GREETING_TIMEOUT_MS", 10_000),
+      socketTimeout: getTimeoutMs("SMTP_SOCKET_TIMEOUT_MS", 15_000),
       auth: {
         user: smtp.user,
         pass: smtp.pass,

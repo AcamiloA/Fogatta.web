@@ -20,14 +20,14 @@ function getInitialTheme(): ThemePreset {
     return siteConfig.themePreset;
   }
 
-  const bodyTheme = document.body.getAttribute("data-theme");
-  if (bodyTheme === "warm" || bodyTheme === "night") {
-    return bodyTheme;
-  }
-
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (stored === "warm" || stored === "night") {
     return stored;
+  }
+
+  const bodyTheme = document.body.getAttribute("data-theme");
+  if (bodyTheme === "warm" || bodyTheme === "night") {
+    return bodyTheme;
   }
 
   return siteConfig.themePreset === "night" ? "night" : "warm";
