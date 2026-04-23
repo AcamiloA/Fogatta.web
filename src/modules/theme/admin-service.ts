@@ -13,12 +13,15 @@ type SiteThemeEntity = {
   heroImageUrl: string | null;
   heroOpacity: number;
   iconImageUrl: string | null;
+  iconImageUrls: string[];
   animationType: ThemeAnimationType;
   animationIntensity: number;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
+
+const MAX_THEME_ICONS = 4;
 
 export class ThemeNotFoundError extends Error {
   constructor() {
@@ -56,7 +59,25 @@ function getDefaultAnimationForPalette(palette: ThemePalette): ThemeAnimationTyp
   return ThemeAnimationType.none;
 }
 
+function normalizeIconUrls(iconImageUrls?: string[] | null, iconImageUrl?: string | null) {
+  const cleanUrls = (iconImageUrls ?? [])
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+    .slice(0, MAX_THEME_ICONS);
+
+  if (cleanUrls.length > 0) {
+    return cleanUrls;
+  }
+
+  if (iconImageUrl && iconImageUrl.trim().length > 0) {
+    return [iconImageUrl.trim()];
+  }
+
+  return [];
+}
+
 function toDTO(theme: SiteThemeEntity) {
+  const iconImageUrls = normalizeIconUrls(theme.iconImageUrls, theme.iconImageUrl);
   return {
     id: theme.id,
     slug: theme.slug,
@@ -66,7 +87,8 @@ function toDTO(theme: SiteThemeEntity) {
     backgroundOpacity: Math.min(100, Math.max(0, theme.backgroundOpacity)),
     heroImageUrl: theme.heroImageUrl,
     heroOpacity: Math.min(100, Math.max(0, theme.heroOpacity)),
-    iconImageUrl: theme.iconImageUrl,
+    iconImageUrl: iconImageUrls[0] ?? null,
+    iconImageUrls,
     animationType: theme.animationType,
     animationIntensity: Math.min(3, Math.max(1, theme.animationIntensity)),
     isActive: theme.isActive,
@@ -97,8 +119,10 @@ export class AdminThemeService {
     animationIntensity?: number;
     backgroundOpacity?: number;
     heroOpacity?: number;
+    iconImageUrls?: string[];
   }) {
     const db = ensurePrisma();
+    const iconImageUrls = normalizeIconUrls(input.iconImageUrls);
 
     return db.siteTheme.create({
       data: {
@@ -109,6 +133,8 @@ export class AdminThemeService {
         animationIntensity: Math.min(3, Math.max(1, input.animationIntensity ?? 1)),
         backgroundOpacity: Math.min(100, Math.max(0, input.backgroundOpacity ?? 100)),
         heroOpacity: Math.min(100, Math.max(0, input.heroOpacity ?? 100)),
+        iconImageUrl: iconImageUrls[0] ?? null,
+        iconImageUrls,
         isActive: false,
       },
     });
@@ -124,6 +150,7 @@ export class AdminThemeService {
       heroImageUrl?: string | null;
       heroOpacity?: number;
       iconImageUrl?: string | null;
+      iconImageUrls?: string[];
       animationType?: ThemeAnimationType;
       animationIntensity?: number;
     },
@@ -136,6 +163,13 @@ export class AdminThemeService {
     if (!found) {
       throw new ThemeNotFoundError();
     }
+
+    const normalizedIconUrls =
+      input.iconImageUrls !== undefined
+        ? normalizeIconUrls(input.iconImageUrls)
+        : input.iconImageUrl !== undefined
+          ? normalizeIconUrls(undefined, input.iconImageUrl)
+          : undefined;
 
     return db.siteTheme.update({
       where: { id },
@@ -150,7 +184,8 @@ export class AdminThemeService {
         heroImageUrl: input.heroImageUrl,
         heroOpacity:
           input.heroOpacity !== undefined ? Math.min(100, Math.max(0, input.heroOpacity)) : undefined,
-        iconImageUrl: input.iconImageUrl,
+        iconImageUrl: normalizedIconUrls ? normalizedIconUrls[0] ?? null : undefined,
+        iconImageUrls: normalizedIconUrls,
         animationType: input.animationType,
         animationIntensity:
           input.animationIntensity !== undefined

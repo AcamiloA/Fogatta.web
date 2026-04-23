@@ -63,9 +63,6 @@ export default async function RootLayout({
             ? `url("${activeTheme.heroImageUrl}")`
             : "none",
           "--theme-hero-opacity": String(activeTheme.heroOpacity),
-          "--theme-icon-image": activeTheme.iconImageUrl
-            ? `url("${activeTheme.iconImageUrl}")`
-            : "none",
           "--season-animation-intensity": String(activeTheme.animationIntensity),
         } as React.CSSProperties}
       >
@@ -75,7 +72,7 @@ export default async function RootLayout({
             animationType={activeTheme.animationType}
             intensity={activeTheme.animationIntensity}
             seasonalPreset={activeTheme.seasonalPreset}
-            hasCustomIcon={Boolean(activeTheme.iconImageUrl)}
+            iconImageUrls={activeTheme.iconImageUrls}
           />
           <SiteHeader />
           <main

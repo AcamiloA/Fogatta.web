@@ -35,7 +35,6 @@
   --season-glow-a: transparent;
   --season-glow-b: transparent;
   --season-hero-glow: transparent;
-  --theme-icon-image: none;
   --season-animation-intensity: 1;
 }
 
@@ -187,11 +186,7 @@ body::after {
   color: color-mix(in oklab, var(--accent-soft) 80%, #ffffff 20%);
   text-shadow: 0 0 10px color-mix(in oklab, #000000 35%, transparent 65%);
   opacity: 0.65;
-}
-
-.season-overlay--float_icons .season-overlay__particle:empty {
-  font-size: 0;
-  background-image: var(--theme-icon-image);
+  background-image: var(--season-icon-image);
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;

@@ -266,6 +266,7 @@ model SiteTheme {
   heroImageUrl       String?
   heroOpacity        Int          @default(100)
   iconImageUrl       String?
+  iconImageUrls      String[]     @default([])
   animationType      ThemeAnimationType @default(none)
   animationIntensity Int          @default(1)
   isActive           Boolean      @default(false)

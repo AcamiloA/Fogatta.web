@@ -13,6 +13,7 @@ export const adminThemeSchema = z.object({
   heroImageUrl: z.string().nullable(),
   heroOpacity: z.number().int().min(0).max(100),
   iconImageUrl: z.string().nullable(),
+  iconImageUrls: z.array(z.string().url()).max(4),
   animationType: themeAnimationTypeSchema,
   animationIntensity: z.number().int().min(1).max(3),
   isActive: z.boolean(),
@@ -37,6 +38,7 @@ export const createThemeInputSchema = z.object({
   animationIntensity: z.number().int().min(1).max(3).default(1),
   backgroundOpacity: z.number().int().min(0).max(100).default(100),
   heroOpacity: z.number().int().min(0).max(100).default(100),
+  iconImageUrls: z.array(z.string().url()).max(4).default([]),
 });
 
 export const updateThemeInputSchema = z
@@ -49,6 +51,7 @@ export const updateThemeInputSchema = z
     heroImageUrl: z.string().url().nullable().optional(),
     heroOpacity: z.number().int().min(0).max(100).optional(),
     iconImageUrl: z.string().url().nullable().optional(),
+    iconImageUrls: z.array(z.string().url()).max(4).optional(),
     animationType: themeAnimationTypeSchema.optional(),
     animationIntensity: z.number().int().min(1).max(3).optional(),
   })
@@ -61,6 +64,7 @@ export const updateThemeInputSchema = z
       value.heroImageUrl !== undefined ||
       value.heroOpacity !== undefined ||
       value.iconImageUrl !== undefined ||
+      value.iconImageUrls !== undefined ||
       value.animationType !== undefined ||
       value.animationIntensity !== undefined,
     { message: "No hay campos para actualizar." },

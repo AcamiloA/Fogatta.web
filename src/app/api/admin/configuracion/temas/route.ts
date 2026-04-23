@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       animationIntensity: input.animationIntensity,
       backgroundOpacity: input.backgroundOpacity,
       heroOpacity: input.heroOpacity,
+      iconImageUrls: input.iconImageUrls,
     });
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
   } catch (error) {

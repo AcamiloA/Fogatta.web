@@ -15,13 +15,15 @@ type ThemeItem = {
   backgroundOpacity: number;
   heroImageUrl: string | null;
   heroOpacity: number;
-  iconImageUrl: string | null;
+  iconImageUrls: string[];
   animationType: ThemeAnimationType;
   animationIntensity: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 };
+
+const MAX_THEME_ICONS = 4;
 
 type ThemePayload = {
   activeThemeId: string | null;
@@ -80,6 +82,15 @@ function clampOpacity(value: number) {
   return Math.min(100, Math.max(0, Math.round(value)));
 }
 
+function normalizeIconSlots(iconImageUrls: string[] | null | undefined) {
+  const normalized = (iconImageUrls ?? [])
+    .map((url) => url.trim())
+    .filter((url) => url.length > 0)
+    .slice(0, MAX_THEME_ICONS);
+
+  return Array.from({ length: MAX_THEME_ICONS }, (_, index) => normalized[index] ?? "");
+}
+
 const paletteOptions: Array<{ value: ThemePalette; label: string }> = [
   { value: "warm", label: "Acento calido" },
   { value: "night", label: "Acento noche" },
@@ -92,12 +103,6 @@ const animationOptions: Array<{ value: ThemeAnimationType; label: string }> = [
   { value: "sparkles", label: "Destellos" },
   { value: "float_icons", label: "Iconos flotantes" },
 ];
-function defaultAnimationForPalette(palette: ThemePalette): ThemeAnimationType {
-  if (palette === "warm" || palette === "night") {
-    return "none";
-  }
-  return palette === "octubre" ? "float_icons" : "snow";
-}
 
 export function AdminThemeSettingsManager() {
   const router = useRouter();
@@ -133,7 +138,12 @@ export function AdminThemeSettingsManager() {
       }
 
       const typed = payload as ThemePayload;
-      setThemes(typed.themes);
+      setThemes(
+        typed.themes.map((theme) => ({
+          ...theme,
+          iconImageUrls: normalizeIconSlots(theme.iconImageUrls),
+        })),
+      );
       setActiveThemeId(typed.activeThemeId);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Error cargando configuracion.");
@@ -215,7 +225,10 @@ export function AdminThemeSettingsManager() {
           heroImageUrl: theme.heroImageUrl,
           backgroundOpacity: clampOpacity(theme.backgroundOpacity),
           heroOpacity: clampOpacity(theme.heroOpacity),
-          iconImageUrl: theme.iconImageUrl,
+          iconImageUrls: theme.iconImageUrls
+            .map((url) => url.trim())
+            .filter((url) => url.length > 0)
+            .slice(0, MAX_THEME_ICONS),
           animationType: theme.animationType,
           animationIntensity: Math.min(3, Math.max(1, theme.animationIntensity || 1)),
         }),
@@ -282,7 +295,7 @@ export function AdminThemeSettingsManager() {
     }
   }
 
-  async function uploadThemeImage(file: File, themeId: string, target: "background" | "hero" | "icon") {
+  async function uploadThemeImage(file: File, themeId: string, target: "background" | "hero") {
     setBusyId(`upload-${target}-${themeId}`);
     setError(null);
 
@@ -303,12 +316,40 @@ export function AdminThemeSettingsManager() {
       updateThemeState(themeId, (theme) =>
         target === "background"
           ? { ...theme, backgroundImageUrl: uploadedUrl }
-          : target === "hero"
-            ? { ...theme, heroImageUrl: uploadedUrl }
-            : { ...theme, iconImageUrl: uploadedUrl },
+          : { ...theme, heroImageUrl: uploadedUrl },
       );
     } catch (uploadError) {
       setError(uploadError instanceof Error ? uploadError.message : "Error subiendo imagen.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function uploadThemeIcon(file: File, themeId: string, iconIndex: number) {
+    setBusyId(`upload-icon-${themeId}-${iconIndex}`);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/admin/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(resolveApiError(payload, "No se pudo subir el icono."));
+      }
+
+      const uploadedUrl = payload.url as string;
+      updateThemeState(themeId, (theme) => {
+        const nextIcons = normalizeIconSlots(theme.iconImageUrls);
+        nextIcons[iconIndex] = uploadedUrl;
+        return { ...theme, iconImageUrls: nextIcons };
+      });
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : "Error subiendo icono.");
     } finally {
       setBusyId(null);
     }
@@ -366,7 +407,6 @@ export function AdminThemeSettingsManager() {
               setNewTheme((current) => ({
                 ...current,
                 palette: event.target.value as ThemePalette,
-                animationType: defaultAnimationForPalette(event.target.value as ThemePalette),
               }))
             }
             className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
@@ -487,7 +527,6 @@ export function AdminThemeSettingsManager() {
                       updateThemeState(theme.id, (current) => ({
                         ...current,
                         palette: event.target.value as ThemePalette,
-                        animationType: defaultAnimationForPalette(event.target.value as ThemePalette),
                       }))
                     }
                     className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
@@ -657,33 +696,58 @@ export function AdminThemeSettingsManager() {
                   </div>
 
                   <div className="space-y-2 rounded-xl border border-[var(--border)]/35 bg-[var(--surface-3)] p-4">
-                    <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">Icono flotante (opcional)</p>
-                    <input
-                      value={theme.iconImageUrl ?? ""}
-                      onChange={(event) =>
-                        updateThemeState(theme.id, (current) => ({
-                          ...current,
-                          iconImageUrl: event.target.value.trim() || null,
-                        }))
-                      }
-                      placeholder="https://..."
-                      className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-                    />
-                    <label className="inline-flex cursor-pointer rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)]">
-                      Subir icono
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp,image/avif"
-                        className="sr-only"
-                        onChange={async (event) => {
-                          const input = event.currentTarget;
-                          const file = input.files?.[0];
-                          if (!file) return;
-                          await uploadThemeImage(file, theme.id, "icon");
-                          input.value = "";
-                        }}
-                      />
-                    </label>
+                    <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">
+                      Iconos flotantes (maximo 4)
+                    </p>
+                    <div className="space-y-2">
+                      {Array.from({ length: MAX_THEME_ICONS }).map((_, iconIndex) => (
+                        <div key={`${theme.id}-icon-slot-${iconIndex}`} className="rounded-lg border border-[var(--border)]/45 p-2">
+                          <p className="mb-2 text-[11px] text-[var(--fg-soft)]">Icono {iconIndex + 1}</p>
+                          <input
+                            value={theme.iconImageUrls[iconIndex] ?? ""}
+                            onChange={(event) =>
+                              updateThemeState(theme.id, (current) => {
+                                const nextIcons = normalizeIconSlots(current.iconImageUrls);
+                                nextIcons[iconIndex] = event.target.value.trim();
+                                return { ...current, iconImageUrls: nextIcons };
+                              })
+                            }
+                            placeholder="https://..."
+                            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--fg)]"
+                          />
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <label className="inline-flex cursor-pointer rounded-lg border border-[var(--border)] px-3 py-1.5 text-[11px] text-[var(--fg-muted)]">
+                              Subir
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp,image/avif"
+                                className="sr-only"
+                                onChange={async (event) => {
+                                  const input = event.currentTarget;
+                                  const file = input.files?.[0];
+                                  if (!file) return;
+                                  await uploadThemeIcon(file, theme.id, iconIndex);
+                                  input.value = "";
+                                }}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateThemeState(theme.id, (current) => {
+                                  const nextIcons = normalizeIconSlots(current.iconImageUrls);
+                                  nextIcons[iconIndex] = "";
+                                  return { ...current, iconImageUrls: nextIcons };
+                                })
+                              }
+                              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-[11px] text-[var(--fg-muted)]"
+                            >
+                              Limpiar
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

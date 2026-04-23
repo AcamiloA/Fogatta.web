@@ -18,6 +18,7 @@ export type ActiveThemeSettings = {
   heroImageUrl: string | null;
   heroOpacity: number;
   iconImageUrl: string | null;
+  iconImageUrls: string[];
   animationType: "none" | "snow" | "sparkles" | "float_icons";
   animationIntensity: 1 | 2 | 3;
 };
@@ -44,6 +45,7 @@ function fromPreset(preset: ThemePreset): ActiveThemeSettings {
     heroImageUrl: null,
     heroOpacity: 100,
     iconImageUrl: null,
+    iconImageUrls: [],
     animationType: "none",
     animationIntensity: 1,
   };
@@ -84,7 +86,13 @@ export const getActiveThemeSettings = cache(async (): Promise<ActiveThemeSetting
       backgroundOpacity: Math.min(100, Math.max(0, activeTheme.backgroundOpacity)),
       heroImageUrl: activeTheme.heroImageUrl,
       heroOpacity: Math.min(100, Math.max(0, activeTheme.heroOpacity)),
-      iconImageUrl: activeTheme.iconImageUrl,
+      iconImageUrl: activeTheme.iconImageUrls[0] ?? activeTheme.iconImageUrl,
+      iconImageUrls:
+        activeTheme.iconImageUrls.length > 0
+          ? activeTheme.iconImageUrls.slice(0, 4)
+          : activeTheme.iconImageUrl
+            ? [activeTheme.iconImageUrl]
+            : [],
       animationType: activeTheme.animationType,
       animationIntensity: Math.min(3, Math.max(1, activeTheme.animationIntensity)) as 1 | 2 | 3,
     };
