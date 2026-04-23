@@ -1,4 +1,4 @@
-export const themePresetValues = ["warm", "night", "navidad", "octubre"] as const;
+export const themePresetValues = ["warm", "night"] as const;
 
 export type ThemePreset = (typeof themePresetValues)[number];
 

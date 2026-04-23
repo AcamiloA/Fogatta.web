@@ -1,14 +1,18 @@
-import { Prisma, ThemePalette } from "@prisma/client";
+import { Prisma, ThemeAnimationType, ThemePalette } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import { logError } from "@/lib/logger";
 
-const baseThemes: Array<{ slug: string; nombre: string; palette: ThemePalette }> = [
-  { slug: "warm", nombre: "Clasico calido", palette: ThemePalette.warm },
-  { slug: "night", nombre: "Noche elegante", palette: ThemePalette.night },
-  { slug: "navidad", nombre: "Navidad", palette: ThemePalette.navidad },
-  { slug: "octubre", nombre: "Octubre", palette: ThemePalette.octubre },
+const seasonalBaseThemes: Array<{
+  slug: string;
+  nombre: string;
+  palette: ThemePalette;
+  animationType: ThemeAnimationType;
+}> = [
+  { slug: "navidad", nombre: "Navidad", palette: ThemePalette.navidad, animationType: ThemeAnimationType.snow },
+  { slug: "octubre", nombre: "Octubre", palette: ThemePalette.octubre, animationType: ThemeAnimationType.float_icons },
 ];
+const seasonalBaseThemeSlugs = new Set(seasonalBaseThemes.map((theme) => theme.slug));
 
 type SiteThemeEntity = {
   id: string;
@@ -17,6 +21,9 @@ type SiteThemeEntity = {
   palette: ThemePalette;
   backgroundImageUrl: string | null;
   heroImageUrl: string | null;
+  iconImageUrl: string | null;
+  animationType: ThemeAnimationType;
+  animationIntensity: number;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -33,6 +40,13 @@ export class ThemeDeleteNotAllowedError extends Error {
   constructor() {
     super("No se puede eliminar el ultimo tema disponible.");
     this.name = "ThemeDeleteNotAllowedError";
+  }
+}
+
+export class ThemeBaseDeleteNotAllowedError extends Error {
+  constructor() {
+    super("No se puede eliminar un tema base del sistema.");
+    this.name = "ThemeBaseDeleteNotAllowedError";
   }
 }
 
@@ -63,6 +77,9 @@ function toDTO(theme: SiteThemeEntity) {
     palette: theme.palette,
     backgroundImageUrl: theme.backgroundImageUrl,
     heroImageUrl: theme.heroImageUrl,
+    iconImageUrl: theme.iconImageUrl,
+    animationType: theme.animationType,
+    animationIntensity: Math.min(3, Math.max(1, theme.animationIntensity)),
     isActive: theme.isActive,
     createdAt: theme.createdAt.toISOString(),
     updatedAt: theme.updatedAt.toISOString(),
@@ -70,47 +87,47 @@ function toDTO(theme: SiteThemeEntity) {
 }
 
 export class AdminThemeService {
-  private async ensureBaseThemes() {
+  private async ensureSeasonalBaseThemes() {
     const db = ensurePrisma();
 
-    for (const theme of baseThemes) {
+    for (const theme of seasonalBaseThemes) {
       await db.siteTheme.upsert({
         where: { slug: theme.slug },
         update: {
           nombre: theme.nombre,
           palette: theme.palette,
+          animationType: theme.animationType,
+          animationIntensity: 1,
         },
         create: {
           slug: theme.slug,
           nombre: theme.nombre,
           palette: theme.palette,
-          // Never force active here. We'll ensure exactly one active after seeding.
+          animationType: theme.animationType,
+          animationIntensity: 1,
           isActive: false,
         },
       });
     }
 
-    const activeTheme = await db.siteTheme.findFirst({
-      where: { isActive: true },
-      select: { id: true },
+    // Warm/Night are user display modes, not seasonal themes.
+    await db.siteTheme.updateMany({
+      where: {
+        palette: { in: [ThemePalette.warm, ThemePalette.night] },
+        isActive: true,
+      },
+      data: { isActive: false },
     });
-
-    if (!activeTheme) {
-      const warm = await db.siteTheme.findUnique({ where: { slug: "warm" }, select: { id: true } });
-      if (warm) {
-        await db.siteTheme.update({
-          where: { id: warm.id },
-          data: { isActive: true },
-        });
-      }
-    }
   }
 
   async listThemes() {
     const db = ensurePrisma();
-    await this.ensureBaseThemes();
+    await this.ensureSeasonalBaseThemes();
 
     const themes = await db.siteTheme.findMany({
+      where: {
+        palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
+      },
       orderBy: [{ isActive: "desc" }, { createdAt: "asc" }],
     });
 
@@ -120,15 +137,30 @@ export class AdminThemeService {
     };
   }
 
-  async createTheme(input: { slug: string; nombre: string; palette: ThemePalette }) {
+  async createTheme(input: {
+    slug: string;
+    nombre: string;
+    palette: ThemePalette;
+    animationType?: ThemeAnimationType;
+    animationIntensity?: number;
+  }) {
     const db = ensurePrisma();
-    await this.ensureBaseThemes();
+    await this.ensureSeasonalBaseThemes();
+
+    const safePalette =
+      input.palette === ThemePalette.navidad || input.palette === ThemePalette.octubre
+        ? input.palette
+        : ThemePalette.navidad;
 
     return db.siteTheme.create({
       data: {
         slug: input.slug.trim(),
         nombre: input.nombre.trim(),
-        palette: input.palette,
+        palette: safePalette,
+        animationType:
+          input.animationType ??
+          (safePalette === ThemePalette.octubre ? ThemeAnimationType.float_icons : ThemeAnimationType.snow),
+        animationIntensity: Math.min(3, Math.max(1, input.animationIntensity ?? 1)),
         isActive: false,
       },
     });
@@ -141,29 +173,52 @@ export class AdminThemeService {
       palette?: ThemePalette;
       backgroundImageUrl?: string | null;
       heroImageUrl?: string | null;
+      iconImageUrl?: string | null;
+      animationType?: ThemeAnimationType;
+      animationIntensity?: number;
     },
   ) {
     const db = ensurePrisma();
-    const found = await db.siteTheme.findUnique({ where: { id }, select: { id: true } });
+    const found = await db.siteTheme.findUnique({
+      where: { id },
+      select: { id: true, palette: true },
+    });
     if (!found) {
       throw new ThemeNotFoundError();
     }
+
+    const nextPalette =
+      input.palette === ThemePalette.navidad || input.palette === ThemePalette.octubre
+        ? input.palette
+        : found.palette;
 
     return db.siteTheme.update({
       where: { id },
       data: {
         nombre: input.nombre?.trim(),
-        palette: input.palette,
+        palette: nextPalette,
         backgroundImageUrl: input.backgroundImageUrl,
         heroImageUrl: input.heroImageUrl,
+        iconImageUrl: input.iconImageUrl,
+        animationType: input.animationType,
+        animationIntensity:
+          input.animationIntensity !== undefined
+            ? Math.min(3, Math.max(1, input.animationIntensity))
+            : undefined,
       },
     });
   }
 
   async activateTheme(id: string) {
     const db = ensurePrisma();
-    const found = await db.siteTheme.findUnique({ where: { id }, select: { id: true } });
+    const found = await db.siteTheme.findUnique({
+      where: { id },
+      select: { id: true, palette: true },
+    });
     if (!found) {
+      throw new ThemeNotFoundError();
+    }
+    if (found.palette !== ThemePalette.navidad && found.palette !== ThemePalette.octubre) {
       throw new ThemeNotFoundError();
     }
 
@@ -183,14 +238,27 @@ export class AdminThemeService {
     const db = ensurePrisma();
     const found = await db.siteTheme.findUnique({
       where: { id },
-      select: { id: true, isActive: true },
+      select: { id: true, isActive: true, slug: true, palette: true },
     });
     if (!found) {
       throw new ThemeNotFoundError();
     }
 
-    const totalThemes = await db.siteTheme.count();
-    if (totalThemes <= 1) {
+    if (found.palette !== ThemePalette.navidad && found.palette !== ThemePalette.octubre) {
+      throw new ThemeBaseDeleteNotAllowedError();
+    }
+
+    if (seasonalBaseThemeSlugs.has(found.slug)) {
+      throw new ThemeBaseDeleteNotAllowedError();
+    }
+
+    const totalCustomThemes = await db.siteTheme.count({
+      where: {
+        palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
+        slug: { notIn: Array.from(seasonalBaseThemeSlugs) },
+      },
+    });
+    if (totalCustomThemes <= 1) {
       throw new ThemeDeleteNotAllowedError();
     }
 
@@ -198,8 +266,16 @@ export class AdminThemeService {
       await tx.siteTheme.delete({ where: { id } });
 
       if (found.isActive) {
+        await tx.siteTheme.updateMany({
+          where: { isActive: true },
+          data: { isActive: false },
+        });
+
         const replacement = await tx.siteTheme.findFirst({
-          orderBy: [{ slug: "asc" }],
+          where: {
+            palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
+          },
+          orderBy: [{ createdAt: "asc" }],
           select: { id: true },
         });
         if (replacement) {

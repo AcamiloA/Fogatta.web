@@ -1,9 +1,10 @@
 import { cache } from "react";
+import { ThemePalette } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 import { logError } from "@/lib/logger";
 import { siteConfig } from "@/config/site";
-import { ThemePreset, resolveThemePreset } from "@/config/theme";
+import { ThemePreset } from "@/config/theme";
 
 type SeasonalThemePreset = "navidad" | "octubre";
 
@@ -14,6 +15,9 @@ export type ActiveThemeSettings = {
   seasonalPreset: SeasonalThemePreset | null;
   backgroundImageUrl: string | null;
   heroImageUrl: string | null;
+  iconImageUrl: string | null;
+  animationType: "none" | "snow" | "sparkles" | "float_icons";
+  animationIntensity: 1 | 2 | 3;
 };
 
 function isMissingThemeTableError(error: unknown) {
@@ -28,21 +32,16 @@ function getDefaultBasePreset(): "warm" | "night" {
 }
 
 function fromPreset(preset: ThemePreset): ActiveThemeSettings {
-  const defaultBasePreset = getDefaultBasePreset();
   return {
     slug: preset,
-    nombre:
-      preset === "night"
-        ? "Noche elegante"
-        : preset === "navidad"
-          ? "Navidad"
-        : preset === "octubre"
-            ? "Octubre"
-            : "Clasico calido",
-    basePreset: preset === "night" ? "night" : defaultBasePreset,
-    seasonalPreset: preset === "navidad" || preset === "octubre" ? preset : null,
+    nombre: preset === "night" ? "Noche elegante" : "Clasico calido",
+    basePreset: preset === "night" ? "night" : "warm",
+    seasonalPreset: null,
     backgroundImageUrl: null,
     heroImageUrl: null,
+    iconImageUrl: null,
+    animationType: "none",
+    animationIntensity: 1,
   };
 }
 
@@ -54,26 +53,40 @@ export const getActiveThemeSettings = cache(async (): Promise<ActiveThemeSetting
   try {
     const activeTheme =
       (await prisma.siteTheme.findFirst({
-        where: { isActive: true },
+        where: {
+          isActive: true,
+          palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
+        },
       })) ??
       (await prisma.siteTheme.findFirst({
-        orderBy: [{ createdAt: "asc" }],
+        where: {
+          palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
+        },
+        orderBy: [{ isActive: "desc" }, { createdAt: "asc" }],
       }));
 
     if (!activeTheme) {
       return fromPreset(siteConfig.themePreset);
     }
 
-    const preset = resolveThemePreset(activeTheme.palette, siteConfig.themePreset);
     const defaultBasePreset = getDefaultBasePreset();
+    const seasonalPreset: SeasonalThemePreset | null =
+      activeTheme.palette === ThemePalette.navidad
+        ? "navidad"
+        : activeTheme.palette === ThemePalette.octubre
+          ? "octubre"
+          : null;
 
     return {
       slug: activeTheme.slug,
       nombre: activeTheme.nombre,
-      basePreset: preset === "night" ? "night" : defaultBasePreset,
-      seasonalPreset: preset === "navidad" || preset === "octubre" ? preset : null,
+      basePreset: defaultBasePreset,
+      seasonalPreset,
       backgroundImageUrl: activeTheme.backgroundImageUrl,
       heroImageUrl: activeTheme.heroImageUrl,
+      iconImageUrl: activeTheme.iconImageUrl,
+      animationType: activeTheme.animationType,
+      animationIntensity: Math.min(3, Math.max(1, activeTheme.animationIntensity)) as 1 | 2 | 3,
     };
   } catch (error) {
     if (!isMissingThemeTableError(error)) {

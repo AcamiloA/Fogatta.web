@@ -5,6 +5,7 @@ import { isAdminRequestWithRole } from "@/modules/admin/session";
 import { updateThemeInputSchema } from "@/modules/theme/contracts";
 import {
   AdminThemeService,
+  ThemeBaseDeleteNotAllowedError,
   ThemeDeleteNotAllowedError,
   ThemeNotFoundError,
 } from "@/modules/theme/admin-service";
@@ -64,6 +65,9 @@ export async function DELETE(request: NextRequest, { params }: Params) {
   } catch (error) {
     if (error instanceof ThemeNotFoundError) {
       return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+    if (error instanceof ThemeBaseDeleteNotAllowedError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
     }
     if (error instanceof ThemeDeleteNotAllowedError) {
       return NextResponse.json({ error: error.message }, { status: 409 });

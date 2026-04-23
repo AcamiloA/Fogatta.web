@@ -25,6 +25,13 @@ enum ThemePalette {
   octubre
 }
 
+enum ThemeAnimationType {
+  none
+  snow
+  sparkles
+  float_icons
+}
+
 enum StockReservationStatus {
   pending
   approved
@@ -256,6 +263,9 @@ model SiteTheme {
   palette            ThemePalette @default(warm)
   backgroundImageUrl String?
   heroImageUrl       String?
+  iconImageUrl       String?
+  animationType      ThemeAnimationType @default(none)
+  animationIntensity Int          @default(1)
   isActive           Boolean      @default(false)
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt

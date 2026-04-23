@@ -48,6 +48,8 @@ export async function POST(request: NextRequest) {
       slug: input.slug,
       nombre: input.nombre,
       palette: input.palette,
+      animationType: input.animationType,
+      animationIntensity: input.animationIntensity,
     });
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
   } catch (error) {
