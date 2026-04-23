@@ -5,6 +5,8 @@ export const metadata = {
   title: "Catalogo",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function CatalogoPage() {
   const service = new CatalogService();
   const products = await service.listProducts();

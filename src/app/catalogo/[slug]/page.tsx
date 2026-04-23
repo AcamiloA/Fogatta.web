@@ -8,6 +8,8 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const service = new CatalogService();
