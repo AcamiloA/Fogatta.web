@@ -53,15 +53,9 @@ export const getActiveThemeSettings = cache(async (): Promise<ActiveThemeSetting
   try {
     const activeTheme =
       (await prisma.siteTheme.findFirst({
-        where: {
-          isActive: true,
-          palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
-        },
+        where: { isActive: true },
       })) ??
       (await prisma.siteTheme.findFirst({
-        where: {
-          palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
-        },
         orderBy: [{ isActive: "desc" }, { createdAt: "asc" }],
       }));
 

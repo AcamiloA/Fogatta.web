@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type ThemePalette = "navidad" | "octubre";
+type ThemePalette = "warm" | "night" | "navidad" | "octubre";
 type ThemeAnimationType = "none" | "snow" | "sparkles" | "float_icons";
 
 type ThemeItem = {
@@ -71,8 +71,10 @@ function resolveApiError(payload: unknown, fallback: string) {
 }
 
 const paletteOptions: Array<{ value: ThemePalette; label: string }> = [
-  { value: "navidad", label: "Navidad" },
-  { value: "octubre", label: "Octubre" },
+  { value: "warm", label: "Acento calido" },
+  { value: "night", label: "Acento noche" },
+  { value: "navidad", label: "Acento festivo" },
+  { value: "octubre", label: "Acento mistico" },
 ];
 const animationOptions: Array<{ value: ThemeAnimationType; label: string }> = [
   { value: "none", label: "Sin animacion" },
@@ -80,9 +82,10 @@ const animationOptions: Array<{ value: ThemeAnimationType; label: string }> = [
   { value: "sparkles", label: "Destellos" },
   { value: "float_icons", label: "Iconos flotantes" },
 ];
-const baseThemeSlugs = new Set(["navidad", "octubre"]);
-
 function defaultAnimationForPalette(palette: ThemePalette): ThemeAnimationType {
+  if (palette === "warm" || palette === "night") {
+    return "none";
+  }
   return palette === "octubre" ? "float_icons" : "snow";
 }
 
@@ -94,14 +97,16 @@ export function AdminThemeSettingsManager() {
   const [error, setError] = useState<string | null>(null);
   const [newTheme, setNewTheme] = useState({
     nombre: "",
-    palette: "navidad" as ThemePalette,
-    animationType: "snow" as ThemeAnimationType,
+    slug: "",
+    slugEdited: false,
+    palette: "warm" as ThemePalette,
+    animationType: "none" as ThemeAnimationType,
     animationIntensity: 1,
   });
 
   const canCreateTheme = useMemo(() => {
-    return newTheme.nombre.trim().length >= 2;
-  }, [newTheme.nombre]);
+    return newTheme.nombre.trim().length >= 2 && newTheme.slug.trim().length >= 2;
+  }, [newTheme.nombre, newTheme.slug]);
 
   const loadThemes = useCallback(async () => {
     setLoading(true);
@@ -130,9 +135,9 @@ export function AdminThemeSettingsManager() {
 
   async function createTheme() {
     const nombre = newTheme.nombre.trim();
-    const slug = toSlug(nombre);
+    const slug = toSlug(newTheme.slug);
     if (!nombre || !slug) {
-      setError("Nombre de tema invalido.");
+      setError("Nombre o slug invalido.");
       return;
     }
 
@@ -157,7 +162,14 @@ export function AdminThemeSettingsManager() {
         throw new Error(resolveApiError(payload, "No se pudo crear el tema."));
       }
 
-      setNewTheme({ nombre: "", palette: "navidad", animationType: "snow", animationIntensity: 1 });
+      setNewTheme({
+        nombre: "",
+        slug: "",
+        slugEdited: false,
+        palette: "warm",
+        animationType: "none",
+        animationIntensity: 1,
+      });
       await loadThemes();
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "Error creando tema.");
@@ -290,17 +302,37 @@ export function AdminThemeSettingsManager() {
       ) : null}
 
       <section className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
-        <h2 className="text-xl text-[var(--fg-strong)]">Crear tema de temporada</h2>
+        <h2 className="text-xl text-[var(--fg-strong)]">Crear tema personalizado</h2>
         <p className="text-sm text-[var(--fg-muted)]">
-          Warm y Night son modo visual del usuario. Aqui solo gestionas temporadas (Navidad/Octubre) con efectos.
+          Warm/Night es el modo visual del usuario final. Aqui creas temas libres con tu propio nombre, assets y
+          animaciones.
         </p>
-        <div className="grid gap-2 md:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+        <div className="grid gap-2 md:grid-cols-[2fr_2fr_1fr_1fr_1fr_auto]">
           <input
             value={newTheme.nombre}
             onChange={(event) =>
-              setNewTheme((current) => ({ ...current, nombre: event.target.value }))
+              setNewTheme((current) => {
+                const nextName = event.target.value;
+                return {
+                  ...current,
+                  nombre: nextName,
+                  slug: current.slugEdited ? current.slug : toSlug(nextName),
+                };
+              })
             }
-            placeholder="Nombre del tema (ej. San Valentin 2027)"
+            placeholder="Nombre del tema (ej. Enero Brillante)"
+            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          />
+          <input
+            value={newTheme.slug}
+            onChange={(event) =>
+              setNewTheme((current) => ({
+                ...current,
+                slug: event.target.value,
+                slugEdited: true,
+              }))
+            }
+            placeholder="slug (ej. enero-brillante)"
             className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           />
           <select
@@ -365,8 +397,6 @@ export function AdminThemeSettingsManager() {
         <h2 className="text-xl text-[var(--fg-strong)]">Temas disponibles</h2>
         <div className="grid gap-4">
           {themes.map((theme) => {
-            const isBaseTheme = baseThemeSlugs.has(theme.slug);
-
             return (
               <article
                 key={theme.id}
@@ -376,9 +406,6 @@ export function AdminThemeSettingsManager() {
                   <div>
                     <p className="text-sm text-[var(--fg-soft)]">Slug: {theme.slug}</p>
                     <p className="text-lg text-[var(--fg-strong)]">{theme.nombre}</p>
-                    {isBaseTheme ? (
-                      <p className="text-xs text-[var(--fg-soft)]">Tema base protegido</p>
-                    ) : null}
                   </div>
                   {activeThemeId === theme.id ? (
                     <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
@@ -559,8 +586,7 @@ export function AdminThemeSettingsManager() {
                   <button
                     type="button"
                     onClick={() => void deleteTheme(theme)}
-                    disabled={Boolean(busyId) || isBaseTheme}
-                    title={isBaseTheme ? "Los temas base no se pueden eliminar." : undefined}
+                    disabled={Boolean(busyId)}
                     className="rounded-lg border border-rose-400 px-4 py-2 text-xs text-rose-600 disabled:opacity-60"
                   >
                     {busyId === `delete-${theme.id}` ? "Eliminando..." : "Eliminar tema"}

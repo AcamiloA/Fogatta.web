@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const themePaletteSchema = z.enum(["navidad", "octubre"]);
+export const themePaletteSchema = z.enum(["warm", "night", "navidad", "octubre"]);
 export const themeAnimationTypeSchema = z.enum(["none", "snow", "sparkles", "float_icons"]);
 
 export const adminThemeSchema = z.object({

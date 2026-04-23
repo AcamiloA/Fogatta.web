@@ -3,17 +3,6 @@ import { Prisma, ThemeAnimationType, ThemePalette } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { logError } from "@/lib/logger";
 
-const seasonalBaseThemes: Array<{
-  slug: string;
-  nombre: string;
-  palette: ThemePalette;
-  animationType: ThemeAnimationType;
-}> = [
-  { slug: "navidad", nombre: "Navidad", palette: ThemePalette.navidad, animationType: ThemeAnimationType.snow },
-  { slug: "octubre", nombre: "Octubre", palette: ThemePalette.octubre, animationType: ThemeAnimationType.float_icons },
-];
-const seasonalBaseThemeSlugs = new Set(seasonalBaseThemes.map((theme) => theme.slug));
-
 type SiteThemeEntity = {
   id: string;
   slug: string;
@@ -36,20 +25,6 @@ export class ThemeNotFoundError extends Error {
   }
 }
 
-export class ThemeDeleteNotAllowedError extends Error {
-  constructor() {
-    super("No se puede eliminar el ultimo tema disponible.");
-    this.name = "ThemeDeleteNotAllowedError";
-  }
-}
-
-export class ThemeBaseDeleteNotAllowedError extends Error {
-  constructor() {
-    super("No se puede eliminar un tema base del sistema.");
-    this.name = "ThemeBaseDeleteNotAllowedError";
-  }
-}
-
 function isSlugUniqueConstraint(error: unknown) {
   if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") {
     return false;
@@ -67,6 +42,16 @@ function ensurePrisma() {
     throw new Error("DATABASE_URL is not configured");
   }
   return prisma;
+}
+
+function getDefaultAnimationForPalette(palette: ThemePalette): ThemeAnimationType {
+  if (palette === ThemePalette.navidad) {
+    return ThemeAnimationType.snow;
+  }
+  if (palette === ThemePalette.octubre) {
+    return ThemeAnimationType.float_icons;
+  }
+  return ThemeAnimationType.none;
 }
 
 function toDTO(theme: SiteThemeEntity) {
@@ -87,47 +72,10 @@ function toDTO(theme: SiteThemeEntity) {
 }
 
 export class AdminThemeService {
-  private async ensureSeasonalBaseThemes() {
-    const db = ensurePrisma();
-
-    for (const theme of seasonalBaseThemes) {
-      await db.siteTheme.upsert({
-        where: { slug: theme.slug },
-        update: {
-          nombre: theme.nombre,
-          palette: theme.palette,
-          animationType: theme.animationType,
-          animationIntensity: 1,
-        },
-        create: {
-          slug: theme.slug,
-          nombre: theme.nombre,
-          palette: theme.palette,
-          animationType: theme.animationType,
-          animationIntensity: 1,
-          isActive: false,
-        },
-      });
-    }
-
-    // Warm/Night are user display modes, not seasonal themes.
-    await db.siteTheme.updateMany({
-      where: {
-        palette: { in: [ThemePalette.warm, ThemePalette.night] },
-        isActive: true,
-      },
-      data: { isActive: false },
-    });
-  }
-
   async listThemes() {
     const db = ensurePrisma();
-    await this.ensureSeasonalBaseThemes();
 
     const themes = await db.siteTheme.findMany({
-      where: {
-        palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
-      },
       orderBy: [{ isActive: "desc" }, { createdAt: "asc" }],
     });
 
@@ -145,21 +93,13 @@ export class AdminThemeService {
     animationIntensity?: number;
   }) {
     const db = ensurePrisma();
-    await this.ensureSeasonalBaseThemes();
-
-    const safePalette =
-      input.palette === ThemePalette.navidad || input.palette === ThemePalette.octubre
-        ? input.palette
-        : ThemePalette.navidad;
 
     return db.siteTheme.create({
       data: {
         slug: input.slug.trim(),
         nombre: input.nombre.trim(),
-        palette: safePalette,
-        animationType:
-          input.animationType ??
-          (safePalette === ThemePalette.octubre ? ThemeAnimationType.float_icons : ThemeAnimationType.snow),
+        palette: input.palette,
+        animationType: input.animationType ?? getDefaultAnimationForPalette(input.palette),
         animationIntensity: Math.min(3, Math.max(1, input.animationIntensity ?? 1)),
         isActive: false,
       },
@@ -187,16 +127,11 @@ export class AdminThemeService {
       throw new ThemeNotFoundError();
     }
 
-    const nextPalette =
-      input.palette === ThemePalette.navidad || input.palette === ThemePalette.octubre
-        ? input.palette
-        : found.palette;
-
     return db.siteTheme.update({
       where: { id },
       data: {
         nombre: input.nombre?.trim(),
-        palette: nextPalette,
+        palette: input.palette,
         backgroundImageUrl: input.backgroundImageUrl,
         heroImageUrl: input.heroImageUrl,
         iconImageUrl: input.iconImageUrl,
@@ -213,12 +148,9 @@ export class AdminThemeService {
     const db = ensurePrisma();
     const found = await db.siteTheme.findUnique({
       where: { id },
-      select: { id: true, palette: true },
+      select: { id: true },
     });
     if (!found) {
-      throw new ThemeNotFoundError();
-    }
-    if (found.palette !== ThemePalette.navidad && found.palette !== ThemePalette.octubre) {
       throw new ThemeNotFoundError();
     }
 
@@ -238,54 +170,13 @@ export class AdminThemeService {
     const db = ensurePrisma();
     const found = await db.siteTheme.findUnique({
       where: { id },
-      select: { id: true, isActive: true, slug: true, palette: true },
+      select: { id: true },
     });
     if (!found) {
       throw new ThemeNotFoundError();
     }
 
-    if (found.palette !== ThemePalette.navidad && found.palette !== ThemePalette.octubre) {
-      throw new ThemeBaseDeleteNotAllowedError();
-    }
-
-    if (seasonalBaseThemeSlugs.has(found.slug)) {
-      throw new ThemeBaseDeleteNotAllowedError();
-    }
-
-    const totalCustomThemes = await db.siteTheme.count({
-      where: {
-        palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
-        slug: { notIn: Array.from(seasonalBaseThemeSlugs) },
-      },
-    });
-    if (totalCustomThemes <= 1) {
-      throw new ThemeDeleteNotAllowedError();
-    }
-
-    await db.$transaction(async (tx) => {
-      await tx.siteTheme.delete({ where: { id } });
-
-      if (found.isActive) {
-        await tx.siteTheme.updateMany({
-          where: { isActive: true },
-          data: { isActive: false },
-        });
-
-        const replacement = await tx.siteTheme.findFirst({
-          where: {
-            palette: { in: [ThemePalette.navidad, ThemePalette.octubre] },
-          },
-          orderBy: [{ createdAt: "asc" }],
-          select: { id: true },
-        });
-        if (replacement) {
-          await tx.siteTheme.update({
-            where: { id: replacement.id },
-            data: { isActive: true },
-          });
-        }
-      }
-    });
+    await db.siteTheme.delete({ where: { id } });
   }
 
   isConfigured() {
@@ -300,3 +191,4 @@ export class AdminThemeService {
     return isSlugUniqueConstraint(error);
   }
 }
+
