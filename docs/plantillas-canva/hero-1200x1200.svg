@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+  <defs>
+    <style>
+      .bg { fill: #0f2238; }
+      .frame { fill: none; stroke: #f7d8b5; stroke-width: 6; }
+      .safe { fill: rgba(214, 122, 69, 0.08); stroke: #d67a45; stroke-width: 5; stroke-dasharray: 14 10; }
+      .cross { stroke: #f7d8b5; stroke-width: 2; opacity: 0.35; }
+      .txt { fill: #f7d8b5; font-family: Arial, sans-serif; font-size: 34px; font-weight: 700; }
+      .sub { fill: #f7d8b5; font-family: Arial, sans-serif; font-size: 22px; }
+      .note { fill: #d67a45; font-family: Arial, sans-serif; font-size: 20px; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1200" height="1200" />
+  <rect class="frame" x="3" y="3" width="1194" height="1194" />
+
+  <!-- Cross center -->
+  <line class="cross" x1="600" y1="0" x2="600" y2="1200" />
+  <line class="cross" x1="0" y1="600" x2="1200" y2="600" />
+
+  <!-- Safe area 900x900 centered -->
+  <rect class="safe" x="150" y="150" width="900" height="900" />
+
+  <text class="txt" x="50" y="70">FOGATTA - Hero</text>
+  <text class="sub" x="50" y="104">1200 x 1200 px (1:1)</text>
+  <text class="note" x="170" y="1085">Zona segura central: 900 x 900 px</text>
+  <text class="note" x="170" y="1115">Mantener logo/texto dentro del cuadro punteado.</text>
+</svg>
+

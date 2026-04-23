@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs>
+    <style>
+      .bg { fill: #0f2238; }
+      .frame { fill: none; stroke: #f7d8b5; stroke-width: 6; }
+      .safe { fill: none; stroke: #d67a45; stroke-width: 4; stroke-dasharray: 14 10; }
+      .txt { fill: #f7d8b5; font-family: Arial, sans-serif; font-size: 34px; font-weight: 700; }
+      .sub { fill: #f7d8b5; font-family: Arial, sans-serif; font-size: 22px; }
+      .note { fill: #d67a45; font-family: Arial, sans-serif; font-size: 20px; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1080" height="1920" />
+  <rect class="frame" x="3" y="3" width="1074" height="1914" />
+
+  <!-- Safe content area -->
+  <rect class="safe" x="70" y="120" width="940" height="1680" />
+
+  <text class="txt" x="60" y="80">FOGATTA - Fondo Mobile</text>
+  <text class="sub" x="60" y="114">1080 x 1920 px (9:16)</text>
+  <text class="note" x="90" y="1838">Zona segura sugerida: 940 x 1680 (margen 70 horizontal, 120 vertical)</text>
+  <text class="note" x="90" y="1868">Mantiene elementos importantes visibles en pantallas altas.</text>
+</svg>
+

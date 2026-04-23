@@ -53,17 +53,17 @@ export function AdminPanelNav() {
         {navItems.map((item) => {
           const active = isItemActive(pathname, item.href);
           return (
-            <li key={item.href}>
+            <li key={item.href} className="h-full">
               <Link
                 href={item.href}
-                className={`block rounded-xl border px-4 py-3 transition-colors ${
+                className={`flex h-full min-h-[86px] flex-col rounded-xl border px-4 py-3 transition-colors ${
                   active
                     ? "border-[var(--accent)] bg-[var(--accent)]/15 text-[var(--fg-strong)]"
                     : "border-[var(--border)]/45 bg-[var(--surface-2)] text-[var(--fg-muted)] hover:text-[var(--fg-strong)]"
                 }`}
               >
                 <p className="text-sm font-medium">{item.label}</p>
-                <p className="text-xs opacity-85">{item.helper}</p>
+                <p className="mt-1 min-h-8 text-xs leading-4 opacity-85">{item.helper}</p>
               </Link>
             </li>
           );

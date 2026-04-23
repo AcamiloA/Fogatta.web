@@ -36,6 +36,18 @@ export class ThemeDeleteNotAllowedError extends Error {
   }
 }
 
+function isSlugUniqueConstraint(error: unknown) {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") {
+    return false;
+  }
+
+  const target = (error.meta?.target as string[] | string | undefined) ?? [];
+  if (Array.isArray(target)) {
+    return target.includes("slug") || target.includes("SiteTheme_slug_key");
+  }
+  return String(target).includes("slug") || String(target).includes("SiteTheme_slug_key");
+}
+
 function ensurePrisma() {
   if (!prisma) {
     throw new Error("DATABASE_URL is not configured");
@@ -64,12 +76,16 @@ export class AdminThemeService {
     for (const theme of baseThemes) {
       await db.siteTheme.upsert({
         where: { slug: theme.slug },
-        update: {},
+        update: {
+          nombre: theme.nombre,
+          palette: theme.palette,
+        },
         create: {
           slug: theme.slug,
           nombre: theme.nombre,
           palette: theme.palette,
-          isActive: theme.slug === "warm",
+          // Never force active here. We'll ensure exactly one active after seeding.
+          isActive: false,
         },
       });
     }
@@ -205,9 +221,6 @@ export class AdminThemeService {
   }
 
   isUniqueViolation(error: unknown) {
-    return (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    );
+    return isSlugUniqueConstraint(error);
   }
 }
