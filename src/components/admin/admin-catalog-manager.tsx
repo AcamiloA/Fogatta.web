@@ -436,11 +436,13 @@ export function AdminCatalogManager() {
   }
 
   async function saveVariant(variant: Variant) {
-    const stockVirtual = Number.parseInt(variant.stockVirtual, 10);
+    const stockVirtualRaw = variant.stockVirtual.trim();
+    const stockVirtual = stockVirtualRaw ? Number.parseInt(stockVirtualRaw, 10) : 0;
     const stockMinimoAlerta = variant.stockMinimoAlerta.trim()
       ? Number.parseInt(variant.stockMinimoAlerta, 10)
       : 0;
-    const precio = Number.parseInt(variant.precio, 10);
+    const precioRaw = variant.precio.trim();
+    const precio = precioRaw ? Number.parseInt(precioRaw, 10) : 0;
     const descuentoPorcentaje = variant.descuentoPorcentaje.trim()
       ? Number.parseInt(variant.descuentoPorcentaje, 10)
       : 0;
