@@ -14,7 +14,9 @@ export type ActiveThemeSettings = {
   basePreset: "warm" | "night";
   seasonalPreset: SeasonalThemePreset | null;
   backgroundImageUrl: string | null;
+  backgroundOpacity: number;
   heroImageUrl: string | null;
+  heroOpacity: number;
   iconImageUrl: string | null;
   animationType: "none" | "snow" | "sparkles" | "float_icons";
   animationIntensity: 1 | 2 | 3;
@@ -38,7 +40,9 @@ function fromPreset(preset: ThemePreset): ActiveThemeSettings {
     basePreset: preset === "night" ? "night" : "warm",
     seasonalPreset: null,
     backgroundImageUrl: null,
+    backgroundOpacity: 100,
     heroImageUrl: null,
+    heroOpacity: 100,
     iconImageUrl: null,
     animationType: "none",
     animationIntensity: 1,
@@ -77,7 +81,9 @@ export const getActiveThemeSettings = cache(async (): Promise<ActiveThemeSetting
       basePreset: defaultBasePreset,
       seasonalPreset,
       backgroundImageUrl: activeTheme.backgroundImageUrl,
+      backgroundOpacity: Math.min(100, Math.max(0, activeTheme.backgroundOpacity)),
       heroImageUrl: activeTheme.heroImageUrl,
+      heroOpacity: Math.min(100, Math.max(0, activeTheme.heroOpacity)),
       iconImageUrl: activeTheme.iconImageUrl,
       animationType: activeTheme.animationType,
       animationIntensity: Math.min(3, Math.max(1, activeTheme.animationIntensity)) as 1 | 2 | 3,

@@ -262,7 +262,9 @@ model SiteTheme {
   nombre             String
   palette            ThemePalette @default(warm)
   backgroundImageUrl String?
+  backgroundOpacity  Int          @default(100)
   heroImageUrl       String?
+  heroOpacity        Int          @default(100)
   iconImageUrl       String?
   animationType      ThemeAnimationType @default(none)
   animationIntensity Int          @default(1)

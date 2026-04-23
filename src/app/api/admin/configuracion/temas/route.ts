@@ -50,6 +50,8 @@ export async function POST(request: NextRequest) {
       palette: input.palette,
       animationType: input.animationType,
       animationIntensity: input.animationIntensity,
+      backgroundOpacity: input.backgroundOpacity,
+      heroOpacity: input.heroOpacity,
     });
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
   } catch (error) {

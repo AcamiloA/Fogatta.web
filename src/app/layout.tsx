@@ -58,9 +58,11 @@ export default async function RootLayout({
           "--theme-bg-image": activeTheme.backgroundImageUrl
             ? `url("${activeTheme.backgroundImageUrl}")`
             : "none",
+          "--theme-bg-opacity": String(activeTheme.backgroundOpacity),
           "--theme-hero-image": activeTheme.heroImageUrl
             ? `url("${activeTheme.heroImageUrl}")`
             : "none",
+          "--theme-hero-opacity": String(activeTheme.heroOpacity),
           "--theme-icon-image": activeTheme.iconImageUrl
             ? `url("${activeTheme.iconImageUrl}")`
             : "none",

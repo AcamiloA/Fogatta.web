@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type ThemePalette = "warm" | "night" | "navidad" | "octubre";
 type ThemeAnimationType = "none" | "snow" | "sparkles" | "float_icons";
@@ -11,7 +12,9 @@ type ThemeItem = {
   nombre: string;
   palette: ThemePalette;
   backgroundImageUrl: string | null;
+  backgroundOpacity: number;
   heroImageUrl: string | null;
+  heroOpacity: number;
   iconImageUrl: string | null;
   animationType: ThemeAnimationType;
   animationIntensity: number;
@@ -70,6 +73,13 @@ function resolveApiError(payload: unknown, fallback: string) {
   return fallback;
 }
 
+function clampOpacity(value: number) {
+  if (Number.isNaN(value)) {
+    return 100;
+  }
+  return Math.min(100, Math.max(0, Math.round(value)));
+}
+
 const paletteOptions: Array<{ value: ThemePalette; label: string }> = [
   { value: "warm", label: "Acento calido" },
   { value: "night", label: "Acento noche" },
@@ -90,6 +100,7 @@ function defaultAnimationForPalette(palette: ThemePalette): ThemeAnimationType {
 }
 
 export function AdminThemeSettingsManager() {
+  const router = useRouter();
   const [themes, setThemes] = useState<ThemeItem[]>([]);
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -102,6 +113,8 @@ export function AdminThemeSettingsManager() {
     palette: "warm" as ThemePalette,
     animationType: "none" as ThemeAnimationType,
     animationIntensity: 1,
+    backgroundOpacity: 100,
+    heroOpacity: 100,
   });
 
   const canCreateTheme = useMemo(() => {
@@ -154,6 +167,8 @@ export function AdminThemeSettingsManager() {
           palette: newTheme.palette,
           animationType: newTheme.animationType,
           animationIntensity: newTheme.animationIntensity,
+          backgroundOpacity: newTheme.backgroundOpacity,
+          heroOpacity: newTheme.heroOpacity,
         }),
       });
 
@@ -169,8 +184,11 @@ export function AdminThemeSettingsManager() {
         palette: "warm",
         animationType: "none",
         animationIntensity: 1,
+        backgroundOpacity: 100,
+        heroOpacity: 100,
       });
       await loadThemes();
+      router.refresh();
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "Error creando tema.");
     } finally {
@@ -195,6 +213,8 @@ export function AdminThemeSettingsManager() {
           palette: theme.palette,
           backgroundImageUrl: theme.backgroundImageUrl,
           heroImageUrl: theme.heroImageUrl,
+          backgroundOpacity: clampOpacity(theme.backgroundOpacity),
+          heroOpacity: clampOpacity(theme.heroOpacity),
           iconImageUrl: theme.iconImageUrl,
           animationType: theme.animationType,
           animationIntensity: Math.min(3, Math.max(1, theme.animationIntensity || 1)),
@@ -205,6 +225,9 @@ export function AdminThemeSettingsManager() {
         throw new Error(resolveApiError(payload, "No se pudo guardar el tema."));
       }
       await loadThemes();
+      if (theme.id === activeThemeId) {
+        router.refresh();
+      }
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Error guardando tema.");
     } finally {
@@ -225,6 +248,7 @@ export function AdminThemeSettingsManager() {
         throw new Error(resolveApiError(payload, "No se pudo activar el tema."));
       }
       await loadThemes();
+      router.refresh();
     } catch (activateError) {
       setError(activateError instanceof Error ? activateError.message : "Error activando tema.");
     } finally {
@@ -250,6 +274,7 @@ export function AdminThemeSettingsManager() {
         throw new Error(resolveApiError(payload, "No se pudo eliminar el tema."));
       }
       await loadThemes();
+      router.refresh();
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : "Error eliminando tema.");
     } finally {
@@ -391,6 +416,40 @@ export function AdminThemeSettingsManager() {
             {busyId === "create-theme" ? "Creando..." : "Crear"}
           </button>
         </div>
+        <div className="grid gap-2 md:grid-cols-2">
+          <label className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2">
+            <span className="text-xs text-[var(--fg-soft)]">Opacidad fondo: {newTheme.backgroundOpacity}%</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={newTheme.backgroundOpacity}
+              onChange={(event) =>
+                setNewTheme((current) => ({
+                  ...current,
+                  backgroundOpacity: clampOpacity(Number(event.target.value)),
+                }))
+              }
+              className="mt-2 w-full"
+            />
+          </label>
+          <label className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2">
+            <span className="text-xs text-[var(--fg-soft)]">Opacidad hero: {newTheme.heroOpacity}%</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={newTheme.heroOpacity}
+              onChange={(event) =>
+                setNewTheme((current) => ({
+                  ...current,
+                  heroOpacity: clampOpacity(Number(event.target.value)),
+                }))
+              }
+              className="mt-2 w-full"
+            />
+          </label>
+        </div>
       </section>
 
       <section className="space-y-3">
@@ -492,7 +551,7 @@ export function AdminThemeSettingsManager() {
                       Subir fondo
                       <input
                         type="file"
-                        accept="image/png,image/jpeg,image/webp,image/avif,image/svg+xml"
+                        accept="image/png,image/jpeg,image/webp,image/avif"
                         className="sr-only"
                         onChange={async (event) => {
                           const input = event.currentTarget;
@@ -502,6 +561,37 @@ export function AdminThemeSettingsManager() {
                           input.value = "";
                         }}
                       />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs text-[var(--fg-soft)]">Opacidad fondo: {clampOpacity(theme.backgroundOpacity)}%</span>
+                      <div className="mt-1 flex items-center gap-2">
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={clampOpacity(theme.backgroundOpacity)}
+                          onChange={(event) =>
+                            updateThemeState(theme.id, (current) => ({
+                              ...current,
+                              backgroundOpacity: clampOpacity(Number(event.target.value)),
+                            }))
+                          }
+                          className="w-full"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={clampOpacity(theme.backgroundOpacity)}
+                          onChange={(event) =>
+                            updateThemeState(theme.id, (current) => ({
+                              ...current,
+                              backgroundOpacity: clampOpacity(Number(event.target.value)),
+                            }))
+                          }
+                          className="w-20 rounded border border-[var(--input-border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--fg)]"
+                        />
+                      </div>
                     </label>
                   </div>
 
@@ -522,7 +612,7 @@ export function AdminThemeSettingsManager() {
                       Subir arte hero
                       <input
                         type="file"
-                        accept="image/png,image/jpeg,image/webp,image/avif,image/svg+xml"
+                        accept="image/png,image/jpeg,image/webp,image/avif"
                         className="sr-only"
                         onChange={async (event) => {
                           const input = event.currentTarget;
@@ -532,6 +622,37 @@ export function AdminThemeSettingsManager() {
                           input.value = "";
                         }}
                       />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs text-[var(--fg-soft)]">Opacidad hero: {clampOpacity(theme.heroOpacity)}%</span>
+                      <div className="mt-1 flex items-center gap-2">
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={clampOpacity(theme.heroOpacity)}
+                          onChange={(event) =>
+                            updateThemeState(theme.id, (current) => ({
+                              ...current,
+                              heroOpacity: clampOpacity(Number(event.target.value)),
+                            }))
+                          }
+                          className="w-full"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={clampOpacity(theme.heroOpacity)}
+                          onChange={(event) =>
+                            updateThemeState(theme.id, (current) => ({
+                              ...current,
+                              heroOpacity: clampOpacity(Number(event.target.value)),
+                            }))
+                          }
+                          className="w-20 rounded border border-[var(--input-border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--fg)]"
+                        />
+                      </div>
                     </label>
                   </div>
 
@@ -552,7 +673,7 @@ export function AdminThemeSettingsManager() {
                       Subir icono
                       <input
                         type="file"
-                        accept="image/png,image/webp,image/svg+xml"
+                        accept="image/png,image/jpeg,image/webp,image/avif"
                         className="sr-only"
                         onChange={async (event) => {
                           const input = event.currentTarget;

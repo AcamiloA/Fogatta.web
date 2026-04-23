@@ -9,7 +9,9 @@ export const adminThemeSchema = z.object({
   nombre: z.string(),
   palette: themePaletteSchema,
   backgroundImageUrl: z.string().nullable(),
+  backgroundOpacity: z.number().int().min(0).max(100),
   heroImageUrl: z.string().nullable(),
+  heroOpacity: z.number().int().min(0).max(100),
   iconImageUrl: z.string().nullable(),
   animationType: themeAnimationTypeSchema,
   animationIntensity: z.number().int().min(1).max(3),
@@ -33,6 +35,8 @@ export const createThemeInputSchema = z.object({
   palette: themePaletteSchema,
   animationType: themeAnimationTypeSchema.default("none"),
   animationIntensity: z.number().int().min(1).max(3).default(1),
+  backgroundOpacity: z.number().int().min(0).max(100).default(100),
+  heroOpacity: z.number().int().min(0).max(100).default(100),
 });
 
 export const updateThemeInputSchema = z
@@ -41,7 +45,9 @@ export const updateThemeInputSchema = z
     nombre: z.string().min(2).max(80).optional(),
     palette: themePaletteSchema.optional(),
     backgroundImageUrl: z.string().url().nullable().optional(),
+    backgroundOpacity: z.number().int().min(0).max(100).optional(),
     heroImageUrl: z.string().url().nullable().optional(),
+    heroOpacity: z.number().int().min(0).max(100).optional(),
     iconImageUrl: z.string().url().nullable().optional(),
     animationType: themeAnimationTypeSchema.optional(),
     animationIntensity: z.number().int().min(1).max(3).optional(),
@@ -51,7 +57,9 @@ export const updateThemeInputSchema = z
       value.nombre !== undefined ||
       value.palette !== undefined ||
       value.backgroundImageUrl !== undefined ||
+      value.backgroundOpacity !== undefined ||
       value.heroImageUrl !== undefined ||
+      value.heroOpacity !== undefined ||
       value.iconImageUrl !== undefined ||
       value.animationType !== undefined ||
       value.animationIntensity !== undefined,

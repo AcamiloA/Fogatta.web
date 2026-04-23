@@ -9,7 +9,9 @@ type SiteThemeEntity = {
   nombre: string;
   palette: ThemePalette;
   backgroundImageUrl: string | null;
+  backgroundOpacity: number;
   heroImageUrl: string | null;
+  heroOpacity: number;
   iconImageUrl: string | null;
   animationType: ThemeAnimationType;
   animationIntensity: number;
@@ -61,7 +63,9 @@ function toDTO(theme: SiteThemeEntity) {
     nombre: theme.nombre,
     palette: theme.palette,
     backgroundImageUrl: theme.backgroundImageUrl,
+    backgroundOpacity: Math.min(100, Math.max(0, theme.backgroundOpacity)),
     heroImageUrl: theme.heroImageUrl,
+    heroOpacity: Math.min(100, Math.max(0, theme.heroOpacity)),
     iconImageUrl: theme.iconImageUrl,
     animationType: theme.animationType,
     animationIntensity: Math.min(3, Math.max(1, theme.animationIntensity)),
@@ -91,6 +95,8 @@ export class AdminThemeService {
     palette: ThemePalette;
     animationType?: ThemeAnimationType;
     animationIntensity?: number;
+    backgroundOpacity?: number;
+    heroOpacity?: number;
   }) {
     const db = ensurePrisma();
 
@@ -101,6 +107,8 @@ export class AdminThemeService {
         palette: input.palette,
         animationType: input.animationType ?? getDefaultAnimationForPalette(input.palette),
         animationIntensity: Math.min(3, Math.max(1, input.animationIntensity ?? 1)),
+        backgroundOpacity: Math.min(100, Math.max(0, input.backgroundOpacity ?? 100)),
+        heroOpacity: Math.min(100, Math.max(0, input.heroOpacity ?? 100)),
         isActive: false,
       },
     });
@@ -112,7 +120,9 @@ export class AdminThemeService {
       nombre?: string;
       palette?: ThemePalette;
       backgroundImageUrl?: string | null;
+      backgroundOpacity?: number;
       heroImageUrl?: string | null;
+      heroOpacity?: number;
       iconImageUrl?: string | null;
       animationType?: ThemeAnimationType;
       animationIntensity?: number;
@@ -133,7 +143,13 @@ export class AdminThemeService {
         nombre: input.nombre?.trim(),
         palette: input.palette,
         backgroundImageUrl: input.backgroundImageUrl,
+        backgroundOpacity:
+          input.backgroundOpacity !== undefined
+            ? Math.min(100, Math.max(0, input.backgroundOpacity))
+            : undefined,
         heroImageUrl: input.heroImageUrl,
+        heroOpacity:
+          input.heroOpacity !== undefined ? Math.min(100, Math.max(0, input.heroOpacity)) : undefined,
         iconImageUrl: input.iconImageUrl,
         animationType: input.animationType,
         animationIntensity:
@@ -191,4 +207,3 @@ export class AdminThemeService {
     return isSlugUniqueConstraint(error);
   }
 }
-

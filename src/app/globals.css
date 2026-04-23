@@ -29,7 +29,9 @@
   --hero-b: #eec69b;
   --hero-c: #f7e6d2;
   --theme-bg-image: none;
+  --theme-bg-opacity: 100;
   --theme-hero-image: none;
+  --theme-hero-opacity: 100;
   --season-glow-a: transparent;
   --season-glow-b: transparent;
   --season-hero-glow: transparent;
@@ -93,7 +95,7 @@ body[data-season-theme="octubre"] {
 }
 
 body {
-  background: var(--bg);
+  background: transparent;
   color: var(--fg);
   font-family: var(--font-manrope), sans-serif;
   min-height: 100vh;
@@ -107,8 +109,7 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background-color: var(--bg);
-  background-image: var(--theme-bg-image),
-    radial-gradient(
+  background-image: radial-gradient(
       circle at 50% 8%,
       var(--season-glow-a) 0,
       transparent 42%
@@ -129,8 +130,21 @@ body::before {
       transparent 40%
     );
   background-repeat: no-repeat;
-  background-size: cover, cover, cover, cover, cover;
-  background-position: center, center, center, center, center;
+  background-size: cover, cover, cover, cover;
+  background-position: center, center, center, center;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: var(--theme-bg-image);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  opacity: calc(var(--theme-bg-opacity) / 100);
 }
 
 .season-overlay {
@@ -208,8 +222,10 @@ h4 {
 }
 
 .hero-gradient {
-  background-image: var(--theme-hero-image),
-    radial-gradient(
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-image: radial-gradient(
       circle at 85% 0%,
       var(--season-hero-glow) 0,
       transparent 45%
@@ -229,9 +245,27 @@ h4 {
       color-mix(in oklab, var(--hero-c) 65%, var(--bg) 35%) 0%,
       color-mix(in oklab, var(--hero-c) 45%, var(--bg) 55%) 100%
     );
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-  background-size: min(240px, 30vw), cover, cover, cover, cover;
-  background-position: right 1.4rem top 1rem, center, center, center, center;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+  background-size: cover, cover, cover, cover;
+  background-position: center, center, center, center;
+}
+
+.hero-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--theme-hero-image);
+  background-repeat: no-repeat;
+  background-size: min(240px, 30vw);
+  background-position: right 1.4rem top 1rem;
+  opacity: calc(var(--theme-hero-opacity) / 100);
+}
+
+.hero-gradient > * {
+  position: relative;
+  z-index: 1;
 }
 
 .glass-card {
