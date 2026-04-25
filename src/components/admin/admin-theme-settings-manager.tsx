@@ -40,6 +40,13 @@ type ApiErrorPayload = {
   details?: ValidationDetails;
 };
 
+type FeedbackTone = "success" | "error" | "warning" | "info";
+type ScopedFeedback = {
+  scope: string;
+  tone: FeedbackTone;
+  message: string;
+};
+
 function toSlug(value: string) {
   return value
     .toLowerCase()
@@ -110,7 +117,7 @@ export function AdminThemeSettingsManager() {
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<ScopedFeedback | null>(null);
   const [newTheme, setNewTheme] = useState({
     nombre: "",
     slug: "",
@@ -122,13 +129,51 @@ export function AdminThemeSettingsManager() {
     heroOpacity: 100,
   });
 
+  const clearFeedback = useCallback((scope?: string) => {
+    setFeedback((current) => {
+      if (!current) {
+        return current;
+      }
+      if (!scope || current.scope === scope) {
+        return null;
+      }
+      return current;
+    });
+  }, []);
+
+  const showFeedback = useCallback((scope: string, tone: FeedbackTone, message: string) => {
+    setFeedback({ scope, tone, message });
+  }, []);
+
+  function renderFeedback(scope: string) {
+    if (!feedback || feedback.scope !== scope) {
+      return null;
+    }
+
+    const className =
+      feedback.tone === "success"
+        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+        : feedback.tone === "warning"
+          ? "border-amber-300 bg-amber-50 text-amber-800"
+          : feedback.tone === "info"
+            ? "border-sky-300 bg-sky-50 text-sky-700"
+            : "border-rose-300 bg-rose-50 text-rose-700";
+
+    return (
+      <p className={`rounded-lg border px-4 py-3 text-sm ${className}`}>
+        {feedback.message}
+      </p>
+    );
+  }
+
   const canCreateTheme = useMemo(() => {
     return newTheme.nombre.trim().length >= 2 && newTheme.slug.trim().length >= 2;
   }, [newTheme.nombre, newTheme.slug]);
 
   const loadThemes = useCallback(async () => {
+    const scope = "themes-list";
     setLoading(true);
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const response = await fetch("/api/admin/configuracion/temas", { cache: "no-store" });
@@ -146,26 +191,31 @@ export function AdminThemeSettingsManager() {
       );
       setActiveThemeId(typed.activeThemeId);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Error cargando configuracion.");
+      showFeedback(
+        scope,
+        "error",
+        loadError instanceof Error ? loadError.message : "Error cargando configuracion.",
+      );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [clearFeedback, showFeedback]);
 
   useEffect(() => {
     void loadThemes();
   }, [loadThemes]);
 
   async function createTheme() {
+    const scope = "theme-create";
     const nombre = newTheme.nombre.trim();
     const slug = toSlug(newTheme.slug);
     if (!nombre || !slug) {
-      setError("Nombre o slug invalido.");
+      showFeedback(scope, "warning", "Nombre o slug invalido.");
       return;
     }
 
     setBusyId("create-theme");
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const response = await fetch("/api/admin/configuracion/temas", {
@@ -199,8 +249,13 @@ export function AdminThemeSettingsManager() {
       });
       await loadThemes();
       router.refresh();
+      showFeedback(scope, "success", "Tema creado correctamente.");
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Error creando tema.");
+      showFeedback(
+        scope,
+        "error",
+        createError instanceof Error ? createError.message : "Error creando tema.",
+      );
     } finally {
       setBusyId(null);
     }
@@ -211,8 +266,9 @@ export function AdminThemeSettingsManager() {
   }
 
   async function saveTheme(theme: ThemeItem) {
+    const scope = `theme-${theme.id}`;
     setBusyId(`save-${theme.id}`);
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const response = await fetch(`/api/admin/configuracion/temas/${theme.id}`, {
@@ -241,16 +297,22 @@ export function AdminThemeSettingsManager() {
       if (theme.id === activeThemeId) {
         router.refresh();
       }
+      showFeedback(scope, "success", "Tema guardado correctamente.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error guardando tema.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error guardando tema.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function activateTheme(theme: ThemeItem) {
+    const scope = `theme-${theme.id}`;
     setBusyId(`activate-${theme.id}`);
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const response = await fetch(`/api/admin/configuracion/temas/${theme.id}/activar`, {
@@ -262,21 +324,27 @@ export function AdminThemeSettingsManager() {
       }
       await loadThemes();
       router.refresh();
+      showFeedback(scope, "success", `Tema "${theme.nombre}" activado.`);
     } catch (activateError) {
-      setError(activateError instanceof Error ? activateError.message : "Error activando tema.");
+      showFeedback(
+        scope,
+        "error",
+        activateError instanceof Error ? activateError.message : "Error activando tema.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function deleteTheme(theme: ThemeItem) {
+    const scope = `theme-${theme.id}`;
     const confirmed = window.confirm(`Vas a eliminar el tema "${theme.nombre}".`);
     if (!confirmed) {
       return;
     }
 
     setBusyId(`delete-${theme.id}`);
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const response = await fetch(`/api/admin/configuracion/temas/${theme.id}`, {
@@ -288,16 +356,22 @@ export function AdminThemeSettingsManager() {
       }
       await loadThemes();
       router.refresh();
+      showFeedback(scope, "success", "Tema eliminado correctamente.");
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Error eliminando tema.");
+      showFeedback(
+        scope,
+        "error",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando tema.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function uploadThemeImage(file: File, themeId: string, target: "background" | "hero") {
+    const scope = `theme-${themeId}`;
     setBusyId(`upload-${target}-${themeId}`);
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const formData = new FormData();
@@ -318,16 +392,26 @@ export function AdminThemeSettingsManager() {
           ? { ...theme, backgroundImageUrl: uploadedUrl }
           : { ...theme, heroImageUrl: uploadedUrl },
       );
+      showFeedback(
+        scope,
+        "success",
+        target === "background" ? "Fondo subido correctamente." : "Arte de hero subido correctamente.",
+      );
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Error subiendo imagen.");
+      showFeedback(
+        scope,
+        "error",
+        uploadError instanceof Error ? uploadError.message : "Error subiendo imagen.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function uploadThemeIcon(file: File, themeId: string, iconIndex: number) {
+    const scope = `theme-${themeId}`;
     setBusyId(`upload-icon-${themeId}-${iconIndex}`);
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const formData = new FormData();
@@ -348,8 +432,13 @@ export function AdminThemeSettingsManager() {
         nextIcons[iconIndex] = uploadedUrl;
         return { ...theme, iconImageUrls: nextIcons };
       });
+      showFeedback(scope, "success", `Icono ${iconIndex + 1} subido correctamente.`);
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Error subiendo icono.");
+      showFeedback(
+        scope,
+        "error",
+        uploadError instanceof Error ? uploadError.message : "Error subiendo icono.",
+      );
     } finally {
       setBusyId(null);
     }
@@ -361,13 +450,8 @@ export function AdminThemeSettingsManager() {
 
   return (
     <div className="space-y-6">
-      {error ? (
-        <p className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {error}
-        </p>
-      ) : null}
-
       <section className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
+        {renderFeedback("theme-create")}
         <h2 className="text-xl text-[var(--fg-strong)]">Crear tema personalizado</h2>
         <p className="text-sm text-[var(--fg-muted)]">
           Warm/Night es el modo visual del usuario final. Aqui creas temas libres con tu propio nombre, assets y
@@ -493,6 +577,7 @@ export function AdminThemeSettingsManager() {
       </section>
 
       <section className="space-y-3">
+        {renderFeedback("themes-list")}
         <h2 className="text-xl text-[var(--fg-strong)]">Temas disponibles</h2>
         <div className="grid gap-4">
           {themes.map((theme) => {
@@ -501,6 +586,7 @@ export function AdminThemeSettingsManager() {
                 key={theme.id}
                 className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5"
               >
+                {renderFeedback(`theme-${theme.id}`)}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="text-sm text-[var(--fg-soft)]">Slug: {theme.slug}</p>

@@ -41,6 +41,12 @@ type InventoryBaseProduct = {
 
 type ApiListResponse<T> = { data: T[] };
 type ApiErrorPayload = { error?: string; details?: { formErrors?: string[] } };
+type FeedbackTone = "success" | "error" | "warning" | "info";
+type ScopedFeedback = {
+  scope: string;
+  tone: FeedbackTone;
+  message: string;
+};
 
 type VariantDraft = { stockVirtual: string; stockMinimoAlerta: string };
 type SupplyDraft = {
@@ -88,16 +94,54 @@ export function AdminInventoryManager() {
   const [newSupply, setNewSupply] = useState<SupplyDraft>({ nombre: "", unidad: UNIT_OPTIONS[0] ?? "g", cantidadTotal: "", precioTotal: "", activo: true });
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<ScopedFeedback | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [busyVariantId, setBusyVariantId] = useState<string | null>(null);
   const [busySupplyId, setBusySupplyId] = useState<string | null>(null);
   const [isCreatingSupply, setIsCreatingSupply] = useState(false);
 
+  const clearFeedback = useCallback((scope?: string) => {
+    setFeedback((current) => {
+      if (!current) {
+        return current;
+      }
+      if (!scope || current.scope === scope) {
+        return null;
+      }
+      return current;
+    });
+  }, []);
+
+  const showFeedback = useCallback((scope: string, tone: FeedbackTone, message: string) => {
+    setFeedback({ scope, tone, message });
+  }, []);
+
+  function renderFeedback(scope: string) {
+    if (!feedback || feedback.scope !== scope) {
+      return null;
+    }
+
+    const className =
+      feedback.tone === "success"
+        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+        : feedback.tone === "warning"
+          ? "border-amber-300 bg-amber-50 text-amber-800"
+          : feedback.tone === "info"
+            ? "border-sky-300 bg-sky-50 text-sky-700"
+            : "border-rose-300 bg-rose-50 text-rose-700";
+
+    return (
+      <p className={`rounded-lg border px-4 py-3 text-sm ${className}`}>
+        {feedback.message}
+      </p>
+    );
+  }
+
   const loadInventory = useCallback(async () => {
+    const scope = "inventory-stock";
     setLoading(true);
-    setError(null);
+    clearFeedback(scope);
     try {
       const [catalogResponse, suppliesResponse, baseProductsResponse] = await Promise.all([
         fetch("/api/admin/catalogo", { cache: "no-store" }),
@@ -140,11 +184,15 @@ export function AdminInventoryManager() {
       }
       setSupplyDrafts(nextSupplyDrafts);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Error cargando inventario.");
+      showFeedback(
+        scope,
+        "error",
+        loadError instanceof Error ? loadError.message : "Error cargando inventario.",
+      );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [clearFeedback, showFeedback]);
 
   useEffect(() => {
     void loadInventory();
@@ -258,15 +306,22 @@ export function AdminInventoryManager() {
   }
 
   async function saveVariant(variantId: string) {
+    const scope = `inventory-variant-${variantId}`;
     const draft = variantDrafts[variantId];
     if (!draft) return;
     const stockVirtual = Number.parseInt(draft.stockVirtual || "0", 10);
     const stockMinimoAlerta = Number.parseInt(draft.stockMinimoAlerta || "0", 10);
-    if (!Number.isFinite(stockVirtual) || stockVirtual < 0) return setError("Stock virtual invalido.");
-    if (!Number.isFinite(stockMinimoAlerta) || stockMinimoAlerta < 0) return setError("Stock minimo alerta invalido.");
+    if (!Number.isFinite(stockVirtual) || stockVirtual < 0) {
+      showFeedback(scope, "warning", "Stock virtual invalido.");
+      return;
+    }
+    if (!Number.isFinite(stockMinimoAlerta) || stockMinimoAlerta < 0) {
+      showFeedback(scope, "warning", "Stock minimo alerta invalido.");
+      return;
+    }
 
     setBusyVariantId(variantId);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/variantes/${variantId}`, {
         method: "PATCH",
@@ -276,26 +331,44 @@ export function AdminInventoryManager() {
       const payload = await response.json();
       if (!response.ok) throw new Error(resolveApiError(payload, "No se pudo guardar la variante."));
       await loadInventory();
+      showFeedback(scope, "success", "Variante de inventario guardada.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error guardando variante.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error guardando variante.",
+      );
     } finally {
       setBusyVariantId(null);
     }
   }
 
   async function createSupply() {
+    const scope = "inventory-supply-create";
     const nombre = newSupply.nombre.trim();
     const unidad = newSupply.unidad.trim();
     const cantidadTotal = parsePositiveDecimal(newSupply.cantidadTotal);
     const precioTotal = Number.parseInt(newSupply.precioTotal || "0", 10);
 
-    if (!nombre) return setError("Nombre del insumo requerido.");
-    if (!unidad) return setError("Unidad de medida requerida.");
-    if (!Number.isFinite(cantidadTotal) || cantidadTotal <= 0) return setError("Cantidad comprada invalida.");
-    if (!Number.isFinite(precioTotal) || precioTotal < 0) return setError("Costo total invalido.");
+    if (!nombre) {
+      showFeedback(scope, "warning", "Nombre del insumo requerido.");
+      return;
+    }
+    if (!unidad) {
+      showFeedback(scope, "warning", "Unidad de medida requerida.");
+      return;
+    }
+    if (!Number.isFinite(cantidadTotal) || cantidadTotal <= 0) {
+      showFeedback(scope, "warning", "Cantidad comprada invalida.");
+      return;
+    }
+    if (!Number.isFinite(precioTotal) || precioTotal < 0) {
+      showFeedback(scope, "warning", "Costo total invalido.");
+      return;
+    }
 
     setIsCreatingSupply(true);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch("/api/admin/inventario/insumos", {
         method: "POST",
@@ -306,25 +379,43 @@ export function AdminInventoryManager() {
       if (!response.ok) throw new Error(resolveApiError(payload, "No se pudo crear el insumo."));
       setNewSupply({ nombre: "", unidad: UNIT_OPTIONS[0] ?? "g", cantidadTotal: "", precioTotal: "", activo: true });
       await loadInventory();
+      showFeedback(scope, "success", "Insumo creado correctamente.");
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Error creando insumo.");
+      showFeedback(
+        scope,
+        "error",
+        createError instanceof Error ? createError.message : "Error creando insumo.",
+      );
     } finally {
       setIsCreatingSupply(false);
     }
   }
 
   async function saveSupply(supplyId: string) {
+    const scope = `inventory-supply-${supplyId}`;
     const draft = supplyDrafts[supplyId];
     if (!draft) return;
     const cantidadTotal = parsePositiveDecimal(draft.cantidadTotal);
     const precioTotal = Number.parseInt(draft.precioTotal || "0", 10);
-    if (!draft.nombre.trim()) return setError("Nombre del insumo requerido.");
-    if (!draft.unidad.trim()) return setError("Unidad de medida requerida.");
-    if (!Number.isFinite(cantidadTotal) || cantidadTotal <= 0) return setError("Cantidad comprada invalida.");
-    if (!Number.isFinite(precioTotal) || precioTotal < 0) return setError("Costo total invalido.");
+    if (!draft.nombre.trim()) {
+      showFeedback(scope, "warning", "Nombre del insumo requerido.");
+      return;
+    }
+    if (!draft.unidad.trim()) {
+      showFeedback(scope, "warning", "Unidad de medida requerida.");
+      return;
+    }
+    if (!Number.isFinite(cantidadTotal) || cantidadTotal <= 0) {
+      showFeedback(scope, "warning", "Cantidad comprada invalida.");
+      return;
+    }
+    if (!Number.isFinite(precioTotal) || precioTotal < 0) {
+      showFeedback(scope, "warning", "Costo total invalido.");
+      return;
+    }
 
     setBusySupplyId(supplyId);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/inventario/insumos/${supplyId}`, {
         method: "PATCH",
@@ -340,8 +431,13 @@ export function AdminInventoryManager() {
       const payload = await response.json();
       if (!response.ok) throw new Error(resolveApiError(payload, "No se pudo actualizar el insumo."));
       await loadInventory();
+      showFeedback(scope, "success", "Insumo actualizado correctamente.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error actualizando insumo.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error actualizando insumo.",
+      );
     } finally {
       setBusySupplyId(null);
     }
@@ -351,9 +447,8 @@ export function AdminInventoryManager() {
 
   return (
     <div className="space-y-8">
-      {error ? <p className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p> : null}
-
       <section className="space-y-4">
+        {renderFeedback("inventory-stock")}
         <h3 className="text-xl text-[var(--fg-strong)]">Stock por producto y variante</h3>
         <div className="grid gap-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4 md:grid-cols-[2fr,1fr,auto]">
           <input
@@ -388,6 +483,7 @@ export function AdminInventoryManager() {
             const draft = variantDrafts[row.variantId] ?? { stockVirtual: String(row.stockVirtual), stockMinimoAlerta: String(row.stockMinimoAlerta) };
             return (
               <article key={row.variantId} className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4">
+                {renderFeedback(`inventory-variant-${row.variantId}`)}
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <p className="text-sm font-medium text-[var(--fg-strong)]">{row.productName} · {row.variantName}</p>
@@ -411,6 +507,7 @@ export function AdminInventoryManager() {
       </section>
 
       <section className="space-y-4">
+        {renderFeedback("inventory-supply-create")}
         <h3 className="text-xl text-[var(--fg-strong)]">Insumos y costos de materia prima</h3>
 
         <div className="grid gap-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4 md:grid-cols-4">
@@ -457,6 +554,7 @@ export function AdminInventoryManager() {
 
             return (
               <article key={supply.id} className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4">
+                {renderFeedback(`inventory-supply-${supply.id}`)}
                 <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
                   <input value={draft.nombre} onChange={(e) => updateSupplyDraft(supply.id, "nombre", e.target.value)} className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
                   <select value={draft.unidad} onChange={(e) => updateSupplyDraft(supply.id, "unidad", e.target.value)} className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]">

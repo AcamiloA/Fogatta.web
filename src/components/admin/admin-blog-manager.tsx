@@ -28,6 +28,13 @@ type ApiErrorPayload = {
   details?: ValidationDetails;
 };
 
+type FeedbackTone = "success" | "error" | "warning" | "info";
+type ScopedFeedback = {
+  scope: string;
+  tone: FeedbackTone;
+  message: string;
+};
+
 function toSlug(value: string) {
   return value
     .toLowerCase()
@@ -66,7 +73,7 @@ function resolveApiError(payload: unknown, fallback: string) {
 export function AdminBlogManager() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<ScopedFeedback | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [newPost, setNewPost] = useState({
@@ -76,9 +83,47 @@ export function AdminBlogManager() {
     contenido: "",
   });
 
+  const clearFeedback = useCallback((scope?: string) => {
+    setFeedback((current) => {
+      if (!current) {
+        return current;
+      }
+      if (!scope || current.scope === scope) {
+        return null;
+      }
+      return current;
+    });
+  }, []);
+
+  const showFeedback = useCallback((scope: string, tone: FeedbackTone, message: string) => {
+    setFeedback({ scope, tone, message });
+  }, []);
+
+  function renderFeedback(scope: string) {
+    if (!feedback || feedback.scope !== scope) {
+      return null;
+    }
+
+    const className =
+      feedback.tone === "success"
+        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+        : feedback.tone === "warning"
+          ? "border-amber-300 bg-amber-50 text-amber-800"
+          : feedback.tone === "info"
+            ? "border-sky-300 bg-sky-50 text-sky-700"
+            : "border-rose-300 bg-rose-50 text-rose-700";
+
+    return (
+      <p className={`rounded-lg border px-4 py-3 text-sm ${className}`}>
+        {feedback.message}
+      </p>
+    );
+  }
+
   const loadPosts = useCallback(async () => {
+    const scope = "blog-list";
     setLoading(true);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch("/api/admin/blog", { cache: "no-store" });
       const payload = (await response.json()) as BlogPayload | ApiErrorPayload;
@@ -88,17 +133,18 @@ export function AdminBlogManager() {
 
       setPosts((payload as BlogPayload).posts);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Error de carga.");
+      showFeedback(scope, "error", loadError instanceof Error ? loadError.message : "Error de carga.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [clearFeedback, showFeedback]);
 
   useEffect(() => {
     void loadPosts();
   }, [loadPosts]);
 
   async function createPost() {
+    const scope = "blog-create";
     const titulo = newPost.titulo.trim();
     const autor = newPost.autor.trim();
     const extracto = newPost.extracto.trim();
@@ -106,40 +152,40 @@ export function AdminBlogManager() {
     const slug = toSlug(titulo);
 
     if (!titulo || !slug) {
-      setError("Ingresa un titulo valido.");
+      showFeedback(scope, "warning", "Ingresa un titulo valido.");
       return;
     }
     if (titulo.length < 2 || titulo.length > 180) {
-      setError("El titulo debe tener entre 2 y 180 caracteres.");
+      showFeedback(scope, "warning", "El titulo debe tener entre 2 y 180 caracteres.");
       return;
     }
     if (!autor) {
-      setError("Ingresa el autor del articulo.");
+      showFeedback(scope, "warning", "Ingresa el autor del articulo.");
       return;
     }
     if (autor.length < 2 || autor.length > 120) {
-      setError("El autor debe tener entre 2 y 120 caracteres.");
+      showFeedback(scope, "warning", "El autor debe tener entre 2 y 120 caracteres.");
       return;
     }
     if (!extracto) {
-      setError("Ingresa un extracto.");
+      showFeedback(scope, "warning", "Ingresa un extracto.");
       return;
     }
     if (extracto.length < 8 || extracto.length > 280) {
-      setError("El extracto debe tener entre 8 y 280 caracteres.");
+      showFeedback(scope, "warning", "El extracto debe tener entre 8 y 280 caracteres.");
       return;
     }
     if (!contenido) {
-      setError("Ingresa el contenido del articulo.");
+      showFeedback(scope, "warning", "Ingresa el contenido del articulo.");
       return;
     }
     if (contenido.length < 20 || contenido.length > 12000) {
-      setError("El contenido debe tener entre 20 y 12000 caracteres.");
+      showFeedback(scope, "warning", "El contenido debe tener entre 20 y 12000 caracteres.");
       return;
     }
 
     setBusyId("create-post");
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch("/api/admin/blog", {
         method: "POST",
@@ -165,14 +211,20 @@ export function AdminBlogManager() {
         contenido: "",
       });
       await loadPosts();
+      showFeedback(scope, "success", "Artículo creado correctamente.");
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Error creando articulo.");
+      showFeedback(
+        scope,
+        "error",
+        createError instanceof Error ? createError.message : "Error creando articulo.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function savePost(post: BlogPost) {
+    const scope = `blog-post-${post.id}`;
     const titulo = post.titulo.trim();
     const autor = post.autor.trim();
     const extracto = post.extracto.trim();
@@ -180,36 +232,36 @@ export function AdminBlogManager() {
     const slug = toSlug(titulo);
 
     if (!titulo || !slug) {
-      setError("El titulo del articulo no es valido.");
+      showFeedback(scope, "warning", "El titulo del articulo no es valido.");
       return;
     }
     if (titulo.length < 2 || titulo.length > 180) {
-      setError("El titulo debe tener entre 2 y 180 caracteres.");
+      showFeedback(scope, "warning", "El titulo debe tener entre 2 y 180 caracteres.");
       return;
     }
     if (!autor) {
-      setError("Autor: valor obligatorio.");
+      showFeedback(scope, "warning", "Autor: valor obligatorio.");
       return;
     }
     if (autor.length < 2 || autor.length > 120) {
-      setError("El autor debe tener entre 2 y 120 caracteres.");
+      showFeedback(scope, "warning", "El autor debe tener entre 2 y 120 caracteres.");
       return;
     }
     if (!extracto || !contenido) {
-      setError("Extracto y contenido son obligatorios.");
+      showFeedback(scope, "warning", "Extracto y contenido son obligatorios.");
       return;
     }
     if (extracto.length < 8 || extracto.length > 280) {
-      setError("El extracto debe tener entre 8 y 280 caracteres.");
+      showFeedback(scope, "warning", "El extracto debe tener entre 8 y 280 caracteres.");
       return;
     }
     if (contenido.length < 20 || contenido.length > 12000) {
-      setError("El contenido debe tener entre 20 y 12000 caracteres.");
+      showFeedback(scope, "warning", "El contenido debe tener entre 20 y 12000 caracteres.");
       return;
     }
 
     setBusyId(`save-post-${post.id}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/blog/${post.id}`, {
         method: "PATCH",
@@ -229,21 +281,27 @@ export function AdminBlogManager() {
       }
 
       await loadPosts();
+      showFeedback(scope, "success", "Artículo guardado correctamente.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error guardando articulo.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error guardando articulo.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function deletePost(post: BlogPost) {
+    const scope = `blog-post-${post.id}`;
     const confirmed = window.confirm(`Vas a eliminar "${post.titulo}". Esta accion no se puede deshacer.`);
     if (!confirmed) {
       return;
     }
 
     setBusyId(`delete-post-${post.id}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/blog/${post.id}`, {
         method: "DELETE",
@@ -255,8 +313,13 @@ export function AdminBlogManager() {
       }
 
       await loadPosts();
+      showFeedback(scope, "success", "Artículo eliminado correctamente.");
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Error eliminando articulo.");
+      showFeedback(
+        scope,
+        "error",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando articulo.",
+      );
     } finally {
       setBusyId(null);
     }
@@ -272,13 +335,8 @@ export function AdminBlogManager() {
 
   return (
     <div className="space-y-6">
-      {error ? (
-        <p className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {error}
-        </p>
-      ) : null}
-
       <section className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
+        {renderFeedback("blog-create")}
         <h2 className="text-xl text-[var(--fg-strong)]">Crear articulo</h2>
         <div className="grid gap-2">
           <input
@@ -317,6 +375,7 @@ export function AdminBlogManager() {
       </section>
 
       <section className="space-y-4">
+        {renderFeedback("blog-list")}
         <h2 className="text-2xl text-[var(--fg-strong)]">Articulos</h2>
         {!posts.length ? (
           <p className="text-sm text-[var(--fg-muted)]">Aun no hay articulos registrados.</p>
@@ -326,6 +385,7 @@ export function AdminBlogManager() {
             key={post.id}
             className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5"
           >
+            {renderFeedback(`blog-post-${post.id}`)}
             <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">{post.slug}</p>
             <input
               value={post.titulo}

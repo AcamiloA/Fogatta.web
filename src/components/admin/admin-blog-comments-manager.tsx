@@ -19,6 +19,13 @@ type CommentsPayload = {
   comments: AdminBlogComment[];
 };
 
+type FeedbackTone = "success" | "error" | "warning" | "info";
+type ScopedFeedback = {
+  scope: string;
+  tone: FeedbackTone;
+  message: string;
+};
+
 function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -35,7 +42,44 @@ export function AdminBlogCommentsManager() {
   const [comments, setComments] = useState<AdminBlogComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<ScopedFeedback | null>(null);
+
+  const clearFeedback = useCallback((scope?: string) => {
+    setFeedback((current) => {
+      if (!current) {
+        return current;
+      }
+      if (!scope || current.scope === scope) {
+        return null;
+      }
+      return current;
+    });
+  }, []);
+
+  const showFeedback = useCallback((scope: string, tone: FeedbackTone, message: string) => {
+    setFeedback({ scope, tone, message });
+  }, []);
+
+  function renderFeedback(scope: string) {
+    if (!feedback || feedback.scope !== scope) {
+      return null;
+    }
+
+    const className =
+      feedback.tone === "success"
+        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+        : feedback.tone === "warning"
+          ? "border-amber-300 bg-amber-50 text-amber-800"
+          : feedback.tone === "info"
+            ? "border-sky-300 bg-sky-50 text-sky-700"
+            : "border-rose-300 bg-rose-50 text-rose-700";
+
+    return (
+      <p className={`rounded-lg border px-4 py-3 text-sm ${className}`}>
+        {feedback.message}
+      </p>
+    );
+  }
 
   const statusCount = useMemo(() => {
     return {
@@ -46,8 +90,9 @@ export function AdminBlogCommentsManager() {
   }, [comments]);
 
   const loadComments = useCallback(async () => {
+    const scope = "comments-list";
     setLoading(true);
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const query = statusFilter === "all" ? "" : `?status=${statusFilter}`;
@@ -59,19 +104,24 @@ export function AdminBlogCommentsManager() {
 
       setComments((payload as CommentsPayload).comments);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Error cargando comentarios.");
+      showFeedback(
+        scope,
+        "error",
+        loadError instanceof Error ? loadError.message : "Error cargando comentarios.",
+      );
     } finally {
       setLoading(false);
     }
-  }, [statusFilter]);
+  }, [clearFeedback, showFeedback, statusFilter]);
 
   useEffect(() => {
     void loadComments();
   }, [loadComments]);
 
   async function updateStatus(comment: AdminBlogComment, nextStatus: CommentStatus) {
+    const scope = `comment-${comment.id}`;
     setBusyId(`status-${comment.id}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/blog/comentarios/${comment.id}`, {
         method: "PATCH",
@@ -85,21 +135,27 @@ export function AdminBlogCommentsManager() {
         throw new Error(payload?.error || "No se pudo actualizar el comentario.");
       }
       await loadComments();
+      showFeedback(scope, "success", "Estado del comentario actualizado.");
     } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : "Error actualizando comentario.");
+      showFeedback(
+        scope,
+        "error",
+        updateError instanceof Error ? updateError.message : "Error actualizando comentario.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function deleteComment(comment: AdminBlogComment) {
+    const scope = `comment-${comment.id}`;
     const confirmed = window.confirm("Vas a eliminar este comentario. Esta accion no se puede deshacer.");
     if (!confirmed) {
       return;
     }
 
     setBusyId(`delete-${comment.id}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/blog/comentarios/${comment.id}`, {
         method: "DELETE",
@@ -109,8 +165,13 @@ export function AdminBlogCommentsManager() {
         throw new Error(payload?.error || "No se pudo eliminar el comentario.");
       }
       await loadComments();
+      showFeedback(scope, "success", "Comentario eliminado correctamente.");
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Error eliminando comentario.");
+      showFeedback(
+        scope,
+        "error",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando comentario.",
+      );
     } finally {
       setBusyId(null);
     }
@@ -146,11 +207,7 @@ export function AdminBlogCommentsManager() {
         </div>
       </div>
 
-      {error ? (
-        <p className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {error}
-        </p>
-      ) : null}
+      {renderFeedback("comments-list")}
 
       {loading ? <p className="text-sm text-[var(--fg-muted)]">Cargando comentarios...</p> : null}
 
@@ -164,6 +221,7 @@ export function AdminBlogCommentsManager() {
             key={comment.id}
             className="space-y-2 rounded-xl border border-[var(--border)]/35 bg-[var(--surface-3)] p-4"
           >
+            {renderFeedback(`comment-${comment.id}`)}
             <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">
               {comment.postTitulo} ({comment.postSlug})
             </p>

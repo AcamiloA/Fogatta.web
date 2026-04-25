@@ -67,6 +67,13 @@ type ApiErrorPayload = {
   details?: ValidationDetails;
 };
 
+type FeedbackTone = "success" | "error" | "warning" | "info";
+type ScopedFeedback = {
+  scope: string;
+  tone: FeedbackTone;
+  message: string;
+};
+
 function toSlug(value: string) {
   return value
     .toLowerCase()
@@ -172,7 +179,7 @@ function resolveApiError(payload: unknown, fallback: string) {
 export function AdminCatalogManager() {
   const [catalog, setCatalog] = useState<CatalogPayload | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<ScopedFeedback | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -186,9 +193,47 @@ export function AdminCatalogManager() {
     activo: true,
   });
 
+  const clearFeedback = useCallback((scope?: string) => {
+    setFeedback((current) => {
+      if (!current) {
+        return current;
+      }
+      if (!scope || current.scope === scope) {
+        return null;
+      }
+      return current;
+    });
+  }, []);
+
+  const showFeedback = useCallback((scope: string, tone: FeedbackTone, message: string) => {
+    setFeedback({ scope, tone, message });
+  }, []);
+
+  function renderFeedback(scope: string) {
+    if (!feedback || feedback.scope !== scope) {
+      return null;
+    }
+
+    const className =
+      feedback.tone === "success"
+        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+        : feedback.tone === "warning"
+          ? "border-amber-300 bg-amber-50 text-amber-800"
+          : feedback.tone === "info"
+            ? "border-sky-300 bg-sky-50 text-sky-700"
+            : "border-rose-300 bg-rose-50 text-rose-700";
+
+    return (
+      <p className={`rounded-lg border px-4 py-3 text-sm ${className}`}>
+        {feedback.message}
+      </p>
+    );
+  }
+
   const loadCatalog = useCallback(async () => {
+    const scope = "catalog-list";
     setLoading(true);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch("/api/admin/catalogo", { cache: "no-store" });
       const payload = await response.json();
@@ -213,23 +258,24 @@ export function AdminCatalogManager() {
       });
     } catch (loadError) {
       const message = loadError instanceof Error ? loadError.message : "Error de carga.";
-      setError(message);
+      showFeedback(scope, "error", message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [clearFeedback, showFeedback]);
 
   useEffect(() => {
     void loadCatalog();
   }, [loadCatalog]);
 
   async function createCategory() {
+    const scope = "create-category";
     if (!newCategoryName.trim()) {
       return;
     }
 
     setBusyId("create-category");
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch("/api/admin/categorias", {
         method: "POST",
@@ -249,17 +295,25 @@ export function AdminCatalogManager() {
       setNewCategoryName("");
       setNewCategoryDescription("");
       await loadCatalog();
+      showFeedback(scope, "success", "Categoría creada exitosamente.");
     } catch (categoryError) {
-      setError(categoryError instanceof Error ? categoryError.message : "Error creando categoría.");
+      showFeedback(
+        scope,
+        "error",
+        categoryError instanceof Error ? categoryError.message : "Error creando categoría.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function deleteCategory(category: Category) {
+    const scope = "create-category";
     const productsInCategory = categoryProductCount[category.id] ?? 0;
     if (productsInCategory > 0) {
-      setError(
+      showFeedback(
+        scope,
+        "warning",
         productsInCategory === 1
           ? "No se puede eliminar la categoría porque tiene 1 producto."
           : `No se puede eliminar la categoría porque tiene ${productsInCategory} productos.`,
@@ -273,7 +327,7 @@ export function AdminCatalogManager() {
     }
 
     setBusyId(`delete-category-${category.id}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/categorias/${category.id}`, {
         method: "DELETE",
@@ -288,29 +342,35 @@ export function AdminCatalogManager() {
         current.categoryId === category.id ? { ...current, categoryId: "" } : current,
       );
       await loadCatalog();
+      showFeedback(scope, "success", "Categoría eliminada.");
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Error eliminando categoría.");
+      showFeedback(
+        scope,
+        "error",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando categoría.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function createProduct() {
+    const scope = "create-product";
     const generatedSlug = toSlug(newProduct.nombre);
     if (!newProduct.nombre.trim() || !generatedSlug) {
-      setError("Define un nombre válido para el producto.");
+      showFeedback(scope, "warning", "Define un nombre válido para el producto.");
       return;
     }
     if (!newProduct.categoryId) {
-      setError("Selecciona una categoría.");
+      showFeedback(scope, "warning", "Selecciona una categoría.");
       return;
     }
     if (!newProduct.imagenes.length) {
-      setError("Sube al menos una imagen para el producto.");
+      showFeedback(scope, "warning", "Sube al menos una imagen para el producto.");
       return;
     }
     if (newProduct.imagenes.length > MAX_PRODUCT_IMAGES) {
-      setError(`Maximo ${MAX_PRODUCT_IMAGES} imagen por producto.`);
+      showFeedback(scope, "warning", `Maximo ${MAX_PRODUCT_IMAGES} imagen por producto.`);
       return;
     }
 
@@ -323,13 +383,17 @@ export function AdminCatalogManager() {
         `Ya existe un producto llamado "${duplicateProduct.nombre}". ¿Deseas reemplazarlo?`,
       );
       if (!shouldReplace) {
-        setError("No se guardó el producto. Puedes modificar el nombre e intentar de nuevo.");
+        showFeedback(
+          scope,
+          "warning",
+          "No se guardó el producto. Puedes modificar el nombre e intentar de nuevo.",
+        );
         return;
       }
     }
 
     setBusyId("create-product");
-    setError(null);
+    clearFeedback(scope);
     try {
       const payload = {
         ...newProduct,
@@ -366,16 +430,25 @@ export function AdminCatalogManager() {
         imagenes: [],
       }));
       await loadCatalog();
+      showFeedback(
+        scope,
+        "success",
+        duplicateProduct ? "Producto reemplazado correctamente." : "Producto creado correctamente.",
+      );
     } catch (productError) {
-      setError(productError instanceof Error ? productError.message : "Error creando producto.");
+      showFeedback(
+        scope,
+        "error",
+        productError instanceof Error ? productError.message : "Error creando producto.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
-  async function uploadImage(file: File, busyKey: string) {
+  async function uploadImage(file: File, busyKey: string, scope: string) {
     setBusyId(busyKey);
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const formData = new FormData();
@@ -391,9 +464,14 @@ export function AdminCatalogManager() {
         throw new Error(resolveApiError(payload, "No se pudo subir la imagen."));
       }
 
+      showFeedback(scope, "success", "Imagen subida correctamente.");
       return payload.url as string;
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Error subiendo imagen.");
+      showFeedback(
+        scope,
+        "error",
+        uploadError instanceof Error ? uploadError.message : "Error subiendo imagen.",
+      );
       return null;
     } finally {
       setBusyId(null);
@@ -401,13 +479,14 @@ export function AdminCatalogManager() {
   }
 
   async function saveProduct(product: Product) {
+    const scope = `product-${product.id}`;
     if (!product.imagenes.length) {
-      setError("Cada producto debe tener al menos una imagen.");
+      showFeedback(scope, "warning", "Cada producto debe tener al menos una imagen.");
       return;
     }
 
     setBusyId(`save-product-${product.id}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/productos/${product.id}`, {
         method: "PATCH",
@@ -428,14 +507,20 @@ export function AdminCatalogManager() {
       }
 
       await loadCatalog();
+      showFeedback(scope, "success", "Producto guardado correctamente.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error guardando producto.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error guardando producto.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function saveVariant(variant: Variant) {
+    const scope = `variant-${variant.id}`;
     const stockVirtualRaw = variant.stockVirtual.trim();
     const stockVirtual = stockVirtualRaw ? Number.parseInt(stockVirtualRaw, 10) : 0;
     const stockMinimoAlerta = variant.stockMinimoAlerta.trim()
@@ -447,22 +532,22 @@ export function AdminCatalogManager() {
       ? Number.parseInt(variant.descuentoPorcentaje, 10)
       : 0;
     if (!Number.isFinite(stockVirtual) || stockVirtual < 0) {
-      setError("Stock: ingresa un número válido.");
+      showFeedback(scope, "warning", "Stock: ingresa un número válido.");
       return;
     }
     if (!Number.isFinite(precio) || precio < 0) {
-      setError("Precio final: ingresa un número válido.");
+      showFeedback(scope, "warning", "Precio final: ingresa un número válido.");
       return;
     }
     if (!Number.isFinite(stockMinimoAlerta) || stockMinimoAlerta < 0) {
-      setError("Stock mínimo alerta: ingresa un número válido.");
+      showFeedback(scope, "warning", "Stock mínimo alerta: ingresa un número válido.");
       return;
     }
     if (
       variant.descuentoActivo &&
       (!Number.isFinite(descuentoPorcentaje) || descuentoPorcentaje < 1 || descuentoPorcentaje > 100)
     ) {
-      setError("Descuento (%): ingresa un número entre 1 y 100.");
+      showFeedback(scope, "warning", "Descuento (%): ingresa un número entre 1 y 100.");
       return;
     }
 
@@ -476,12 +561,12 @@ export function AdminCatalogManager() {
     }
 
     if (!Number.isFinite(descuentoPorcentaje) || descuentoPorcentaje < 0 || descuentoPorcentaje > 100) {
-      setError("Descuento (%): ingresa un número válido.");
+      showFeedback(scope, "warning", "Descuento (%): ingresa un número válido.");
       return;
     }
 
     setBusyId(`save-variant-${variant.id}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/variantes/${variant.id}`, {
         method: "PATCH",
@@ -504,16 +589,22 @@ export function AdminCatalogManager() {
       }
 
       await loadCatalog();
+      showFeedback(scope, "success", "Variante guardada correctamente.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error guardando variante.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error guardando variante.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function createVariant(productId: string) {
+    const scope = `product-${productId}`;
     setBusyId(`create-variant-${productId}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch("/api/admin/variantes", {
         method: "POST",
@@ -537,21 +628,27 @@ export function AdminCatalogManager() {
       }
 
       await loadCatalog();
+      showFeedback(scope, "success", "Variante creada correctamente.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error creando variante.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error creando variante.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function deleteProduct(productId: string) {
+    const scope = `product-${productId}`;
     const confirmed = window.confirm("Vas a eliminar este producto y sus variantes. ¿Continuar?");
     if (!confirmed) {
       return;
     }
 
     setBusyId(`delete-product-${productId}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/productos/${productId}`, {
         method: "DELETE",
@@ -563,21 +660,27 @@ export function AdminCatalogManager() {
       }
 
       await loadCatalog();
+      showFeedback(scope, "success", "Producto eliminado correctamente.");
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Error eliminando producto.");
+      showFeedback(
+        scope,
+        "error",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando producto.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function deleteVariant(variantId: string) {
+    const scope = `variant-${variantId}`;
     const confirmed = window.confirm("Vas a eliminar esta variante. ¿Continuar?");
     if (!confirmed) {
       return;
     }
 
     setBusyId(`delete-variant-${variantId}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/variantes/${variantId}`, {
         method: "DELETE",
@@ -589,8 +692,13 @@ export function AdminCatalogManager() {
       }
 
       await loadCatalog();
+      showFeedback(scope, "success", "Variante eliminada correctamente.");
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Error eliminando variante.");
+      showFeedback(
+        scope,
+        "error",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando variante.",
+      );
     } finally {
       setBusyId(null);
     }
@@ -632,14 +740,9 @@ export function AdminCatalogManager() {
 
   return (
     <div className="space-y-8">
-      {error ? (
-        <p className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {error}
-        </p>
-      ) : null}
-
       <section className="grid gap-4 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5 md:grid-cols-2">
         <div className="space-y-3">
+          {renderFeedback("create-category")}
           <h2 className="text-xl text-[var(--fg-strong)]">Crear categoría</h2>
           <input
             value={newCategoryName}
@@ -697,6 +800,7 @@ export function AdminCatalogManager() {
         </div>
 
         <div className="space-y-2">
+          {renderFeedback("create-product")}
           <h2 className="text-xl text-[var(--fg-strong)]">Crear producto</h2>
           <input
             value={newProduct.nombre}
@@ -742,7 +846,7 @@ export function AdminCatalogManager() {
                 const input = event.currentTarget;
                 const file = input.files?.[0];
                 if (!file) return;
-                const url = await uploadImage(file, "upload-image-new-product");
+                const url = await uploadImage(file, "upload-image-new-product", "create-product");
                 if (url) {
                   setNewProduct((current) => ({
                     ...current,
@@ -797,6 +901,7 @@ export function AdminCatalogManager() {
       </section>
 
       <section className="space-y-4">
+        {renderFeedback("catalog-list")}
         <h2 className="text-2xl text-[var(--fg-strong)]">Productos del catálogo</h2>
         {!catalog?.products.length ? (
           <p className="text-sm text-[var(--fg-muted)]">No hay productos registrados aún.</p>
@@ -806,6 +911,7 @@ export function AdminCatalogManager() {
             key={product.id}
             className="space-y-4 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5"
           >
+            {renderFeedback(`product-${product.id}`)}
             <div className="grid gap-2 md:grid-cols-2">
               <input
                 value={product.nombre}
@@ -917,7 +1023,7 @@ export function AdminCatalogManager() {
                     const input = event.currentTarget;
                     const file = input.files?.[0];
                     if (!file) return;
-                    const url = await uploadImage(file, `upload-image-${product.id}`);
+                    const url = await uploadImage(file, `upload-image-${product.id}`, `product-${product.id}`);
                     if (url) {
                       updateProductState(product.id, (current) => ({
                         ...current,
@@ -948,6 +1054,7 @@ export function AdminCatalogManager() {
                   key={variant.id}
                   className="grid gap-2 rounded-lg border border-[var(--border)]/30 bg-[var(--surface-2)] p-3 md:grid-cols-6"
                 >
+                  <div className="md:col-span-6">{renderFeedback(`variant-${variant.id}`)}</div>
                   <input
                     value={variant.nombreVariante}
                     onChange={(event) =>
@@ -1127,11 +1234,19 @@ export function AdminCatalogManager() {
                           const file = input.files?.[0];
                           if (!file) return;
                           if (variant.imagenes.length >= MAX_VARIANT_IMAGES) {
-                            setError(`Maximo ${MAX_VARIANT_IMAGES} imagenes por variante.`);
+                            showFeedback(
+                              `variant-${variant.id}`,
+                              "warning",
+                              `Maximo ${MAX_VARIANT_IMAGES} imagenes por variante.`,
+                            );
                             input.value = "";
                             return;
                           }
-                          const url = await uploadImage(file, `upload-variant-image-${variant.id}`);
+                          const url = await uploadImage(
+                            file,
+                            `upload-variant-image-${variant.id}`,
+                            `variant-${variant.id}`,
+                          );
                           if (url) {
                             updateVariantState(product.id, variant.id, (current) => ({
                               ...current,

@@ -39,6 +39,13 @@ type ApiErrorPayload = {
   details?: ValidationDetails;
 };
 
+type FeedbackTone = "success" | "error" | "warning" | "info";
+type ScopedFeedback = {
+  scope: string;
+  tone: FeedbackTone;
+  message: string;
+};
+
 function resolveApiError(payload: unknown, fallback: string) {
   if (!payload || typeof payload !== "object") {
     return fallback;
@@ -69,7 +76,7 @@ export function AdminContentManager() {
   const [faq, setFaq] = useState<FaqItem[]>([]);
   const [legales, setLegales] = useState<LegalItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<ScopedFeedback | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [newFaq, setNewFaq] = useState({
     pregunta: "",
@@ -77,9 +84,47 @@ export function AdminContentManager() {
     orden: 1,
   });
 
+  const clearFeedback = useCallback((scope?: string) => {
+    setFeedback((current) => {
+      if (!current) {
+        return current;
+      }
+      if (!scope || current.scope === scope) {
+        return null;
+      }
+      return current;
+    });
+  }, []);
+
+  const showFeedback = useCallback((scope: string, tone: FeedbackTone, message: string) => {
+    setFeedback({ scope, tone, message });
+  }, []);
+
+  function renderFeedback(scope: string) {
+    if (!feedback || feedback.scope !== scope) {
+      return null;
+    }
+
+    const className =
+      feedback.tone === "success"
+        ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+        : feedback.tone === "warning"
+          ? "border-amber-300 bg-amber-50 text-amber-800"
+          : feedback.tone === "info"
+            ? "border-sky-300 bg-sky-50 text-sky-700"
+            : "border-rose-300 bg-rose-50 text-rose-700";
+
+    return (
+      <p className={`rounded-lg border px-4 py-3 text-sm ${className}`}>
+        {feedback.message}
+      </p>
+    );
+  }
+
   const loadContent = useCallback(async () => {
+    const scope = "load-content";
     setLoading(true);
-    setError(null);
+    clearFeedback(scope);
 
     try {
       const response = await fetch("/api/admin/contenido", { cache: "no-store" });
@@ -95,23 +140,28 @@ export function AdminContentManager() {
       const maxOrder = typed.faq.reduce((max, item) => Math.max(max, item.orden), 0);
       setNewFaq((current) => ({ ...current, orden: Math.max(1, maxOrder + 1) }));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Error cargando contenido.");
+      showFeedback(
+        scope,
+        "error",
+        loadError instanceof Error ? loadError.message : "Error cargando contenido.",
+      );
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [clearFeedback, showFeedback]);
 
   useEffect(() => {
     void loadContent();
   }, [loadContent]);
 
   async function saveSiteContent() {
+    const scope = "site-content";
     if (!site) {
       return;
     }
 
     setBusyId("save-site");
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch("/api/admin/contenido", {
         method: "PATCH",
@@ -123,40 +173,46 @@ export function AdminContentManager() {
         throw new Error(resolveApiError(payload, "No se pudo guardar contenido principal."));
       }
       await loadContent();
+      showFeedback(scope, "success", "Contenido principal guardado correctamente.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error guardando contenido.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error guardando contenido.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function createFaq() {
+    const scope = "faq-create";
     const pregunta = newFaq.pregunta.trim();
     const respuesta = newFaq.respuesta.trim();
     const orden = Number(newFaq.orden);
 
     if (!pregunta || !respuesta) {
-      setError("FAQ: pregunta y respuesta son obligatorias.");
+      showFeedback(scope, "warning", "FAQ: pregunta y respuesta son obligatorias.");
       return;
     }
 
     if (pregunta.length < 6) {
-      setError("FAQ: la pregunta debe tener minimo 6 caracteres.");
+      showFeedback(scope, "warning", "FAQ: la pregunta debe tener minimo 6 caracteres.");
       return;
     }
 
     if (respuesta.length < 8) {
-      setError("FAQ: la respuesta debe tener minimo 8 caracteres.");
+      showFeedback(scope, "warning", "FAQ: la respuesta debe tener minimo 8 caracteres.");
       return;
     }
 
     if (!Number.isInteger(orden) || orden < 1 || orden > 999) {
-      setError("FAQ: el orden debe estar entre 1 y 999.");
+      showFeedback(scope, "warning", "FAQ: el orden debe estar entre 1 y 999.");
       return;
     }
 
     setBusyId("create-faq");
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch("/api/admin/faq", {
         method: "POST",
@@ -173,16 +229,22 @@ export function AdminContentManager() {
       }
       setNewFaq({ pregunta: "", respuesta: "", orden: Math.max(1, newFaq.orden + 1) });
       await loadContent();
+      showFeedback(scope, "success", "FAQ creada correctamente.");
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Error creando FAQ.");
+      showFeedback(
+        scope,
+        "error",
+        createError instanceof Error ? createError.message : "Error creando FAQ.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function saveFaq(item: FaqItem) {
+    const scope = `faq-${item.id}`;
     setBusyId(`save-faq-${item.id}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/faq/${item.id}`, {
         method: "PATCH",
@@ -198,21 +260,27 @@ export function AdminContentManager() {
         throw new Error(resolveApiError(payload, "No se pudo guardar FAQ."));
       }
       await loadContent();
+      showFeedback(scope, "success", "FAQ guardada correctamente.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error guardando FAQ.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error guardando FAQ.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function deleteFaq(item: FaqItem) {
+    const scope = `faq-${item.id}`;
     const confirmed = window.confirm(`Vas a eliminar la FAQ: "${item.pregunta}".`);
     if (!confirmed) {
       return;
     }
 
     setBusyId(`delete-faq-${item.id}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/faq/${item.id}`, {
         method: "DELETE",
@@ -222,16 +290,22 @@ export function AdminContentManager() {
         throw new Error(resolveApiError(payload, "No se pudo eliminar FAQ."));
       }
       await loadContent();
+      showFeedback(scope, "success", "FAQ eliminada correctamente.");
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Error eliminando FAQ.");
+      showFeedback(
+        scope,
+        "error",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando FAQ.",
+      );
     } finally {
       setBusyId(null);
     }
   }
 
   async function saveLegal(item: LegalItem) {
+    const scope = `legal-${item.tipo}`;
     setBusyId(`save-legal-${item.tipo}`);
-    setError(null);
+    clearFeedback(scope);
     try {
       const response = await fetch(`/api/admin/legal/${item.tipo}`, {
         method: "PATCH",
@@ -246,8 +320,13 @@ export function AdminContentManager() {
         throw new Error(resolveApiError(payload, "No se pudo guardar documento legal."));
       }
       await loadContent();
+      showFeedback(scope, "success", "Documento legal guardado correctamente.");
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Error guardando legal.");
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error guardando legal.",
+      );
     } finally {
       setBusyId(null);
     }
@@ -267,13 +346,9 @@ export function AdminContentManager() {
 
   return (
     <div className="space-y-6">
-      {error ? (
-        <p className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {error}
-        </p>
-      ) : null}
-
+      {renderFeedback("load-content")}
       <section className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
+        {renderFeedback("site-content")}
         <h2 className="text-xl text-[var(--fg-strong)]">Hero y Nosotros</h2>
         <input
           value={site.heroTitulo}
@@ -324,6 +399,7 @@ export function AdminContentManager() {
       </section>
 
       <section className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
+        {renderFeedback("faq-create")}
         <h2 className="text-xl text-[var(--fg-strong)]">FAQ</h2>
         <div className="grid gap-2">
           <input
@@ -364,6 +440,7 @@ export function AdminContentManager() {
               key={item.id}
               className="space-y-2 rounded-xl border border-[var(--border)]/40 bg-[var(--surface-3)] p-4"
             >
+              {renderFeedback(`faq-${item.id}`)}
               <input
                 value={item.pregunta}
                 onChange={(event) =>
@@ -430,6 +507,7 @@ export function AdminContentManager() {
         <div className="grid gap-4 md:grid-cols-2">
           {legales.map((item) => (
             <article key={item.tipo} className="space-y-2 rounded-xl border border-[var(--border)]/35 bg-[var(--surface-3)] p-4">
+              {renderFeedback(`legal-${item.tipo}`)}
               <h3 className="text-sm uppercase tracking-wide text-[var(--fg-soft)]">
                 {item.tipo === "privacidad" ? "Privacidad" : "Terminos"}
               </h3>

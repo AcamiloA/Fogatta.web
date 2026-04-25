@@ -21,10 +21,32 @@ function getDiscountedPrice(variant: ProductDetailDTO["variantes"][number]) {
   return Math.max(Math.round((variant.precio * (100 - safePercentage)) / 100), 0);
 }
 
+function normalizeQuantityInput(rawValue: string, maxStock: number) {
+  if (!rawValue) {
+    return "";
+  }
+
+  const digitsOnly = rawValue.replace(/\D/g, "");
+  if (!digitsOnly) {
+    return "";
+  }
+
+  if (maxStock <= 0) {
+    return "";
+  }
+
+  const parsed = Number.parseInt(digitsOnly, 10);
+  if (!Number.isFinite(parsed)) {
+    return "";
+  }
+
+  return String(Math.min(parsed, maxStock));
+}
+
 export function ProductDetailInteractive({ product }: Props) {
   const { addItem } = useCart();
   const [variantId, setVariantId] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  const [quantityInput, setQuantityInput] = useState("");
 
   const selectedVariant = useMemo(
     () => product.variantes.find((variant) => variant.id === variantId) ?? null,
@@ -35,6 +57,8 @@ export function ProductDetailInteractive({ product }: Props) {
   const selectedStock =
     selectedVariant ? (selectedVariant.stockDisponible ?? selectedVariant.stockVirtual) : 0;
   const galleryImages = selectedVariant ? selectedVariant.imagenes : product.imagenes;
+  const parsedQuantity = Number.parseInt(quantityInput, 10);
+  const quantity = Number.isNaN(parsedQuantity) ? 0 : parsedQuantity;
 
   function handleAdd() {
     if (!selectedVariant || unitPrice === null) {
@@ -44,7 +68,11 @@ export function ProductDetailInteractive({ product }: Props) {
       return;
     }
 
-    const safeQuantity = Math.min(Math.max(quantity, 1), selectedStock);
+    if (quantity < 1) {
+      return;
+    }
+
+    const safeQuantity = Math.min(quantity, selectedStock);
 
     addItem({
       productId: product.id,
@@ -79,7 +107,16 @@ export function ProductDetailInteractive({ product }: Props) {
               Variante
               <select
                 value={variantId}
-                onChange={(event) => setVariantId(event.target.value)}
+                onChange={(event) => {
+                  const nextVariantId = event.target.value;
+                  const nextVariant =
+                    product.variantes.find((variant) => variant.id === nextVariantId) ?? null;
+                  const nextStock = nextVariant
+                    ? (nextVariant.stockDisponible ?? nextVariant.stockVirtual)
+                    : 0;
+                  setVariantId(nextVariantId);
+                  setQuantityInput((current) => normalizeQuantityInput(current, nextStock));
+                }}
                 className="rounded-lg border border-[var(--input-border)] bg-[var(--card)] px-2 py-2"
               >
                 <option value="">Seleccione una variante</option>
@@ -92,17 +129,22 @@ export function ProductDetailInteractive({ product }: Props) {
               </select>
             </label>
 
-            <label className="flex flex-col gap-1 text-sm text-[var(--ink-muted)]">
-              Cantidad
-              <input
-                type="number"
-                min={1}
-                value={quantity}
-                onChange={(event) => setQuantity(Math.max(1, Number(event.target.value)))}
-                max={selectedStock > 0 ? selectedStock : undefined}
-                className="w-24 rounded-lg border border-[var(--input-border)] bg-[var(--card)] px-2 py-2"
-              />
-            </label>
+            {selectedVariant ? (
+              <label className="flex flex-col gap-1 text-sm text-[var(--ink-muted)]">
+                Cantidad
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="Cantidad"
+                  value={quantityInput}
+                  onChange={(event) => {
+                    setQuantityInput(normalizeQuantityInput(event.target.value, selectedStock));
+                  }}
+                  className="w-24 rounded-lg border border-[var(--input-border)] bg-[var(--card)] px-2 py-2"
+                />
+              </label>
+            ) : null}
 
             {selectedVariant && unitPrice !== null ? (
               <p className="text-sm text-[var(--ink-muted)]">
@@ -136,15 +178,12 @@ export function ProductDetailInteractive({ product }: Props) {
           <button
             type="button"
             onClick={handleAdd}
-            disabled={!selectedVariant || selectedStock <= 0}
+            disabled={!selectedVariant || selectedStock <= 0 || quantity < 1}
             className="mt-4 w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--accent-contrast)] transition hover:bg-[var(--accent-hover)] disabled:bg-[var(--accent-disabled)]"
           >
             {selectedVariant && selectedStock <= 0 ? "Sin stock disponible" : "Agregar al carrito"}
           </button>
         </div>
-        <p className="mt-3 text-sm text-[var(--fg-soft)]">
-          Pedido por WhatsApp con respuesta en menos de 1 hora.
-        </p>
       </div>
     </div>
   );
