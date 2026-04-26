@@ -165,7 +165,7 @@ export function ProductDetailInteractive({ product }: Props) {
               </p>
             ) : (
               <p className="text-sm text-[var(--ink-muted)]">
-                Selecciona una variante para ver precio y disponibilidad de imagenes.
+                Selecciona una variante para ver la disponibilidad.
               </p>
             )}
             {selectedVariant ? (

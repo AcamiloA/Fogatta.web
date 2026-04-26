@@ -11,7 +11,7 @@ export default function ContactoPage() {
       <section>
         <h1 className="text-4xl text-[var(--fg-strong)]">Contacto</h1>
         <p className="mt-4 text-[var(--fg-muted)]">
-          Cuéntanos qué aroma o formato estás buscando y te respondemos rápido.
+          Cuéntanos qué aroma o formato estás buscando y te respondemos los antes posible.
         </p>
         <div className="mt-6 rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface-2)] p-5">
           <p className="text-sm text-[var(--fg-muted)]">Horario de atención</p>
