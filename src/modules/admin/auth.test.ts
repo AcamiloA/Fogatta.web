@@ -39,6 +39,20 @@ describe("admin auth", () => {
     expect(account?.role).toBe("admin");
   });
 
+  it("accepts username in uppercase or mixed case", () => {
+    setBaseEnv();
+    const upper = validateAdminLogin({
+      username: "ADMIN",
+      password: "fogatta123",
+    });
+    const mixed = validateAdminLogin({
+      username: "AdMiN",
+      password: "fogatta123",
+    });
+    expect(upper?.role).toBe("admin");
+    expect(mixed?.role).toBe("admin");
+  });
+
   it("validates 2fa code for admin", async () => {
     setBaseEnv();
     const code = await generate({ secret: process.env.ADMIN_2FA_SECRET as string });

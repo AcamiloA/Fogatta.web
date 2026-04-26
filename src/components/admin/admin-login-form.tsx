@@ -75,7 +75,8 @@ export function AdminLoginForm() {
   }
 
   const submitOtpCode = useCallback(async (code: string) => {
-    const { response, data } = await requestLogin({ username, password, otp: code });
+    const normalizedUsername = username.trim().toLowerCase();
+    const { response, data } = await requestLogin({ username: normalizedUsername, password, otp: code });
 
     if (!response.ok || !data?.ok) {
       resetToCredentials(data?.error ?? "Credenciales invalidas.");
@@ -94,11 +95,12 @@ export function AdminLoginForm() {
     }
 
     if (step === "credentials") {
+      const normalizedUsername = username.trim().toLowerCase();
       setLoading(true);
       setError(null);
 
       try {
-        const { response, data } = await requestLogin({ username, password });
+        const { response, data } = await requestLogin({ username: normalizedUsername, password });
 
         if (!response.ok) {
           throw new Error(data?.error ?? "Credenciales invalidas.");
@@ -259,7 +261,7 @@ export function AdminLoginForm() {
               autoComplete="off"
               className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-[var(--fg)]"
               value={username}
-              onChange={(event) => setUsername(event.target.value)}
+              onChange={(event) => setUsername(event.target.value.toLowerCase())}
               required
             />
           </label>

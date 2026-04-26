@@ -92,9 +92,6 @@ export default async function Home() {
             <h2 className="text-3xl text-[var(--fg-strong)]">
               Selección <BrandWordmark />
             </h2>
-            <p className="mt-1 text-sm text-[var(--fg-muted)]">
-              Rotación automática con {homeCatalogConfig.selectionSize} productos destacados.
-            </p>
           </div>
           <Link href="/catalogo" className="self-start text-sm text-[var(--fg-muted)] hover:text-[var(--fg-strong)] sm:self-auto">
             Ver todo

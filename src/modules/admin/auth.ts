@@ -19,6 +19,10 @@ type AdminAccount = {
   role: AdminRole;
 };
 
+function normalizeLoginUsername(value: string) {
+  return value.trim().toLowerCase();
+}
+
 export class AdminTwoFactorConfigurationError extends Error {
   constructor(message: string) {
     super(message);
@@ -47,8 +51,9 @@ function getSessionSecret() {
 }
 
 function getAdminCredentials() {
+  const adminUsername = process.env.ADMIN_USERNAME?.trim() || "admin";
   const adminAccount: AdminAccount = {
-    username: process.env.ADMIN_USERNAME ?? "admin",
+    username: adminUsername,
     password: process.env.ADMIN_PASSWORD ?? DEFAULT_ADMIN_PASSWORD,
     role: "admin",
   };
@@ -128,11 +133,12 @@ function safeEqual(a: string, b: string) {
 }
 
 export function validateAdminLogin(input: { username: string; password: string }): AdminAccount | null {
-  const username = input.username.trim();
+  const username = normalizeLoginUsername(input.username);
   const password = input.password;
 
   for (const account of getAdminCredentials()) {
-    if (safeEqual(username, account.username) && safeEqual(password, account.password)) {
+    const accountUsername = normalizeLoginUsername(account.username);
+    if (safeEqual(username, accountUsername) && safeEqual(password, account.password)) {
       return account;
     }
   }
