@@ -60,7 +60,10 @@ export async function POST(request: Request) {
       return tooManyAttempts(userRateLimit.retryAfterSeconds);
     }
 
-    const account = validateAdminLogin(input);
+    const account = validateAdminLogin({
+      ...input,
+      username,
+    });
     if (!account) {
       return NextResponse.json({ error: "Credenciales invalidas." }, { status: 401 });
     }
