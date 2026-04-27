@@ -56,7 +56,12 @@ export function ProductDetailInteractive({ product }: Props) {
   const unitPrice = selectedVariant ? getDiscountedPrice(selectedVariant) : null;
   const selectedStock =
     selectedVariant ? (selectedVariant.stockDisponible ?? selectedVariant.stockVirtual) : 0;
-  const galleryImages = selectedVariant ? selectedVariant.imagenes : product.imagenes;
+  const productImages = product.imagenes.filter((image) => image.trim().length > 0);
+  const selectedVariantImages = selectedVariant
+    ? selectedVariant.imagenes.filter((image) => image.trim().length > 0)
+    : [];
+  const galleryImages =
+    selectedVariant && selectedVariantImages.length > 0 ? selectedVariantImages : productImages;
   const parsedQuantity = Number.parseInt(quantityInput, 10);
   const quantity = Number.isNaN(parsedQuantity) ? 0 : parsedQuantity;
 
