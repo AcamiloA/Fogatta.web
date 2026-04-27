@@ -25,6 +25,27 @@ export class CategoryInUseError extends Error {
   }
 }
 
+export class VariantNotFoundError extends Error {
+  constructor() {
+    super("Variante no encontrada.");
+    this.name = "VariantNotFoundError";
+  }
+}
+
+export class VariantHasPendingReservationsError extends Error {
+  readonly pendingReservationsCount: number;
+
+  constructor(pendingReservationsCount: number) {
+    super(
+      pendingReservationsCount === 1
+        ? "No se puede eliminar la variante porque tiene 1 reserva pendiente."
+        : `No se puede eliminar la variante porque tiene ${pendingReservationsCount} reservas pendientes.`,
+    );
+    this.name = "VariantHasPendingReservationsError";
+    this.pendingReservationsCount = pendingReservationsCount;
+  }
+}
+
 function ensurePrisma() {
   if (!prisma) {
     throw new Error("DATABASE_URL is not configured");
@@ -452,11 +473,50 @@ export class AdminCatalogService {
 
   async deleteVariant(id: string) {
     const db = ensurePrisma();
-    const deleted = await db.variant.delete({
-      where: { id },
+    const deletion = await db.$transaction(async (tx) => {
+      await expirePendingReservations(tx, { olderThanHours: 24 });
+
+      const variant = await tx.variant.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          productId: true,
+        },
+      });
+
+      if (!variant) {
+        throw new VariantNotFoundError();
+      }
+
+      const pendingReservationsCount = await tx.stockReservation.count({
+        where: {
+          variantId: id,
+          status: "pending",
+        },
+      });
+
+      if (pendingReservationsCount > 0) {
+        throw new VariantHasPendingReservationsError(pendingReservationsCount);
+      }
+
+      await tx.stockReservation.deleteMany({
+        where: {
+          variantId: id,
+        },
+      });
+
+      const deletedVariant = await tx.variant.delete({
+        where: { id },
+      });
+
+      return {
+        productId: deletedVariant.productId,
+        deletedVariant,
+      };
     });
-    await this.syncProductReferencePrice(deleted.productId);
-    return deleted;
+
+    await this.syncProductReferencePrice(deletion.productId);
+    return deletion.deletedVariant;
   }
 
   isConfigured() {

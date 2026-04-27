@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 import { updateVariantInputSchema } from "@/modules/catalog/admin-contracts";
-import { AdminCatalogService } from "@/modules/catalog/admin-service";
+import {
+  AdminCatalogService,
+  VariantHasPendingReservationsError,
+  VariantNotFoundError,
+} from "@/modules/catalog/admin-service";
 import { isInventoryRequestAuthenticated } from "@/modules/inventory/auth";
 
 function unauthorized() {
@@ -78,6 +82,14 @@ export async function DELETE(request: NextRequest, { params }: Params) {
     await service.deleteVariant(id);
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
+    if (error instanceof VariantNotFoundError) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
+    if (error instanceof VariantHasPendingReservationsError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+
     service.handleError(error, { route: "admin_variant_delete" });
     return NextResponse.json({ error: "No se pudo eliminar la variante." }, { status: 500 });
   }
