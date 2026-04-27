@@ -70,9 +70,7 @@ export function CatalogListing({ products }: Props) {
         return true;
       }
 
-      const searchableContent = normalizeText(
-        `${product.nombre} ${product.resumen ?? ""} ${product.descripcion}`,
-      );
+      const searchableContent = normalizeText(`${product.nombre} ${product.descripcion}`);
       return searchableContent.includes(normalizedSearch);
     });
   }, [normalizedSearch, products, selectedCategoryId]);

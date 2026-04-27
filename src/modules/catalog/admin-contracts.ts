@@ -32,7 +32,6 @@ export const updateCategoryInputSchema = z
 export const createProductInputSchema = z.object({
   slug: z.string().min(2).max(120),
   nombre: z.string().min(2).max(160),
-  resumen: z.string().min(3).max(220),
   descripcion: z.string().min(5).max(1800),
   imagenes: z.array(z.string().min(1)).min(1).max(1),
   activo: z.boolean().default(true),

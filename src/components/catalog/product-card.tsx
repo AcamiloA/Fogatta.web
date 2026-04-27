@@ -9,7 +9,7 @@ type Props = {
 };
 
 function getShortPreviewText(product: ProductSummaryDTO) {
-  const baseText = (product.resumen?.trim() || product.descripcion).replace(/\s+/g, " ").trim();
+  const baseText = product.descripcion.replace(/\s+/g, " ").trim();
   if (!baseText) {
     return "Descubre esta vela artesanal de FOGATTA.";
   }

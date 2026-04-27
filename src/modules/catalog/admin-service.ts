@@ -83,7 +83,6 @@ function toDetailDTO(product: {
   id: string;
   slug: string;
   nombre: string;
-  resumen: string | null;
   descripcion: string;
   precioReferencia: number;
   imagenes: string[];
@@ -116,7 +115,6 @@ function toDetailDTO(product: {
     id: product.id,
     slug: product.slug,
     nombre: product.nombre,
-    resumen: product.resumen,
     descripcion: product.descripcion,
     precioReferencia: product.precioReferencia,
     imagenes: product.imagenes,
@@ -276,7 +274,6 @@ export class AdminCatalogService {
   async createProduct(input: {
     slug: string;
     nombre: string;
-    resumen: string;
     descripcion: string;
     imagenes: string[];
     activo: boolean;
@@ -287,7 +284,6 @@ export class AdminCatalogService {
       data: {
         slug: input.slug.trim(),
         nombre: input.nombre.trim(),
-        resumen: input.resumen.trim(),
         descripcion: input.descripcion.trim(),
         precioReferencia: 0,
         imagenes: input.imagenes.map((image) => image.trim()).filter(Boolean),
@@ -302,7 +298,6 @@ export class AdminCatalogService {
     input: {
       slug?: string;
       nombre?: string;
-      resumen?: string;
       descripcion?: string;
       imagenes?: string[];
       activo?: boolean;
@@ -321,7 +316,6 @@ export class AdminCatalogService {
     const data: {
       slug?: string;
       nombre?: string;
-      resumen?: string | null;
       descripcion?: string;
       imagenes?: string[];
       activo?: boolean;
@@ -330,7 +324,6 @@ export class AdminCatalogService {
 
     if (input.slug !== undefined) data.slug = input.slug.trim();
     if (input.nombre !== undefined) data.nombre = input.nombre.trim();
-    if (input.resumen !== undefined) data.resumen = input.resumen.trim() || null;
     if (input.descripcion !== undefined) data.descripcion = input.descripcion.trim();
     if (input.imagenes !== undefined) {
       data.imagenes = normalizeImageUrls(input.imagenes);

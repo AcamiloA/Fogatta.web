@@ -64,7 +64,6 @@ export function ProductDetailInteractive({ product }: Props) {
     selectedVariant && selectedVariantImages.length > 0 ? selectedVariantImages : productImages;
   const parsedQuantity = Number.parseInt(quantityInput, 10);
   const quantity = Number.isNaN(parsedQuantity) ? 0 : parsedQuantity;
-  const shortDescription = product.resumen?.trim();
 
   function handleAdd() {
     if (!selectedVariant || unitPrice === null) {
@@ -105,10 +104,7 @@ export function ProductDetailInteractive({ product }: Props) {
       <div>
         <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">{product.categoria.nombre}</p>
         <h1 className="mt-2 text-4xl text-[var(--fg-strong)]">{product.nombre}</h1>
-        {shortDescription ? (
-          <p className="mt-4 text-lg text-[var(--fg)]">{shortDescription}</p>
-        ) : null}
-        <p className="mt-2 text-[var(--fg-muted)]">{product.descripcion}</p>
+        <p className="mt-4 text-[var(--fg-muted)]">{product.descripcion}</p>
 
         <div className="mt-6 rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] p-4">
           <div className="space-y-2">

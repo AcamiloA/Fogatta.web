@@ -28,7 +28,6 @@ type Product = {
   id: string;
   slug: string;
   nombre: string;
-  resumen: string | null;
   descripcion: string;
   precioReferencia: number;
   imagenes: string[];
@@ -134,10 +133,6 @@ function formatValidationMessage(details?: ValidationDetails) {
     if (field === "imagenes") {
       return "Imágenes: agrega al menos una imagen válida.";
     }
-    if (field === "resumen") {
-      return "Descripción corta: revisa el texto.";
-    }
-
     const label =
       field === "nombre"
         ? "Nombre"
@@ -155,8 +150,6 @@ function formatValidationMessage(details?: ValidationDetails) {
                   ? "Stock mínimo alerta"
                 : field === "imagenes"
                   ? "Imágenes"
-                  : field === "resumen"
-                    ? "Descripción corta"
                   : field;
 
     return `${label}: ${message}`;
@@ -195,7 +188,6 @@ export function AdminCatalogManager() {
 
   const [newProduct, setNewProduct] = useState({
     nombre: "",
-    resumen: "",
     descripcion: "",
     imagenes: [] as string[],
     categoryId: "",
@@ -415,10 +407,6 @@ export function AdminCatalogManager() {
       showFeedback(scope, "warning", "Selecciona una categoría.");
       return;
     }
-    if (!newProduct.resumen.trim()) {
-      showFeedback(scope, "warning", "Agrega una descripción corta para el producto.");
-      return;
-    }
     if (!newProduct.descripcion.trim()) {
       showFeedback(scope, "warning", "Agrega la descripción larga del producto.");
       return;
@@ -484,7 +472,6 @@ export function AdminCatalogManager() {
       setNewProduct((current) => ({
         ...current,
         nombre: "",
-        resumen: "",
         descripcion: "",
         imagenes: [],
       }));
@@ -539,10 +526,6 @@ export function AdminCatalogManager() {
 
   async function saveProduct(product: Product) {
     const scope = `product-${product.id}`;
-    if (!product.resumen?.trim()) {
-      showFeedback(scope, "warning", "La descripción corta es obligatoria.");
-      return;
-    }
     if (!product.descripcion.trim()) {
       showFeedback(scope, "warning", "La descripción larga es obligatoria.");
       return;
@@ -561,7 +544,6 @@ export function AdminCatalogManager() {
         body: JSON.stringify({
           slug: product.slug,
           nombre: product.nombre,
-          resumen: product.resumen?.trim() ?? "",
           descripcion: product.descripcion,
           imagenes: product.imagenes,
           categoryId: product.categoryId,
@@ -942,17 +924,6 @@ export function AdminCatalogManager() {
             placeholder="Nombre del producto"
             className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           />
-          <input
-            value={newProduct.resumen}
-            onChange={(event) =>
-              setNewProduct((current) => ({
-                ...current,
-                resumen: event.target.value,
-              }))
-            }
-            placeholder="Descripción corta"
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
           <textarea
             value={newProduct.descripcion}
             onChange={(event) =>
@@ -1058,17 +1029,6 @@ export function AdminCatalogManager() {
                 onChange={(event) =>
                   updateProductState(product.id, (current) => ({ ...current, nombre: event.target.value }))
                 }
-                className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
-              <input
-                value={product.resumen ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    resumen: event.target.value,
-                  }))
-                }
-                placeholder="Descripción corta"
                 className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
               />
               <textarea

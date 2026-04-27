@@ -20,7 +20,6 @@ function toSummaryDTO(product: {
   id: string;
   slug: string;
   nombre: string;
-  resumen: string | null;
   descripcion: string;
   precioReferencia: number;
   imagenes: string[];
@@ -40,7 +39,6 @@ function toSummaryDTO(product: {
     id: product.id,
     slug: product.slug,
     nombre: product.nombre,
-    resumen: product.resumen,
     descripcion: product.descripcion,
     precioReferencia: product.precioReferencia,
     imagenes: product.imagenes,
@@ -56,7 +54,6 @@ function toDetailDTO(product: {
   id: string;
   slug: string;
   nombre: string;
-  resumen: string | null;
   descripcion: string;
   precioReferencia: number;
   imagenes: string[];

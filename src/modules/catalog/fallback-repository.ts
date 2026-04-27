@@ -8,7 +8,6 @@ export class FallbackCatalogRepository implements CatalogRepository {
       id: product.id,
       slug: product.slug,
       nombre: product.nombre,
-      resumen: product.resumen,
       descripcion: product.descripcion,
       precioReferencia: product.precioReferencia,
       imagenes: product.imagenes,
