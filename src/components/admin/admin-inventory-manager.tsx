@@ -165,8 +165,8 @@ export function AdminInventoryManager() {
       for (const product of catalogPayload.products) {
         for (const variant of product.variantes) {
           nextVariantDrafts[variant.id] = {
-            stockVirtual: String(variant.stockVirtual),
-            stockMinimoAlerta: String(variant.stockMinimoAlerta),
+            stockVirtual: variant.stockVirtual > 0 ? String(variant.stockVirtual) : "",
+            stockMinimoAlerta: variant.stockMinimoAlerta > 0 ? String(variant.stockMinimoAlerta) : "",
           };
         }
       }
@@ -289,13 +289,13 @@ export function AdminInventoryManager() {
       .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
   }, [baseProducts, supplies]);
 
-  function updateVariantDraft(variantId: string, field: keyof VariantDraft, value: string) {
+function updateVariantDraft(variantId: string, field: keyof VariantDraft, value: string) {
     setVariantDrafts((current) => ({
       ...current,
       [variantId]: {
         ...current[variantId],
-        stockVirtual: current[variantId]?.stockVirtual ?? "0",
-        stockMinimoAlerta: current[variantId]?.stockMinimoAlerta ?? "0",
+        stockVirtual: current[variantId]?.stockVirtual ?? "",
+        stockMinimoAlerta: current[variantId]?.stockMinimoAlerta ?? "",
         [field]: sanitizeIntegerInput(value),
       },
     }));
@@ -480,7 +480,10 @@ export function AdminInventoryManager() {
           ) : null}
 
           {filteredStockRows.map((row) => {
-            const draft = variantDrafts[row.variantId] ?? { stockVirtual: String(row.stockVirtual), stockMinimoAlerta: String(row.stockMinimoAlerta) };
+            const draft = variantDrafts[row.variantId] ?? {
+              stockVirtual: row.stockVirtual > 0 ? String(row.stockVirtual) : "",
+              stockMinimoAlerta: row.stockMinimoAlerta > 0 ? String(row.stockMinimoAlerta) : "",
+            };
             return (
               <article key={row.variantId} className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4">
                 {renderFeedback(`inventory-variant-${row.variantId}`)}
@@ -494,8 +497,20 @@ export function AdminInventoryManager() {
                   </span>
                 </div>
                 <div className="grid gap-2 md:grid-cols-[1fr,1fr,auto]">
-                  <input value={draft.stockVirtual} onChange={(e) => updateVariantDraft(row.variantId, "stockVirtual", e.target.value)} inputMode="numeric" className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
-                  <input value={draft.stockMinimoAlerta} onChange={(e) => updateVariantDraft(row.variantId, "stockMinimoAlerta", e.target.value)} inputMode="numeric" className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
+                  <input
+                    value={draft.stockVirtual}
+                    onChange={(e) => updateVariantDraft(row.variantId, "stockVirtual", e.target.value)}
+                    inputMode="numeric"
+                    placeholder="Stock virtual"
+                    className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                  />
+                  <input
+                    value={draft.stockMinimoAlerta}
+                    onChange={(e) => updateVariantDraft(row.variantId, "stockMinimoAlerta", e.target.value)}
+                    inputMode="numeric"
+                    placeholder="Stock mínimo alerta"
+                    className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                  />
                   <button type="button" onClick={() => void saveVariant(row.variantId)} disabled={busyVariantId === row.variantId} className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]">
                     {busyVariantId === row.variantId ? "Guardando..." : "Guardar"}
                   </button>
