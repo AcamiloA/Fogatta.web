@@ -7,7 +7,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { isInventoryRequestAuthenticated } from "@/modules/inventory/auth";
 
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_SIZE_MB = 15;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 const allowedExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".avif"]);
 const STORAGE_DRIVER = (process.env.STORAGE_DRIVER ?? "local").toLowerCase();
 
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
 
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       return NextResponse.json(
-        { error: "La imagen supera el limite de 5 MB." },
+        { error: `La imagen supera el limite de ${MAX_IMAGE_SIZE_MB} MB.` },
         { status: 400 },
       );
     }

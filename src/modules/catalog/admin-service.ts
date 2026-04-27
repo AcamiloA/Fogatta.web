@@ -3,6 +3,7 @@ import { logError } from "@/lib/logger";
 import { ProductDetailDTO, productDetailSchema } from "@/modules/catalog/contracts";
 import { sendLowStockVariantNotificationEmail } from "@/modules/catalog/stock-alert-email-notifier";
 import { expirePendingReservations } from "@/modules/checkout-whatsapp/reservation-expiration";
+import { deleteManagedAssetByUrl } from "@/modules/storage/managed-assets";
 
 export class CategoryNotFoundError extends Error {
   constructor() {
@@ -51,6 +52,19 @@ function ensurePrisma() {
     throw new Error("DATABASE_URL is not configured");
   }
   return prisma;
+}
+
+function normalizeImageUrls(urls: string[] | undefined) {
+  if (!urls) {
+    return [];
+  }
+
+  return urls.map((image) => image.trim()).filter(Boolean);
+}
+
+function getRemovedImages(previous: string[], next: string[]) {
+  const nextSet = new Set(next);
+  return previous.filter((url) => !nextSet.has(url));
 }
 
 function getEffectiveVariantPrice(variant: {
@@ -255,6 +269,13 @@ export class AdminCatalogService {
     },
   ) {
     const db = ensurePrisma();
+    const previous =
+      input.imagenes !== undefined
+        ? await db.product.findUnique({
+            where: { id },
+            select: { imagenes: true },
+          })
+        : null;
 
     const data: {
       slug?: string;
@@ -269,15 +290,22 @@ export class AdminCatalogService {
     if (input.nombre !== undefined) data.nombre = input.nombre.trim();
     if (input.descripcion !== undefined) data.descripcion = input.descripcion.trim();
     if (input.imagenes !== undefined) {
-      data.imagenes = input.imagenes.map((image) => image.trim()).filter(Boolean);
+      data.imagenes = normalizeImageUrls(input.imagenes);
     }
     if (input.activo !== undefined) data.activo = input.activo;
     if (input.categoryId !== undefined) data.categoryId = input.categoryId;
 
-    return db.product.update({
+    const updated = await db.product.update({
       where: { id },
       data,
     });
+
+    if (input.imagenes !== undefined && previous) {
+      const removed = getRemovedImages(normalizeImageUrls(previous.imagenes), normalizeImageUrls(data.imagenes));
+      await this.cleanupUnusedImages(removed);
+    }
+
+    return updated;
   }
 
   private async syncProductReferencePrice(productId: string) {
@@ -349,9 +377,31 @@ export class AdminCatalogService {
 
   async deleteProduct(id: string) {
     const db = ensurePrisma();
-    return db.product.delete({
+    const product = await db.product.findUnique({
+      where: { id },
+      select: {
+        imagenes: true,
+        variantes: {
+          select: {
+            imagenes: true,
+          },
+        },
+      },
+    });
+
+    const deleted = await db.product.delete({
       where: { id },
     });
+
+    if (product) {
+      const removed = [
+        ...normalizeImageUrls(product.imagenes),
+        ...product.variantes.flatMap((variant) => normalizeImageUrls(variant.imagenes)),
+      ];
+      await this.cleanupUnusedImages(removed);
+    }
+
+    return deleted;
   }
 
   async createVariant(input: {
@@ -429,11 +479,13 @@ export class AdminCatalogService {
     const current = await db.variant.findUnique({
       where: { id },
       select: {
+        productId: true,
         stockVirtual: true,
         stockMinimoAlerta: true,
         precio: true,
         descuentoActivo: true,
         descuentoPorcentaje: true,
+        imagenes: true,
       },
     });
 
@@ -465,6 +517,13 @@ export class AdminCatalogService {
       data,
     });
     await this.syncProductReferencePrice(updated.productId);
+    if (input.imagenes !== undefined) {
+      const removed = getRemovedImages(
+        normalizeImageUrls(current.imagenes),
+        normalizeImageUrls(data.imagenes),
+      );
+      await this.cleanupUnusedImages(removed);
+    }
     if (stockLowAfterUpdate && !stockLowBeforeUpdate) {
       await this.notifyLowStock(updated.id);
     }
@@ -516,7 +575,72 @@ export class AdminCatalogService {
     });
 
     await this.syncProductReferencePrice(deletion.productId);
+    await this.cleanupUnusedImages(normalizeImageUrls(deletion.deletedVariant.imagenes));
     return deletion.deletedVariant;
+  }
+
+  private async isImageReferencedElsewhere(url: string) {
+    const db = ensurePrisma();
+    const normalized = url.trim();
+    if (!normalized) {
+      return false;
+    }
+
+    const [productsCount, variantsCount, blogPostsCount, themesCount] = await Promise.all([
+      db.product.count({
+        where: {
+          imagenes: {
+            has: normalized,
+          },
+        },
+      }),
+      db.variant.count({
+        where: {
+          imagenes: {
+            has: normalized,
+          },
+        },
+      }),
+      db.blogPost.count({
+        where: {
+          imagen: normalized,
+        },
+      }),
+      db.siteTheme.count({
+        where: {
+          OR: [
+            { backgroundImageUrl: normalized },
+            { heroImageUrl: normalized },
+            { iconImageUrl: normalized },
+            {
+              iconImageUrls: {
+                has: normalized,
+              },
+            },
+          ],
+        },
+      }),
+    ]);
+
+    return productsCount > 0 || variantsCount > 0 || blogPostsCount > 0 || themesCount > 0;
+  }
+
+  private async cleanupUnusedImages(candidateUrls: string[]) {
+    const uniqueUrls = [...new Set(normalizeImageUrls(candidateUrls))];
+    for (const imageUrl of uniqueUrls) {
+      try {
+        const isReferenced = await this.isImageReferencedElsewhere(imageUrl);
+        if (isReferenced) {
+          continue;
+        }
+        await deleteManagedAssetByUrl(imageUrl);
+      } catch (error) {
+        this.handleError(error, {
+          operation: "cleanup_unused_image_failed",
+          imageUrl,
+        });
+      }
+    }
   }
 
   isConfigured() {
