@@ -193,6 +193,9 @@ export function AdminCatalogManager() {
     categoryId: "",
     activo: true,
   });
+  const [categoryFilterTerm, setCategoryFilterTerm] = useState("");
+  const [productFilterCategoryId, setProductFilterCategoryId] = useState("all");
+  const [productFilterTerm, setProductFilterTerm] = useState("");
 
   const clearFeedback = useCallback((scope?: string) => {
     setFeedback((current) => {
@@ -311,7 +314,7 @@ export function AdminCatalogManager() {
   }
 
   async function deleteCategory(category: Category) {
-    const scope = "create-category";
+    const scope = "category-editor";
     const productsInCategory = categoryProductCount[category.id] ?? 0;
     if (productsInCategory > 0) {
       showFeedback(
@@ -358,7 +361,7 @@ export function AdminCatalogManager() {
   }
 
   async function saveCategory(category: Category) {
-    const scope = "create-category";
+    const scope = "category-editor";
     if (!category.nombre.trim()) {
       showFeedback(scope, "warning", "El título de la categoría es obligatorio.");
       return;
@@ -795,6 +798,52 @@ export function AdminCatalogManager() {
     }
     return counts;
   }, [catalog?.products]);
+  const normalizedCategoryFilter = useMemo(
+    () => normalizeForMatch(categoryFilterTerm),
+    [categoryFilterTerm],
+  );
+  const normalizedProductFilter = useMemo(
+    () => normalizeForMatch(productFilterTerm),
+    [productFilterTerm],
+  );
+
+  const filteredCategoryOptions = useMemo(() => {
+    if (!normalizedCategoryFilter) {
+      return categoryOptions;
+    }
+    return categoryOptions.filter((category) =>
+      normalizeForMatch(
+        `${category.nombre} ${category.resumen ?? ""} ${category.descripcion ?? ""}`,
+      ).includes(normalizedCategoryFilter),
+    );
+  }, [categoryOptions, normalizedCategoryFilter]);
+
+  const filteredProducts = useMemo(() => {
+    const allProducts = catalog?.products ?? [];
+    return allProducts.filter((product) => {
+      const matchesCategory =
+        productFilterCategoryId === "all" || product.categoryId === productFilterCategoryId;
+      if (!matchesCategory) {
+        return false;
+      }
+
+      if (!normalizedProductFilter) {
+        return true;
+      }
+
+      const productMatch = normalizeForMatch(
+        `${product.nombre} ${product.slug} ${product.descripcion} ${product.categoria.nombre}`,
+      ).includes(normalizedProductFilter);
+
+      if (productMatch) {
+        return true;
+      }
+
+      return product.variantes.some((variant) =>
+        normalizeForMatch(`${variant.nombreVariante} ${variant.sku}`).includes(normalizedProductFilter),
+      );
+    });
+  }, [catalog?.products, normalizedProductFilter, productFilterCategoryId]);
 
   if (loading) {
     return <p className="text-sm text-[var(--fg-muted)]">Cargando catálogo...</p>;
@@ -832,82 +881,6 @@ export function AdminCatalogManager() {
           >
             {busyId === "create-category" ? "Creando..." : "Crear categoría"}
           </button>
-          {categoryOptions.length ? (
-            <div className="space-y-2 pt-2">
-              <p className="text-xs text-[var(--fg-muted)]">Categorías existentes</p>
-              {categoryOptions.map((category) => {
-                const productsInCategory = categoryProductCount[category.id] ?? 0;
-                const deleteBusyId = `delete-category-${category.id}`;
-                const saveBusyId = `save-category-${category.id}`;
-                const isInUse = productsInCategory > 0;
-                return (
-                  <div
-                    key={category.id}
-                    className="space-y-3 rounded-lg border border-[var(--border)]/50 bg-[var(--surface-3)] p-3"
-                  >
-                    <div className="grid gap-2">
-                      <input
-                        value={category.nombre}
-                        onChange={(event) =>
-                          updateCategoryState(category.id, (current) => ({
-                            ...current,
-                            nombre: event.target.value,
-                          }))
-                        }
-                        placeholder="Título"
-                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
-                      />
-                      <input
-                        value={category.resumen ?? ""}
-                        onChange={(event) =>
-                          updateCategoryState(category.id, (current) => ({
-                            ...current,
-                            resumen: event.target.value,
-                          }))
-                        }
-                        placeholder="Resumen breve"
-                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
-                      />
-                      <textarea
-                        value={category.descripcion ?? ""}
-                        onChange={(event) =>
-                          updateCategoryState(category.id, (current) => ({
-                            ...current,
-                            descripcion: event.target.value,
-                          }))
-                        }
-                        placeholder="Descripción larga"
-                        className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
-                      />
-                      <p className="text-xs text-[var(--fg-muted)]">
-                        {productsInCategory === 1
-                          ? "1 producto asociado"
-                          : `${productsInCategory} productos asociados`}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => void saveCategory(category)}
-                        disabled={busyId === saveBusyId}
-                        className="rounded-md bg-[var(--accent)] px-3 py-1 text-xs font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
-                      >
-                        {busyId === saveBusyId ? "Guardando..." : "Guardar"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void deleteCategory(category)}
-                        disabled={busyId === deleteBusyId || isInUse}
-                        className="rounded-md border border-rose-400 px-3 py-1 text-xs text-rose-600 disabled:opacity-60"
-                      >
-                        {busyId === deleteBusyId ? "Eliminando..." : "Eliminar"}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -1011,19 +984,172 @@ export function AdminCatalogManager() {
         </div>
       </section>
 
+      <section className="space-y-4 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
+        {renderFeedback("category-editor")}
+        <div className="space-y-1">
+          <h2 className="text-2xl text-[var(--fg-strong)]">Editor de categorías</h2>
+          <p className="text-sm text-[var(--fg-muted)]">
+            Filtra y administra categorías sin recorrer toda la lista.
+          </p>
+        </div>
+
+        <label className="block text-sm text-[var(--fg-muted)]">
+          Buscar categoría
+          <input
+            type="text"
+            value={categoryFilterTerm}
+            onChange={(event) => setCategoryFilterTerm(event.target.value)}
+            placeholder="Título, resumen o descripción"
+            className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          />
+        </label>
+
+        {categoryOptions.length ? (
+          filteredCategoryOptions.length ? (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {filteredCategoryOptions.map((category) => {
+                const productsInCategory = categoryProductCount[category.id] ?? 0;
+                const deleteBusyId = `delete-category-${category.id}`;
+                const saveBusyId = `save-category-${category.id}`;
+                const isInUse = productsInCategory > 0;
+                return (
+                  <div
+                    key={category.id}
+                    className="space-y-3 rounded-lg border border-[var(--border)]/50 bg-[var(--surface-3)] p-3"
+                  >
+                    <div className="grid gap-2">
+                      <input
+                        value={category.nombre}
+                        onChange={(event) =>
+                          updateCategoryState(category.id, (current) => ({
+                            ...current,
+                            nombre: event.target.value,
+                          }))
+                        }
+                        placeholder="Título"
+                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
+                      />
+                      <input
+                        value={category.resumen ?? ""}
+                        onChange={(event) =>
+                          updateCategoryState(category.id, (current) => ({
+                            ...current,
+                            resumen: event.target.value,
+                          }))
+                        }
+                        placeholder="Resumen breve"
+                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
+                      />
+                      <textarea
+                        value={category.descripcion ?? ""}
+                        onChange={(event) =>
+                          updateCategoryState(category.id, (current) => ({
+                            ...current,
+                            descripcion: event.target.value,
+                          }))
+                        }
+                        placeholder="Descripción larga"
+                        className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
+                      />
+                      <p className="text-xs text-[var(--fg-muted)]">
+                        {productsInCategory === 1
+                          ? "1 producto asociado"
+                          : `${productsInCategory} productos asociados`}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void saveCategory(category)}
+                        disabled={busyId === saveBusyId}
+                        className="rounded-md bg-[var(--accent)] px-3 py-1 text-xs font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
+                      >
+                        {busyId === saveBusyId ? "Guardando..." : "Guardar"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void deleteCategory(category)}
+                        disabled={busyId === deleteBusyId || isInUse}
+                        className="rounded-md border border-rose-400 px-3 py-1 text-xs text-rose-600 disabled:opacity-60"
+                      >
+                        {busyId === deleteBusyId ? "Eliminando..." : "Eliminar"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--fg-muted)]">
+              No encontramos categorías con ese filtro.
+            </p>
+          )
+        ) : (
+          <p className="text-sm text-[var(--fg-muted)]">No hay categorías registradas aún.</p>
+        )}
+      </section>
+
       <section className="space-y-4">
         {renderFeedback("catalog-list")}
         <h2 className="text-2xl text-[var(--fg-strong)]">Productos del catálogo</h2>
+        <div className="grid gap-3 rounded-xl border border-[var(--border)]/45 bg-[var(--surface-2)] p-4 md:grid-cols-3">
+          <label className="space-y-1 text-sm text-[var(--fg-muted)]">
+            Filtrar por categoría
+            <select
+              value={productFilterCategoryId}
+              onChange={(event) => setProductFilterCategoryId(event.target.value)}
+              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            >
+              <option value="all">Todas las categorías</option>
+              {categoryOptions.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="space-y-1 text-sm text-[var(--fg-muted)] md:col-span-2">
+            Buscar en productos y variantes
+            <input
+              type="text"
+              value={productFilterTerm}
+              onChange={(event) => setProductFilterTerm(event.target.value)}
+              placeholder="Nombre, descripción, slug, SKU o nombre de variante"
+              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <p className="text-xs text-[var(--fg-soft)] md:col-span-3">
+            Mostrando {filteredProducts.length} de {catalog?.products.length ?? 0} productos.
+          </p>
+        </div>
+
         {!catalog?.products.length ? (
           <p className="text-sm text-[var(--fg-muted)]">No hay productos registrados aún.</p>
+        ) : !filteredProducts.length ? (
+          <p className="rounded-lg border border-dashed border-[var(--border)] p-4 text-sm text-[var(--fg-muted)]">
+            No encontramos productos con ese filtro.
+          </p>
         ) : null}
-        {catalog?.products.map((product) => (
-          <article
-            key={product.id}
-            className="space-y-4 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5"
-          >
-            {renderFeedback(`product-${product.id}`)}
-            <div className="grid gap-2 md:grid-cols-2">
+        {filteredProducts.map((product) => {
+          const matchingVariants = normalizedProductFilter
+            ? product.variantes.filter((variant) =>
+                normalizeForMatch(`${variant.nombreVariante} ${variant.sku}`).includes(
+                  normalizedProductFilter,
+                ),
+              )
+            : product.variantes;
+          const visibleVariants =
+            normalizedProductFilter && matchingVariants.length > 0
+              ? matchingVariants
+              : product.variantes;
+
+          return (
+            <article
+              key={product.id}
+              className="space-y-4 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5"
+            >
+              {renderFeedback(`product-${product.id}`)}
+              <div className="grid gap-2 md:grid-cols-2">
               <input
                 value={product.nombre}
                 onChange={(event) =>
@@ -1161,7 +1287,12 @@ export function AdminCatalogManager() {
                   {busyId === `create-variant-${product.id}` ? "Creando..." : "Nueva variante"}
                 </button>
               </div>
-              {product.variantes.map((variant) => (
+              {normalizedProductFilter && visibleVariants.length !== product.variantes.length ? (
+                <p className="text-xs text-[var(--fg-soft)]">
+                  Mostrando {visibleVariants.length} de {product.variantes.length} variantes.
+                </p>
+              ) : null}
+              {visibleVariants.map((variant) => (
                 <div
                   key={variant.id}
                   className="grid gap-2 rounded-lg border border-[var(--border)]/30 bg-[var(--surface-2)] p-3 md:grid-cols-6"
@@ -1388,12 +1519,13 @@ export function AdminCatalogManager() {
                   </button>
                 </div>
               ))}
-              {!product.variantes.length ? (
+              {!visibleVariants.length ? (
                 <p className="text-xs text-[var(--fg-muted)]">Sin variantes todavía.</p>
               ) : null}
             </div>
           </article>
-        ))}
+          );
+        })}
       </section>
     </div>
   );
