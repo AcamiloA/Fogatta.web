@@ -8,17 +8,40 @@ type Props = {
   product: ProductSummaryDTO;
 };
 
+function getShortPreviewText(product: ProductSummaryDTO) {
+  const resumen = product.resumen?.trim();
+  if (resumen) {
+    return resumen;
+  }
+
+  const cleanDescription = product.descripcion.replace(/\s+/g, " ").trim();
+  if (!cleanDescription) {
+    return "Descubre esta vela artesanal de FOGATTA.";
+  }
+
+  const sentenceMatch = cleanDescription.match(/^(.{1,140}?[.!?])(\s|$)/);
+  if (sentenceMatch?.[1]) {
+    return sentenceMatch[1].trim();
+  }
+
+  if (cleanDescription.length <= 110) {
+    return cleanDescription;
+  }
+
+  return `${cleanDescription.slice(0, 107).trimEnd()}...`;
+}
+
 export function ProductCard({ product }: Props) {
-  const shortDescription = product.resumen?.trim() || product.descripcion;
+  const shortDescription = getShortPreviewText(product);
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100/70">
         <Image
           src={product.imagenes[0]}
           alt={product.nombre}
           fill
-          className="object-cover transition duration-300 group-hover:scale-105"
+          className="object-contain p-2 transition duration-300 group-hover:scale-105"
         />
       </div>
       <div className="flex h-full flex-col space-y-2 p-4">
@@ -38,7 +61,7 @@ export function ProductCard({ product }: Props) {
           className="text-sm text-[var(--ink-muted)]"
           style={{
             display: "-webkit-box",
-            WebkitLineClamp: 3,
+            WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
           }}
