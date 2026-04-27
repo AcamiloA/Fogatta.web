@@ -26,8 +26,8 @@ export function ProductCard({ product }: Props) {
   const shortDescription = getShortPreviewText(product);
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-      <div className="relative aspect-[5/4] w-full overflow-hidden bg-stone-100">
+    <article className="group flex h-[29rem] flex-col overflow-hidden rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:h-[30rem]">
+      <div className="relative h-[56%] w-full overflow-hidden bg-stone-100">
         <Image
           src={product.imagenes[0]}
           alt={product.nombre}
@@ -35,10 +35,10 @@ export function ProductCard({ product }: Props) {
           className="object-cover transition duration-300 group-hover:scale-105"
         />
       </div>
-      <div className="flex h-full flex-col space-y-1.5 p-4">
+      <div className="flex flex-1 flex-col p-4">
         <p className="text-xs uppercase tracking-wide text-[var(--ink-soft)]">{product.categoria.nombre}</p>
         <h3
-          className="text-lg font-semibold text-[var(--ink)]"
+          className="mt-1 min-h-[3.2rem] text-lg font-semibold text-[var(--ink)]"
           style={{
             display: "-webkit-box",
             WebkitLineClamp: 2,
@@ -49,7 +49,7 @@ export function ProductCard({ product }: Props) {
           {product.nombre}
         </h3>
         <p
-          className="min-h-[3rem] text-sm text-[var(--ink-muted)]"
+          className="mt-1 min-h-[3rem] text-sm text-[var(--ink-muted)]"
           style={{
             display: "-webkit-box",
             WebkitLineClamp: 2,
@@ -59,15 +59,17 @@ export function ProductCard({ product }: Props) {
         >
           {shortDescription}
         </p>
-        <p className="text-base font-semibold text-[var(--ink)]">
-          Desde {formatCOP(product.precioReferencia)}
-        </p>
-        <Link
-          href={`/catalogo/${product.slug}`}
-          className="inline-flex w-fit rounded-lg border border-[var(--ink)] px-3 py-2 text-sm text-[var(--ink)] transition hover:bg-[var(--ink)] hover:text-[var(--fg)]"
-        >
-          Ver producto
-        </Link>
+        <div className="mt-auto space-y-2 pt-2">
+          <p className="text-base font-semibold text-[var(--ink)]">
+            Desde {formatCOP(product.precioReferencia)}
+          </p>
+          <Link
+            href={`/catalogo/${product.slug}`}
+            className="inline-flex w-fit rounded-lg border border-[var(--ink)] px-3 py-2 text-sm text-[var(--ink)] transition hover:bg-[var(--ink)] hover:text-[var(--fg)]"
+          >
+            Ver producto
+          </Link>
+        </div>
       </div>
     </article>
   );
