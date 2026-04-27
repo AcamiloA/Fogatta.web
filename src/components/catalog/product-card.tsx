@@ -9,26 +9,17 @@ type Props = {
 };
 
 function getShortPreviewText(product: ProductSummaryDTO) {
-  const resumen = product.resumen?.trim();
-  if (resumen) {
-    return resumen;
-  }
-
-  const cleanDescription = product.descripcion.replace(/\s+/g, " ").trim();
-  if (!cleanDescription) {
+  const baseText = (product.resumen?.trim() || product.descripcion).replace(/\s+/g, " ").trim();
+  if (!baseText) {
     return "Descubre esta vela artesanal de FOGATTA.";
   }
 
-  const sentenceMatch = cleanDescription.match(/^(.{1,140}?[.!?])(\s|$)/);
-  if (sentenceMatch?.[1]) {
-    return sentenceMatch[1].trim();
+  const maxCharacters = 90;
+  if (baseText.length <= maxCharacters) {
+    return baseText;
   }
 
-  if (cleanDescription.length <= 110) {
-    return cleanDescription;
-  }
-
-  return `${cleanDescription.slice(0, 107).trimEnd()}...`;
+  return `${baseText.slice(0, maxCharacters - 3).trimEnd()}...`;
 }
 
 export function ProductCard({ product }: Props) {
@@ -36,12 +27,12 @@ export function ProductCard({ product }: Props) {
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100/70">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100">
         <Image
           src={product.imagenes[0]}
           alt={product.nombre}
           fill
-          className="object-contain p-2 transition duration-300 group-hover:scale-105"
+          className="object-cover transition duration-300 group-hover:scale-105"
         />
       </div>
       <div className="flex h-full flex-col space-y-2 p-4">
@@ -58,7 +49,7 @@ export function ProductCard({ product }: Props) {
           {product.nombre}
         </h3>
         <p
-          className="text-sm text-[var(--ink-muted)]"
+          className="min-h-[3rem] text-sm text-[var(--ink-muted)]"
           style={{
             display: "-webkit-box",
             WebkitLineClamp: 2,
