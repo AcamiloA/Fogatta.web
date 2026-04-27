@@ -70,7 +70,9 @@ export function CatalogListing({ products }: Props) {
         return true;
       }
 
-      const searchableContent = normalizeText(`${product.nombre} ${product.descripcion}`);
+      const searchableContent = normalizeText(
+        `${product.nombre} ${product.resumen ?? ""} ${product.descripcion}`,
+      );
       return searchableContent.includes(normalizedSearch);
     });
   }, [normalizedSearch, products, selectedCategoryId]);
@@ -171,7 +173,7 @@ export function CatalogListing({ products }: Props) {
 
       {!showCategoryCards ? (
         filteredProducts.length ? (
-          <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid items-stretch gap-5 md:grid-cols-2 lg:grid-cols-3">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

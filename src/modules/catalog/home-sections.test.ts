@@ -13,6 +13,7 @@ function createProduct(
     id,
     slug: `slug-${id}`,
     nombre: `Producto ${id}`,
+    resumen: "Resumen",
     descripcion: "Demo",
     precioReferencia: 10000,
     imagenes: ["/images/demo.png"],

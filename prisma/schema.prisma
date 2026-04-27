@@ -117,6 +117,7 @@ model Product {
   id              String              @id @default(cuid())
   slug            String              @unique
   nombre          String
+  resumen         String?
   descripcion     String
   precioReferencia Int
   imagenes        String[]

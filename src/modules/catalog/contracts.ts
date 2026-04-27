@@ -26,6 +26,7 @@ export const productSummarySchema = z.object({
   id: z.string(),
   slug: z.string(),
   nombre: z.string(),
+  resumen: z.string().nullable(),
   descripcion: z.string(),
   precioReferencia: z.number().int(),
   imagenes: z.array(z.string()).min(1),
