@@ -72,16 +72,35 @@ function getS3KeyFromUrl(url: string, config: S3Config) {
   }
 
   const basePrefix = `${config.publicBaseUrl}/`;
-  if (!trimmed.startsWith(basePrefix)) {
-    return null;
+  if (trimmed.startsWith(basePrefix)) {
+    const key = trimmed.slice(basePrefix.length);
+    return key.startsWith("products/") ? key : null;
   }
 
-  const key = trimmed.slice(basePrefix.length);
-  if (!key.startsWith("products/")) {
-    return null;
+  try {
+    const parsed = new URL(trimmed);
+    let key = decodeURIComponent(parsed.pathname).replace(/^\/+/, "");
+    const bucketPrefix = `${config.bucket}/`;
+    if (key.startsWith(bucketPrefix)) {
+      key = key.slice(bucketPrefix.length);
+    }
+
+    if (key.startsWith("products/")) {
+      return key;
+    }
+
+    const productsIndex = key.indexOf("products/");
+    if (productsIndex >= 0) {
+      return key.slice(productsIndex);
+    }
+  } catch {
+    const normalized = trimmed.replace(/^\/+/, "");
+    if (normalized.startsWith("products/")) {
+      return normalized;
+    }
   }
 
-  return key;
+  return null;
 }
 
 async function deleteFromLocal(url: string) {
@@ -127,4 +146,3 @@ export async function deleteManagedAssetByUrl(url: string) {
 
   return deleteFromLocal(url);
 }
-

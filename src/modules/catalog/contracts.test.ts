@@ -17,6 +17,7 @@ const detailFixture = {
     id: "cat_demo",
     slug: "demo",
     nombre: "Demo",
+    resumen: null,
     descripcion: null,
   },
   variantes: [

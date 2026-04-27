@@ -10,8 +10,24 @@ export const adminCatalogResponseSchema = z.object({
 export const createCategoryInputSchema = z.object({
   slug: z.string().min(2).max(80),
   nombre: z.string().min(2).max(120),
-  descripcion: z.string().max(280).optional(),
+  resumen: z.string().max(220).optional(),
+  descripcion: z.string().max(1800).optional(),
 });
+
+export const updateCategoryInputSchema = z
+  .object({
+    id: z.string().min(2),
+    nombre: z.string().min(2).max(120).optional(),
+    resumen: z.string().max(220).optional(),
+    descripcion: z.string().max(1800).optional(),
+  })
+  .refine(
+    (value) =>
+      Boolean(
+        value.nombre !== undefined || value.resumen !== undefined || value.descripcion !== undefined,
+      ),
+    { message: "No hay campos para actualizar." },
+  );
 
 export const createProductInputSchema = z.object({
   slug: z.string().min(2).max(120),

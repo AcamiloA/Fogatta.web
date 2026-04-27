@@ -4,6 +4,7 @@ export const categorySchema = z.object({
   id: z.string(),
   slug: z.string(),
   nombre: z.string(),
+  resumen: z.string().nullable(),
   descripcion: z.string().nullable(),
 });
 

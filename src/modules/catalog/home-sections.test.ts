@@ -24,6 +24,7 @@ function createProduct(
       id: "cat",
       slug: "cat",
       nombre: "Categoría",
+      resumen: null,
       descripcion: null,
     },
   };
@@ -85,3 +86,4 @@ describe("buildHomeCatalogSections", () => {
     expect(first.featuredProducts).toHaveLength(5);
   });
 });
+

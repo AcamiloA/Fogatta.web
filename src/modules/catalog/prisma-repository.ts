@@ -31,6 +31,7 @@ function toSummaryDTO(product: {
     id: string;
     slug: string;
     nombre: string;
+    resumen: string | null;
     descripcion: string | null;
   };
 }): ProductSummaryDTO {
@@ -64,6 +65,7 @@ function toDetailDTO(product: {
     id: string;
     slug: string;
     nombre: string;
+    resumen: string | null;
     descripcion: string | null;
   };
   variantes: {

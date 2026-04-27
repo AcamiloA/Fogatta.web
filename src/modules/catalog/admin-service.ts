@@ -94,6 +94,7 @@ function toDetailDTO(product: {
     id: string;
     slug: string;
     nombre: string;
+    resumen: string | null;
     descripcion: string | null;
   };
   variantes: {
@@ -179,6 +180,7 @@ export class AdminCatalogService {
         id: category.id,
         slug: category.slug,
         nombre: category.nombre,
+        resumen: category.resumen,
         descripcion: category.descripcion,
       })),
       products: products.map((product) =>
@@ -196,14 +198,48 @@ export class AdminCatalogService {
     };
   }
 
-  async createCategory(input: { slug: string; nombre: string; descripcion?: string }) {
+  async createCategory(input: { slug: string; nombre: string; resumen?: string; descripcion?: string }) {
     const db = ensurePrisma();
     return db.category.create({
       data: {
         slug: input.slug.trim(),
         nombre: input.nombre.trim(),
+        resumen: input.resumen?.trim() || null,
         descripcion: input.descripcion?.trim() || null,
       },
+    });
+  }
+
+  async updateCategory(
+    id: string,
+    input: {
+      nombre?: string;
+      resumen?: string;
+      descripcion?: string;
+    },
+  ) {
+    const db = ensurePrisma();
+    const category = await db.category.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!category) {
+      throw new CategoryNotFoundError();
+    }
+
+    const data: {
+      nombre?: string;
+      resumen?: string | null;
+      descripcion?: string | null;
+    } = {};
+
+    if (input.nombre !== undefined) data.nombre = input.nombre.trim();
+    if (input.resumen !== undefined) data.resumen = input.resumen.trim() || null;
+    if (input.descripcion !== undefined) data.descripcion = input.descripcion.trim() || null;
+
+    return db.category.update({
+      where: { id },
+      data,
     });
   }
 
@@ -633,7 +669,13 @@ export class AdminCatalogService {
         if (isReferenced) {
           continue;
         }
-        await deleteManagedAssetByUrl(imageUrl);
+        const deleted = await deleteManagedAssetByUrl(imageUrl);
+        if (!deleted) {
+          this.handleError(new Error("No se pudo resolver asset gestionado para eliminación."), {
+            operation: "cleanup_unused_image_not_resolved",
+            imageUrl,
+          });
+        }
       } catch (error) {
         this.handleError(error, {
           operation: "cleanup_unused_image_failed",

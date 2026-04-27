@@ -7,6 +7,7 @@ type Category = {
   id: string;
   slug: string;
   nombre: string;
+  resumen: string | null;
   descripcion: string | null;
 };
 
@@ -132,6 +133,9 @@ function formatValidationMessage(details?: ValidationDetails) {
     if (field === "imagenes") {
       return "Imágenes: agrega al menos una imagen válida.";
     }
+    if (field === "resumen") {
+      return "Resumen: revisa el texto.";
+    }
 
     const label =
       field === "nombre"
@@ -150,6 +154,8 @@ function formatValidationMessage(details?: ValidationDetails) {
                   ? "Stock mínimo alerta"
                 : field === "imagenes"
                   ? "Imágenes"
+                  : field === "resumen"
+                    ? "Resumen"
                   : field;
 
     return `${label}: ${message}`;
@@ -183,6 +189,7 @@ export function AdminCatalogManager() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategorySummary, setNewCategorySummary] = useState("");
   const [newCategoryDescription, setNewCategoryDescription] = useState("");
 
   const [newProduct, setNewProduct] = useState({
@@ -283,6 +290,7 @@ export function AdminCatalogManager() {
         body: JSON.stringify({
           nombre: newCategoryName.trim(),
           slug: toSlug(newCategoryName),
+          resumen: newCategorySummary.trim() || undefined,
           descripcion: newCategoryDescription.trim() || undefined,
         }),
       });
@@ -293,6 +301,7 @@ export function AdminCatalogManager() {
       }
 
       setNewCategoryName("");
+      setNewCategorySummary("");
       setNewCategoryDescription("");
       await loadCatalog();
       showFeedback(scope, "success", "Categoría creada exitosamente.");
@@ -348,6 +357,45 @@ export function AdminCatalogManager() {
         scope,
         "error",
         deleteError instanceof Error ? deleteError.message : "Error eliminando categoría.",
+      );
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function saveCategory(category: Category) {
+    const scope = "create-category";
+    if (!category.nombre.trim()) {
+      showFeedback(scope, "warning", "El título de la categoría es obligatorio.");
+      return;
+    }
+
+    const busyKey = `save-category-${category.id}`;
+    setBusyId(busyKey);
+    clearFeedback(scope);
+    try {
+      const response = await fetch(`/api/admin/categorias/${category.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: category.nombre.trim(),
+          resumen: category.resumen?.trim() || "",
+          descripcion: category.descripcion?.trim() || "",
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(resolveApiError(payload, "No se pudo guardar la categoría."));
+      }
+
+      await loadCatalog();
+      showFeedback(scope, "success", `Categoría "${category.nombre}" actualizada.`);
+    } catch (error) {
+      showFeedback(
+        scope,
+        "error",
+        error instanceof Error ? error.message : "No se pudo guardar la categoría.",
       );
     } finally {
       setBusyId(null);
@@ -704,6 +752,18 @@ export function AdminCatalogManager() {
     }
   }
 
+  function updateCategoryState(categoryId: string, updater: (category: Category) => Category) {
+    setCatalog((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        categories: current.categories.map((category) =>
+          category.id === categoryId ? updater(category) : category,
+        ),
+      };
+    });
+  }
+
   function updateProductState(productId: string, updater: (product: Product) => Product) {
     setCatalog((current) => {
       if (!current) return current;
@@ -747,13 +807,19 @@ export function AdminCatalogManager() {
           <input
             value={newCategoryName}
             onChange={(event) => setNewCategoryName(event.target.value)}
-            placeholder="Nombre de categoría"
+            placeholder="Título de categoría"
+            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          />
+          <input
+            value={newCategorySummary}
+            onChange={(event) => setNewCategorySummary(event.target.value)}
+            placeholder="Resumen breve (ficha)"
             className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           />
           <textarea
             value={newCategoryDescription}
             onChange={(event) => setNewCategoryDescription(event.target.value)}
-            placeholder="Descripción (opcional)"
+            placeholder="Descripción larga (opcional)"
             className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           />
           <button
@@ -770,28 +836,71 @@ export function AdminCatalogManager() {
               {categoryOptions.map((category) => {
                 const productsInCategory = categoryProductCount[category.id] ?? 0;
                 const deleteBusyId = `delete-category-${category.id}`;
+                const saveBusyId = `save-category-${category.id}`;
                 const isInUse = productsInCategory > 0;
                 return (
                   <div
                     key={category.id}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-[var(--border)]/50 bg-[var(--surface-3)] px-3 py-2"
+                    className="space-y-3 rounded-lg border border-[var(--border)]/50 bg-[var(--surface-3)] p-3"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm text-[var(--fg)]">{category.nombre}</p>
+                    <div className="grid gap-2">
+                      <input
+                        value={category.nombre}
+                        onChange={(event) =>
+                          updateCategoryState(category.id, (current) => ({
+                            ...current,
+                            nombre: event.target.value,
+                          }))
+                        }
+                        placeholder="Título"
+                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
+                      />
+                      <input
+                        value={category.resumen ?? ""}
+                        onChange={(event) =>
+                          updateCategoryState(category.id, (current) => ({
+                            ...current,
+                            resumen: event.target.value,
+                          }))
+                        }
+                        placeholder="Resumen breve"
+                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
+                      />
+                      <textarea
+                        value={category.descripcion ?? ""}
+                        onChange={(event) =>
+                          updateCategoryState(category.id, (current) => ({
+                            ...current,
+                            descripcion: event.target.value,
+                          }))
+                        }
+                        placeholder="Descripción larga"
+                        className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
+                      />
                       <p className="text-xs text-[var(--fg-muted)]">
                         {productsInCategory === 1
                           ? "1 producto asociado"
                           : `${productsInCategory} productos asociados`}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => void deleteCategory(category)}
-                      disabled={busyId === deleteBusyId || isInUse}
-                      className="rounded-md border border-rose-400 px-3 py-1 text-xs text-rose-600 disabled:opacity-60"
-                    >
-                      {busyId === deleteBusyId ? "Eliminando..." : "Eliminar"}
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void saveCategory(category)}
+                        disabled={busyId === saveBusyId}
+                        className="rounded-md bg-[var(--accent)] px-3 py-1 text-xs font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
+                      >
+                        {busyId === saveBusyId ? "Guardando..." : "Guardar"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void deleteCategory(category)}
+                        disabled={busyId === deleteBusyId || isInUse}
+                        className="rounded-md border border-rose-400 px-3 py-1 text-xs text-rose-600 disabled:opacity-60"
+                      >
+                        {busyId === deleteBusyId ? "Eliminando..." : "Eliminar"}
+                      </button>
+                    </div>
                   </div>
                 );
               })}

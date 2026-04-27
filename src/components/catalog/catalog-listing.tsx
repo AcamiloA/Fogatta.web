@@ -9,6 +9,14 @@ type Props = {
   products: ProductSummaryDTO[];
 };
 
+type CategoryView = {
+  id: string;
+  nombre: string;
+  resumen: string | null;
+  descripcion: string | null;
+  total: number;
+};
+
 function normalizeText(value: string) {
   return value
     .toLowerCase()
@@ -21,8 +29,10 @@ export function CatalogListing({ products }: Props) {
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
+  const normalizedSearch = useMemo(() => normalizeText(searchTerm), [searchTerm]);
+
   const categories = useMemo(() => {
-    const byId = new Map<string, { id: string; nombre: string; total: number }>();
+    const byId = new Map<string, CategoryView>();
 
     for (const product of products) {
       const existing = byId.get(product.categoryId);
@@ -34,6 +44,8 @@ export function CatalogListing({ products }: Props) {
       byId.set(product.categoryId, {
         id: product.categoryId,
         nombre: product.categoria.nombre,
+        resumen: product.categoria.resumen,
+        descripcion: product.categoria.descripcion,
         total: 1,
       });
     }
@@ -41,9 +53,12 @@ export function CatalogListing({ products }: Props) {
     return [...byId.values()].sort((a, b) => a.nombre.localeCompare(b.nombre, "es-CO"));
   }, [products]);
 
-  const filteredProducts = useMemo(() => {
-    const normalizedSearch = normalizeText(searchTerm);
+  const selectedCategory =
+    selectedCategoryId === "all"
+      ? null
+      : categories.find((category) => category.id === selectedCategoryId) ?? null;
 
+  const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const categoryMatches =
         selectedCategoryId === "all" || product.categoryId === selectedCategoryId;
@@ -58,7 +73,9 @@ export function CatalogListing({ products }: Props) {
       const searchableContent = normalizeText(`${product.nombre} ${product.descripcion}`);
       return searchableContent.includes(normalizedSearch);
     });
-  }, [products, searchTerm, selectedCategoryId]);
+  }, [normalizedSearch, products, selectedCategoryId]);
+
+  const showCategoryCards = !normalizedSearch && selectedCategoryId === "all";
 
   return (
     <>
@@ -93,21 +110,78 @@ export function CatalogListing({ products }: Props) {
         </div>
 
         <p className="mt-3 text-xs text-[var(--fg-soft)]">
-          Mostrando {filteredProducts.length} de {products.length} productos.
+          {showCategoryCards
+            ? `${categories.length} categorías disponibles.`
+            : `Mostrando ${filteredProducts.length} de ${products.length} productos.`}
         </p>
       </section>
 
-      {filteredProducts.length ? (
-        <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      ) : (
-        <p className="mt-6 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-6 text-sm text-[var(--fg-muted)]">
-          No encontramos productos con esos filtros. Prueba otra categoria o cambia el texto de busqueda.
-        </p>
-      )}
+      {showCategoryCards ? (
+        <section className="mt-6 space-y-4">
+          <h2 className="text-2xl text-[var(--fg-strong)]">Explora por categorías</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {categories.map((category) => (
+              <article
+                key={category.id}
+                className="space-y-3 rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] p-5"
+              >
+                <p className="text-xs uppercase tracking-wide text-[var(--ink-soft)]">Categoría</p>
+                <h3 className="text-xl font-semibold text-[var(--ink)]">{category.nombre}</h3>
+                <p className="text-sm text-[var(--ink-muted)]">
+                  {category.resumen?.trim() || "Velas artesanales seleccionadas para esta colección."}
+                </p>
+                <p className="text-xs text-[var(--ink-soft)]">
+                  {category.total === 1 ? "1 producto" : `${category.total} productos`}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategoryId(category.id)}
+                  className="inline-flex rounded-lg border border-[var(--ink)] px-3 py-2 text-sm text-[var(--ink)] transition hover:bg-[var(--ink)] hover:text-[var(--fg)]"
+                >
+                  Ver productos
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {selectedCategory ? (
+        <section className="mt-6 rounded-2xl border border-[var(--border)]/45 bg-[var(--surface-2)] p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">Categoría</p>
+              <h2 className="text-2xl text-[var(--fg-strong)]">{selectedCategory.nombre}</h2>
+              <p className="max-w-3xl text-sm text-[var(--fg-muted)]">
+                {selectedCategory.descripcion?.trim() ||
+                  selectedCategory.resumen?.trim() ||
+                  "Descubre los productos de esta categoría."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedCategoryId("all")}
+              className="rounded-lg border border-[var(--input-border)] px-3 py-2 text-sm text-[var(--fg-muted)] transition hover:text-[var(--fg-strong)]"
+            >
+              Ver categorías
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {!showCategoryCards ? (
+        filteredProducts.length ? (
+          <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <p className="mt-6 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-6 text-sm text-[var(--fg-muted)]">
+            No encontramos productos con esos filtros. Prueba otra categoría o cambia el texto de búsqueda.
+          </p>
+        )
+      ) : null}
     </>
   );
 }

@@ -106,6 +106,7 @@ model Category {
   id          String    @id @default(cuid())
   slug        String    @unique
   nombre      String
+  resumen     String?
   descripcion String?
   productos   Product[]
   createdAt   DateTime  @default(now())
