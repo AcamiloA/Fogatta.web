@@ -43,13 +43,13 @@ export default function AdminHomePage() {
         {sections.map((section) => (
           <article
             key={section.href}
-            className="rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4"
+            className="flex h-full flex-col rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4"
           >
             <h3 className="text-lg text-[var(--fg-strong)]">{section.title}</h3>
             <p className="mt-2 text-sm text-[var(--fg-muted)]">{section.description}</p>
             <Link
               href={section.href}
-              className="mt-4 inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-sm text-[var(--fg-strong)]"
+              className="mt-auto inline-flex rounded-lg border border-[var(--accent)] px-3 py-2 text-sm text-[var(--fg-strong)]"
             >
               {section.cta}
             </Link>
