@@ -75,9 +75,22 @@ export function CartSheet() {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-5 right-5 z-40 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-[var(--accent-contrast)] shadow-lg transition hover:bg-[var(--accent-hover)]"
+        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-[var(--accent-contrast)] shadow-lg transition hover:bg-[var(--accent-hover)]"
       >
-        Pedido ({totalItems})
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          className="h-4.5 w-4.5"
+          aria-hidden="true"
+        >
+          <circle cx="9" cy="20" r="1.5" />
+          <circle cx="17" cy="20" r="1.5" />
+          <path d="M3 4h2l2.4 10.5a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 7H7.2" />
+        </svg>
+        Carrito ({totalItems})
       </button>
       {isOpen ? (
         <div className="fixed inset-0 z-50 bg-black/40 p-4">
