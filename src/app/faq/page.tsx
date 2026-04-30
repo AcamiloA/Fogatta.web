@@ -17,7 +17,7 @@ export default async function FAQPage() {
           faq.map((item) => (
             <article key={item.id} className="rounded-2xl border border-[var(--accent)]/30 bg-[var(--surface-2)] p-5">
               <h2 className="text-xl text-[var(--fg-strong)]">{item.pregunta}</h2>
-              <p className="mt-3 text-[var(--fg-muted)]">{item.respuesta}</p>
+              <p className="mt-3 whitespace-pre-line text-[var(--fg-muted)]">{item.respuesta}</p>
             </article>
           ))
         ) : (

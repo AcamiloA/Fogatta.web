@@ -27,7 +27,7 @@ export default async function BlogPage() {
               <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">{post.fechaPublicacion}</p>
               <h2 className="mt-2 text-2xl text-[var(--fg-strong)]">{post.titulo}</h2>
               {post.autor.trim() ? <p className="mt-1 text-sm text-[var(--fg-muted)]">Por {post.autor}</p> : null}
-              <p className="mt-3 text-[var(--fg-muted)]">{post.extracto}</p>
+              <p className="mt-3 whitespace-pre-line text-[var(--fg-muted)]">{post.extracto}</p>
               <Link
                 href={`/blog/${post.slug}`}
                 className="mt-4 inline-flex rounded-lg border border-[var(--accent-outline)] px-3 py-2 text-sm text-[var(--fg-strong)] hover:bg-[var(--accent-outline)] hover:text-[var(--accent-outline-contrast)]"
