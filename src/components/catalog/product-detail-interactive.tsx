@@ -104,7 +104,7 @@ export function ProductDetailInteractive({ product }: Props) {
       <div>
         <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">{product.categoria.nombre}</p>
         <h1 className="mt-2 text-4xl text-[var(--fg-strong)]">{product.nombre}</h1>
-        <p className="mt-4 text-[var(--fg-muted)]">{product.descripcion}</p>
+        <p className="mt-4 whitespace-pre-line text-[var(--fg-muted)]">{product.descripcion}</p>
 
         <div className="mt-6 rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] p-4">
           <div className="space-y-2">
