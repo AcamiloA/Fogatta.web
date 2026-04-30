@@ -27,7 +27,7 @@ export const updateSiteContentInputSchema = z.object({
 
 export const createFaqInputSchema = z.object({
   pregunta: z.string().min(6).max(220),
-  respuesta: z.string().min(8).max(1400),
+  respuesta: z.string().min(8).max(800),
   faqCategoryId: z.string().min(2),
   orden: z.number().int().min(1).max(999),
 });
@@ -36,7 +36,7 @@ export const updateFaqInputSchema = z
   .object({
     id: z.string().min(2),
     pregunta: z.string().min(6).max(220).optional(),
-    respuesta: z.string().min(8).max(1400).optional(),
+    respuesta: z.string().min(8).max(800).optional(),
     faqCategoryId: z.string().min(2).nullable().optional(),
     orden: z.number().int().min(1).max(999).optional(),
   })

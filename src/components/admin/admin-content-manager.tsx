@@ -55,6 +55,8 @@ type ScopedFeedback = {
   message: string;
 };
 
+const FAQ_RESPONSE_MAX_CHARACTERS = 800;
+
 function resolveApiError(payload: unknown, fallback: string) {
   if (!payload || typeof payload !== "object") {
     return fallback;
@@ -346,6 +348,10 @@ export function AdminContentManager() {
       showFeedback(scope, "warning", "FAQ: la respuesta debe tener minimo 8 caracteres.");
       return;
     }
+    if (respuesta.length > FAQ_RESPONSE_MAX_CHARACTERS) {
+      showFeedback(scope, "warning", `FAQ: la respuesta no puede superar ${FAQ_RESPONSE_MAX_CHARACTERS} caracteres.`);
+      return;
+    }
 
     if (!Number.isInteger(orden) || orden < 1 || orden > 999) {
       showFeedback(scope, "warning", "FAQ: el orden debe estar entre 1 y 999.");
@@ -390,6 +396,10 @@ export function AdminContentManager() {
 
   async function saveFaq(item: FaqItem) {
     const scope = `faq-${item.id}`;
+    if (item.respuesta.trim().length > FAQ_RESPONSE_MAX_CHARACTERS) {
+      showFeedback(scope, "warning", `FAQ: la respuesta no puede superar ${FAQ_RESPONSE_MAX_CHARACTERS} caracteres.`);
+      return;
+    }
     setBusyId(`save-faq-${item.id}`);
     clearFeedback(scope);
     try {
@@ -693,9 +703,13 @@ export function AdminContentManager() {
           <textarea
             value={newFaq.respuesta}
             onChange={(event) => setNewFaq((current) => ({ ...current, respuesta: event.target.value }))}
+            maxLength={FAQ_RESPONSE_MAX_CHARACTERS}
             placeholder="Respuesta"
             className="min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           />
+          <p className="text-xs text-[var(--fg-soft)]">
+            Caracteres disponibles: {FAQ_RESPONSE_MAX_CHARACTERS - newFaq.respuesta.length}
+          </p>
           <input
             type="number"
             min={1}
@@ -763,8 +777,12 @@ export function AdminContentManager() {
                     ),
                   )
                 }
+                maxLength={FAQ_RESPONSE_MAX_CHARACTERS}
                 className="min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
               />
+              <p className="text-xs text-[var(--fg-soft)]">
+                Caracteres disponibles: {FAQ_RESPONSE_MAX_CHARACTERS - item.respuesta.length}
+              </p>
               <div className="flex flex-wrap items-center gap-2">
                 <input
                   type="number"
