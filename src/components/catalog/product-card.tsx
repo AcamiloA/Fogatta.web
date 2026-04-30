@@ -1,7 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
 import { formatCOP } from "@/lib/currency";
+import { analyticsEvents } from "@/modules/analytics/events";
+import { trackEvent } from "@/modules/analytics/track";
 import { ProductSummaryDTO } from "@/modules/catalog/contracts";
 
 type Props = {
@@ -65,6 +69,19 @@ export function ProductCard({ product }: Props) {
           </p>
           <Link
             href={`/catalogo/${product.slug}`}
+            onClick={() => {
+              trackEvent(analyticsEvents.selectItem, {
+                item_list_name: "catalogo_productos",
+                items: [
+                  {
+                    item_id: product.slug,
+                    item_name: product.nombre,
+                    item_category: product.categoria.nombre,
+                    price: product.precioReferencia,
+                  },
+                ],
+              });
+            }}
             className="inline-flex w-fit rounded-lg border border-[var(--ink)] px-3 py-2 text-sm text-[var(--ink)] transition hover:bg-[var(--ink)] hover:text-[var(--fg)]"
           >
             Ver producto

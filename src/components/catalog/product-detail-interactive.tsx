@@ -90,10 +90,18 @@ export function ProductDetailInteractive({ product }: Props) {
     });
 
     trackEvent(analyticsEvents.addToCart, {
-      item_name: product.nombre,
-      item_variant: selectedVariant.nombreVariante,
-      value: unitPrice,
-      quantity: safeQuantity,
+      currency: "COP",
+      value: unitPrice * safeQuantity,
+      items: [
+        {
+          item_id: selectedVariant.sku || selectedVariant.id,
+          item_name: product.nombre,
+          item_variant: selectedVariant.nombreVariante,
+          item_category: product.categoria.nombre,
+          price: unitPrice,
+          quantity: safeQuantity,
+        },
+      ],
     });
   }
 
@@ -121,6 +129,21 @@ export function ProductDetailInteractive({ product }: Props) {
                     : 0;
                   setVariantId(nextVariantId);
                   setQuantityInput((current) => normalizeQuantityInput(current, nextStock));
+
+                  if (nextVariant) {
+                    trackEvent(analyticsEvents.selectItem, {
+                      item_list_name: "variantes_producto",
+                      items: [
+                        {
+                          item_id: nextVariant.sku || nextVariant.id,
+                          item_name: product.nombre,
+                          item_variant: nextVariant.nombreVariante,
+                          item_category: product.categoria.nombre,
+                          price: getDiscountedPrice(nextVariant),
+                        },
+                      ],
+                    });
+                  }
                 }}
                 className="rounded-lg border border-[var(--input-border)] bg-[var(--card)] px-2 py-2"
               >

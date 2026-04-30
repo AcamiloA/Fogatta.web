@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ProductCard } from "@/components/catalog/product-card";
+import { analyticsEvents } from "@/modules/analytics/events";
+import { trackEvent } from "@/modules/analytics/track";
 import { ProductSummaryDTO } from "@/modules/catalog/contracts";
 
 type Props = {
@@ -28,6 +30,8 @@ function normalizeText(value: string) {
 export function CatalogListing({ products }: Props) {
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const hasTrackedListViewRef = useRef(false);
+  const lastSearchTermTrackedRef = useRef("");
 
   const normalizedSearch = useMemo(() => normalizeText(searchTerm), [searchTerm]);
 
@@ -77,6 +81,45 @@ export function CatalogListing({ products }: Props) {
 
   const showCategoryCards = !normalizedSearch && selectedCategoryId === "all";
 
+  useEffect(() => {
+    if (hasTrackedListViewRef.current) {
+      return;
+    }
+    hasTrackedListViewRef.current = true;
+
+    trackEvent(analyticsEvents.viewItemList, {
+      item_list_name: "catalogo",
+      items: products.slice(0, 20).map((product, index) => ({
+        item_id: product.slug,
+        item_name: product.nombre,
+        item_category: product.categoria.nombre,
+        index: index + 1,
+      })),
+    });
+  }, [products]);
+
+  useEffect(() => {
+    if (normalizedSearch.length < 2) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      if (lastSearchTermTrackedRef.current === normalizedSearch) {
+        return;
+      }
+      lastSearchTermTrackedRef.current = normalizedSearch;
+
+      trackEvent(analyticsEvents.search, {
+        search_term: searchTerm.trim(),
+        results_count: filteredProducts.length,
+      });
+    }, 500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [filteredProducts.length, normalizedSearch, searchTerm]);
+
   return (
     <>
       <section className="mt-8 rounded-2xl border border-[var(--border)]/45 bg-[var(--surface-2)] p-4">
@@ -85,7 +128,15 @@ export function CatalogListing({ products }: Props) {
             Categoria
             <select
               value={selectedCategoryId}
-              onChange={(event) => setSelectedCategoryId(event.target.value)}
+              onChange={(event) => {
+                const nextCategoryId = event.target.value;
+                setSelectedCategoryId(nextCategoryId);
+
+                trackEvent(analyticsEvents.catalogFilterSelect, {
+                  filter_type: "catalogo_categoria",
+                  filter_value: nextCategoryId,
+                });
+              }}
               className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
             >
               <option value="all">Todas las categorias ({products.length})</option>
@@ -135,7 +186,14 @@ export function CatalogListing({ products }: Props) {
                 </p>
                 <button
                   type="button"
-                  onClick={() => setSelectedCategoryId(category.id)}
+                  onClick={() => {
+                    setSelectedCategoryId(category.id);
+                    trackEvent(analyticsEvents.selectItem, {
+                      item_list_name: "categorias_catalogo",
+                      item_category: category.nombre,
+                      item_category_id: category.id,
+                    });
+                  }}
                   className="inline-flex rounded-lg border border-[var(--ink)] px-3 py-2 text-sm text-[var(--ink)] transition hover:bg-[var(--ink)] hover:text-[var(--fg)]"
                 >
                   Ver productos

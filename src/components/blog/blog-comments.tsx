@@ -2,6 +2,8 @@
 
 import { FormEvent, useMemo, useState } from "react";
 
+import { analyticsEvents } from "@/modules/analytics/events";
+import { trackEvent } from "@/modules/analytics/track";
 import { BlogCommentDTO } from "@/modules/blog/comments-contracts";
 
 const MAX_COMMENT_LENGTH = 350;
@@ -70,6 +72,11 @@ export function BlogComments({ slug, initialComments }: Props) {
 
       setMensaje("");
       setShowEmojiPicker(false);
+      trackEvent(analyticsEvents.blogCommentSubmit, {
+        slug,
+        status: "success",
+        length: clean.length,
+      });
       setFeedback({
         type: "ok",
         text:
@@ -77,6 +84,10 @@ export function BlogComments({ slug, initialComments }: Props) {
           "Tu comentario fue recibido y esta en revision. Aparecera cuando sea aprobado.",
       });
     } catch (error) {
+      trackEvent(analyticsEvents.blogCommentSubmit, {
+        slug,
+        status: "error",
+      });
       setFeedback({
         type: "error",
         text: error instanceof Error ? error.message : "No se pudo publicar tu comentario.",

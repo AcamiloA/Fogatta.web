@@ -8,6 +8,8 @@ import { useState } from "react";
 
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { navLinks } from "@/config/site";
+import { analyticsEvents } from "@/modules/analytics/events";
+import { trackEvent } from "@/modules/analytics/track";
 import { useCart } from "@/modules/checkout-whatsapp/cart-context";
 
 const ThemeToggle = dynamic(
@@ -60,6 +62,13 @@ export function SiteHeader() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() =>
+                  trackEvent(analyticsEvents.selectItem, {
+                    item_list_name: "header_navigation",
+                    item_name: item.label,
+                    item_id: item.href,
+                  })
+                }
                 className={`text-sm transition-colors ${
                   active
                     ? "text-[var(--accent-soft)]"
@@ -110,7 +119,14 @@ export function SiteHeader() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    trackEvent(analyticsEvents.selectItem, {
+                      item_list_name: "mobile_navigation",
+                      item_name: item.label,
+                      item_id: item.href,
+                    });
+                  }}
                   className={`rounded-lg px-2 py-2 text-sm transition-colors ${
                     active
                       ? "bg-[var(--accent)]/20 text-[var(--fg-strong)]"

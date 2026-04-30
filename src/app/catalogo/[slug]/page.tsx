@@ -21,7 +21,11 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-10">
-      <ProductViewTracker nombre={product.nombre} slug={product.slug} />
+      <ProductViewTracker
+        nombre={product.nombre}
+        slug={product.slug}
+        categoria={product.categoria.nombre}
+      />
       {product.variantes.length ? (
         <ProductDetailInteractive product={product} />
       ) : (

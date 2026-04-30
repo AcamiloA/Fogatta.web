@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 
+import { analyticsEvents } from "@/modules/analytics/events";
+import { trackEvent } from "@/modules/analytics/track";
+
 type FaqCategory = {
   id: string;
   nombre: string;
@@ -108,7 +111,14 @@ export function FAQListing({ categories, faq }: Props) {
           Filtrar por categoría
           <select
             value={selectedCategoryId}
-            onChange={(event) => setSelectedCategoryId(event.target.value)}
+            onChange={(event) => {
+              const nextCategoryId = event.target.value;
+              setSelectedCategoryId(nextCategoryId);
+              trackEvent(analyticsEvents.faqFilterSelect, {
+                filter_type: "faq_categoria",
+                filter_value: nextCategoryId,
+              });
+            }}
             className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           >
             <option value="all">Todas las categorías</option>

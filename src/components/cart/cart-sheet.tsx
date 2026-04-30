@@ -1,9 +1,11 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { formatCOP } from "@/lib/currency";
+import { analyticsEvents } from "@/modules/analytics/events";
+import { trackEvent } from "@/modules/analytics/track";
 import { useCart } from "@/modules/checkout-whatsapp/cart-context";
 
 export function CartSheet() {
@@ -21,6 +23,25 @@ export function CartSheet() {
     () => items.reduce((acc, item) => acc + item.cantidad, 0),
     [items],
   );
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    trackEvent(analyticsEvents.viewCart, {
+      currency: "COP",
+      value: subtotal,
+      items_count: totalItems,
+      items: items.map((item) => ({
+        item_id: item.variantId ?? item.productId ?? item.slug,
+        item_name: item.nombreProducto,
+        item_variant: item.nombreVariante ?? "base",
+        price: item.precioUnitario,
+        quantity: item.cantidad,
+      })),
+    });
+  }, [isOpen, items, subtotal, totalItems]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();

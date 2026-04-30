@@ -2,6 +2,9 @@
 
 import { FormEvent, useState } from "react";
 
+import { analyticsEvents } from "@/modules/analytics/events";
+import { trackEvent } from "@/modules/analytics/track";
+
 type ApiErrorPayload = {
   error?: string;
 };
@@ -47,12 +50,22 @@ export function ContactForm() {
         message:
           "Gracias. Recibimos tu mensaje correctamente y te responderemos lo antes posible.",
       });
+      trackEvent(analyticsEvents.generateLead, {
+        lead_source: "web_contacto",
+        contact_city: ciudad.trim() || "no_definida",
+      });
+      trackEvent(analyticsEvents.contactSubmit, {
+        status: "success",
+      });
       setNombre("");
       setCorreo("");
       setTelefono("");
       setCiudad("");
       setMensaje("");
     } catch (error) {
+      trackEvent(analyticsEvents.contactSubmit, {
+        status: "error",
+      });
       setFeedback({
         type: "error",
         message:

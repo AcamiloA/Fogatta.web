@@ -77,11 +77,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const key = getItemKey(incoming);
       const current = prev.find((item) => getItemKey(item) === key);
       if (!current) {
-        trackEvent(analyticsEvents.addToCart, {
-          item_name: incoming.nombreProducto,
-          item_variant: incoming.nombreVariante ?? "base",
-          value: incoming.precioUnitario,
-        });
         return [...prev, incoming];
       }
       return prev.map((item) =>
@@ -94,6 +89,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   function removeItem(slug: string, variantName?: string) {
     const key = `${slug}:${variantName ?? "base"}`;
+    const removed = items.find((item) => getItemKey(item) === key);
+    if (removed) {
+      trackEvent(analyticsEvents.removeFromCart, {
+        currency: "COP",
+        value: removed.precioUnitario * removed.cantidad,
+        items: [
+          {
+            item_id: removed.variantId ?? removed.productId ?? removed.slug,
+            item_name: removed.nombreProducto,
+            item_variant: removed.nombreVariante ?? "base",
+            price: removed.precioUnitario,
+            quantity: removed.cantidad,
+          },
+        ],
+      });
+    }
+
     setItems((prev) => prev.filter((item) => getItemKey(item) !== key));
   }
 
@@ -118,7 +130,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      trackEvent(analyticsEvents.startWhatsappCheckout, { items_count: items.length });
+      const itemsPayload = items.map((item) => ({
+        item_id: item.variantId ?? item.productId ?? item.slug,
+        item_name: item.nombreProducto,
+        item_variant: item.nombreVariante ?? "base",
+        price: item.precioUnitario,
+        quantity: item.cantidad,
+      }));
+      const checkoutValue = items.reduce((acc, item) => acc + item.precioUnitario * item.cantidad, 0);
+
+      trackEvent(analyticsEvents.beginCheckout, {
+        currency: "COP",
+        value: checkoutValue,
+        items: itemsPayload,
+      });
+
+      trackEvent(analyticsEvents.startWhatsappCheckout, {
+        currency: "COP",
+        value: checkoutValue,
+        items_count: items.length,
+        items: itemsPayload,
+      });
 
       const response = await fetch("/api/checkout/whatsapp-preview", {
         method: "POST",
@@ -148,7 +180,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const url = `https://wa.me/${siteConfig.whatsappPhone}?text=${payload.mensajeUrlEncoded}`;
 
       trackEvent(analyticsEvents.whatsappClickSent, {
+        currency: "COP",
         value: payload.subtotalReferencia,
+        items_count: items.length,
       });
 
       window.open(url, "_blank", "noopener,noreferrer");

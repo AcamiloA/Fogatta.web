@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { siteConfig } from "@/config/site";
+import { analyticsEvents } from "@/modules/analytics/events";
+import { trackEvent } from "@/modules/analytics/track";
 
 export function SiteFooter() {
   return (
@@ -27,10 +31,28 @@ export function SiteFooter() {
                 Legal
               </h4>
               <div className="mt-2 flex flex-col gap-1 text-sm">
-                <Link href="/legal/privacidad" className="text-[var(--fg-muted)] hover:text-[var(--fg-strong)]">
+                <Link
+                  href="/legal/privacidad"
+                  onClick={() =>
+                    trackEvent(analyticsEvents.selectItem, {
+                      item_list_name: "footer_legal",
+                      item_name: "legal_privacidad",
+                    })
+                  }
+                  className="text-[var(--fg-muted)] hover:text-[var(--fg-strong)]"
+                >
                   Política de privacidad
                 </Link>
-                <Link href="/legal/terminos" className="text-[var(--fg-muted)] hover:text-[var(--fg-strong)]">
+                <Link
+                  href="/legal/terminos"
+                  onClick={() =>
+                    trackEvent(analyticsEvents.selectItem, {
+                      item_list_name: "footer_legal",
+                      item_name: "legal_terminos",
+                    })
+                  }
+                  className="text-[var(--fg-muted)] hover:text-[var(--fg-strong)]"
+                >
                   Términos y condiciones
                 </Link>
               </div>
@@ -39,6 +61,12 @@ export function SiteFooter() {
               href={siteConfig.social.instagram}
               target="_blank"
               rel="noreferrer"
+              onClick={() =>
+                trackEvent(analyticsEvents.selectItem, {
+                  item_list_name: "social_links",
+                  item_name: "instagram",
+                })
+              }
               aria-label="Instagram de FOGATTA"
               title="Instagram"
               className="ml-3 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d67b3f]/45 bg-[#d67b3f]/10 text-[#d67b3f] transition hover:bg-[#d67b3f]/20 hover:text-[#e58d50]"
