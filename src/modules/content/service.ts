@@ -45,6 +45,7 @@ async function fetchCMSContent(): Promise<ContentPayload | null> {
     return contentPayloadSchema.parse({
       ...rawPayload,
       hero: rawPayload?.hero ?? fallbackContent.hero,
+      faqCategories: rawPayload?.faqCategories ?? fallbackContent.faqCategories,
     });
   } catch (error) {
     logError("cms_content_fetch_failed", { error });
@@ -58,12 +59,19 @@ async function fetchDbContent(): Promise<ContentPayload | null> {
   }
 
   try {
-    const [siteContent, faq, legalDocuments] = await Promise.all([
+    const [siteContent, faqCategories, faq, legalDocuments] = await Promise.all([
       prisma.siteContent.findUnique({
         where: { id: "main" },
       }),
+      prisma.faqCategory.findMany({
+        where: { activo: true },
+        orderBy: [{ orden: "asc" }, { createdAt: "asc" }],
+      }),
       prisma.faqItem.findMany({
         where: { activo: true },
+        include: {
+          faqCategory: true,
+        },
         orderBy: [{ orden: "asc" }, { createdAt: "asc" }],
       }),
       prisma.legalDocument.findMany({
@@ -81,12 +89,27 @@ async function fetchDbContent(): Promise<ContentPayload | null> {
         historia: siteContent?.nosotrosHistoria ?? fallbackContent.nosotros.historia,
         promesa: siteContent?.nosotrosPromesa ?? fallbackContent.nosotros.promesa,
       },
+      faqCategories: faqCategories.map((category) => ({
+        id: category.id,
+        nombre: category.nombre,
+        descripcion: category.descripcion,
+        orden: category.orden,
+      })),
       faq:
         faq.length > 0
           ? faq.map((item) => ({
               id: item.id,
               pregunta: item.pregunta,
               respuesta: item.respuesta,
+              faqCategoryId: item.faqCategoryId,
+              faqCategory: item.faqCategory
+                ? {
+                    id: item.faqCategory.id,
+                    nombre: item.faqCategory.nombre,
+                    descripcion: item.faqCategory.descripcion,
+                    orden: item.faqCategory.orden,
+                  }
+                : null,
               orden: item.orden,
             }))
           : fallbackContent.faq,

@@ -14,6 +14,14 @@ type FaqItem = {
   id: string;
   pregunta: string;
   respuesta: string;
+  faqCategoryId: string | null;
+  orden: number;
+};
+
+type FaqCategory = {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
   orden: number;
 };
 
@@ -25,6 +33,7 @@ type LegalItem = {
 
 type AdminContentPayload = {
   site: SiteContent;
+  faqCategories: FaqCategory[];
   faq: FaqItem[];
   legales: LegalItem[];
 };
@@ -73,14 +82,21 @@ function resolveApiError(payload: unknown, fallback: string) {
 
 export function AdminContentManager() {
   const [site, setSite] = useState<SiteContent | null>(null);
+  const [faqCategories, setFaqCategories] = useState<FaqCategory[]>([]);
   const [faq, setFaq] = useState<FaqItem[]>([]);
   const [legales, setLegales] = useState<LegalItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<ScopedFeedback | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [newFaq, setNewFaq] = useState({
+    faqCategoryId: "",
     pregunta: "",
     respuesta: "",
+    orden: 1,
+  });
+  const [newFaqCategory, setNewFaqCategory] = useState({
+    nombre: "",
+    descripcion: "",
     orden: 1,
   });
 
@@ -135,10 +151,20 @@ export function AdminContentManager() {
 
       const typed = payload as AdminContentPayload;
       setSite(typed.site);
+      setFaqCategories(typed.faqCategories);
       setFaq(typed.faq);
       setLegales(typed.legales);
       const maxOrder = typed.faq.reduce((max, item) => Math.max(max, item.orden), 0);
-      setNewFaq((current) => ({ ...current, orden: Math.max(1, maxOrder + 1) }));
+      const maxCategoryOrder = typed.faqCategories.reduce((max, item) => Math.max(max, item.orden), 0);
+      setNewFaq((current) => ({
+        ...current,
+        faqCategoryId: typed.faqCategories[0]?.id ?? "",
+        orden: Math.max(1, maxOrder + 1),
+      }));
+      setNewFaqCategory((current) => ({
+        ...current,
+        orden: Math.max(1, maxCategoryOrder + 1),
+      }));
     } catch (loadError) {
       showFeedback(
         scope,
@@ -185,11 +211,126 @@ export function AdminContentManager() {
     }
   }
 
+  async function createFaqCategory() {
+    const scope = "faq-category-create";
+    const nombre = newFaqCategory.nombre.trim();
+    const orden = Number(newFaqCategory.orden);
+
+    if (!nombre) {
+      showFeedback(scope, "warning", "Categoria FAQ: nombre obligatorio.");
+      return;
+    }
+    if (nombre.length < 3) {
+      showFeedback(scope, "warning", "Categoria FAQ: minimo 3 caracteres.");
+      return;
+    }
+    if (!Number.isInteger(orden) || orden < 1 || orden > 999) {
+      showFeedback(scope, "warning", "Categoria FAQ: el orden debe estar entre 1 y 999.");
+      return;
+    }
+
+    setBusyId("create-faq-category");
+    clearFeedback(scope);
+    try {
+      const response = await fetch("/api/admin/faq/categorias", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre,
+          descripcion: newFaqCategory.descripcion.trim() || undefined,
+          orden,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(resolveApiError(payload, "No se pudo crear categoria FAQ."));
+      }
+      setNewFaqCategory((current) => ({ ...current, nombre: "", descripcion: "" }));
+      await loadContent();
+      showFeedback(scope, "success", "Categoria FAQ creada correctamente.");
+    } catch (createError) {
+      showFeedback(
+        scope,
+        "error",
+        createError instanceof Error ? createError.message : "Error creando categoria FAQ.",
+      );
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function saveFaqCategory(category: FaqCategory) {
+    const scope = `faq-category-${category.id}`;
+    setBusyId(`save-faq-category-${category.id}`);
+    clearFeedback(scope);
+    try {
+      const response = await fetch(`/api/admin/faq/categorias/${category.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: category.nombre,
+          descripcion: category.descripcion,
+          orden: Number(category.orden),
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(resolveApiError(payload, "No se pudo guardar categoria FAQ."));
+      }
+      await loadContent();
+      showFeedback(scope, "success", "Categoria FAQ guardada correctamente.");
+    } catch (saveError) {
+      showFeedback(
+        scope,
+        "error",
+        saveError instanceof Error ? saveError.message : "Error guardando categoria FAQ.",
+      );
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function deleteFaqCategory(category: FaqCategory) {
+    const scope = `faq-category-${category.id}`;
+    const confirmed = window.confirm(`Vas a eliminar la categoria FAQ: "${category.nombre}".`);
+    if (!confirmed) {
+      return;
+    }
+
+    setBusyId(`delete-faq-category-${category.id}`);
+    clearFeedback(scope);
+    try {
+      const response = await fetch(`/api/admin/faq/categorias/${category.id}`, {
+        method: "DELETE",
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(resolveApiError(payload, "No se pudo eliminar categoria FAQ."));
+      }
+      await loadContent();
+      showFeedback(scope, "success", "Categoria FAQ eliminada correctamente.");
+    } catch (deleteError) {
+      showFeedback(
+        scope,
+        "error",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando categoria FAQ.",
+      );
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function createFaq() {
     const scope = "faq-create";
+    const faqCategoryId = newFaq.faqCategoryId.trim();
     const pregunta = newFaq.pregunta.trim();
     const respuesta = newFaq.respuesta.trim();
     const orden = Number(newFaq.orden);
+
+    if (!faqCategoryId) {
+      showFeedback(scope, "warning", "FAQ: selecciona una categoria.");
+      return;
+    }
 
     if (!pregunta || !respuesta) {
       showFeedback(scope, "warning", "FAQ: pregunta y respuesta son obligatorias.");
@@ -218,6 +359,7 @@ export function AdminContentManager() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          faqCategoryId,
           pregunta,
           respuesta,
           orden,
@@ -227,7 +369,12 @@ export function AdminContentManager() {
       if (!response.ok) {
         throw new Error(resolveApiError(payload, "No se pudo crear FAQ."));
       }
-      setNewFaq({ pregunta: "", respuesta: "", orden: Math.max(1, newFaq.orden + 1) });
+      setNewFaq((current) => ({
+        ...current,
+        pregunta: "",
+        respuesta: "",
+        orden: Math.max(1, current.orden + 1),
+      }));
       await loadContent();
       showFeedback(scope, "success", "FAQ creada correctamente.");
     } catch (createError) {
@@ -252,6 +399,7 @@ export function AdminContentManager() {
         body: JSON.stringify({
           pregunta: item.pregunta,
           respuesta: item.respuesta,
+          faqCategoryId: item.faqCategoryId,
           orden: Number(item.orden),
         }),
       });
@@ -399,9 +547,143 @@ export function AdminContentManager() {
       </section>
 
       <section className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
+        {renderFeedback("faq-category-create")}
         {renderFeedback("faq-create")}
         <h2 className="text-xl text-[var(--fg-strong)]">FAQ</h2>
+        <div className="space-y-3 rounded-xl border border-[var(--border)]/35 bg-[var(--surface-3)] p-4">
+          <h3 className="text-sm font-medium uppercase tracking-wide text-[var(--fg-soft)]">
+            Categorias FAQ
+          </h3>
+          <div className="grid gap-2 md:grid-cols-[1.4fr,2fr,100px,auto]">
+            <input
+              value={newFaqCategory.nombre}
+              onChange={(event) =>
+                setNewFaqCategory((current) => ({ ...current, nombre: event.target.value }))
+              }
+              placeholder="Nombre de categoria"
+              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+            <input
+              value={newFaqCategory.descripcion}
+              onChange={(event) =>
+                setNewFaqCategory((current) => ({ ...current, descripcion: event.target.value }))
+              }
+              placeholder="Descripcion breve (opcional)"
+              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+            <input
+              type="number"
+              min={1}
+              value={newFaqCategory.orden}
+              onChange={(event) =>
+                setNewFaqCategory((current) => ({
+                  ...current,
+                  orden: Number(event.target.value) || 1,
+                }))
+              }
+              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+            <button
+              type="button"
+              onClick={() => void createFaqCategory()}
+              disabled={busyId === "create-faq-category"}
+              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
+            >
+              {busyId === "create-faq-category" ? "Creando..." : "Crear"}
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {faqCategories.map((category) => (
+              <article
+                key={category.id}
+                className="space-y-2 rounded-lg border border-[var(--border)]/40 bg-[var(--surface)] p-3"
+              >
+                {renderFeedback(`faq-category-${category.id}`)}
+                <div className="grid gap-2 md:grid-cols-[1.4fr,2fr,100px]">
+                  <input
+                    value={category.nombre}
+                    onChange={(event) =>
+                      setFaqCategories((current) =>
+                        current.map((entry) =>
+                          entry.id === category.id ? { ...entry, nombre: event.target.value } : entry,
+                        ),
+                      )
+                    }
+                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                  />
+                  <input
+                    value={category.descripcion ?? ""}
+                    onChange={(event) =>
+                      setFaqCategories((current) =>
+                        current.map((entry) =>
+                          entry.id === category.id
+                            ? { ...entry, descripcion: event.target.value || null }
+                            : entry,
+                        ),
+                      )
+                    }
+                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                  />
+                  <input
+                    type="number"
+                    min={1}
+                    value={category.orden}
+                    onChange={(event) =>
+                      setFaqCategories((current) =>
+                        current.map((entry) =>
+                          entry.id === category.id
+                            ? { ...entry, orden: Number(event.target.value) || 1 }
+                            : entry,
+                        ),
+                      )
+                    }
+                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void saveFaqCategory(category)}
+                    disabled={busyId === `save-faq-category-${category.id}`}
+                    className="rounded-lg bg-[var(--accent)] px-3 py-2 text-xs font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
+                  >
+                    {busyId === `save-faq-category-${category.id}`
+                      ? "Guardando..."
+                      : "Guardar categoria"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void deleteFaqCategory(category)}
+                    disabled={busyId === `delete-faq-category-${category.id}`}
+                    className="rounded-lg border border-rose-400 px-3 py-2 text-xs text-rose-600 disabled:opacity-60"
+                  >
+                    {busyId === `delete-faq-category-${category.id}` ? "Eliminando..." : "Eliminar"}
+                  </button>
+                </div>
+              </article>
+            ))}
+            {!faqCategories.length ? (
+              <p className="text-sm text-[var(--fg-muted)]">Aun no hay categorias FAQ.</p>
+            ) : null}
+          </div>
+        </div>
+
         <div className="grid gap-2">
+          <select
+            value={newFaq.faqCategoryId}
+            onChange={(event) =>
+              setNewFaq((current) => ({ ...current, faqCategoryId: event.target.value }))
+            }
+            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          >
+            <option value="">Seleccione categoria FAQ</option>
+            {faqCategories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.nombre}
+              </option>
+            ))}
+          </select>
           <input
             value={newFaq.pregunta}
             onChange={(event) => setNewFaq((current) => ({ ...current, pregunta: event.target.value }))}
@@ -441,6 +723,26 @@ export function AdminContentManager() {
               className="space-y-2 rounded-xl border border-[var(--border)]/40 bg-[var(--surface-3)] p-4"
             >
               {renderFeedback(`faq-${item.id}`)}
+              <select
+                value={item.faqCategoryId ?? ""}
+                onChange={(event) =>
+                  setFaq((current) =>
+                    current.map((entry) =>
+                      entry.id === item.id
+                        ? { ...entry, faqCategoryId: event.target.value || null }
+                        : entry,
+                    ),
+                  )
+                }
+                className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+              >
+                <option value="">Sin categoria</option>
+                {faqCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.nombre}
+                  </option>
+                ))}
+              </select>
               <input
                 value={item.pregunta}
                 onChange={(event) =>

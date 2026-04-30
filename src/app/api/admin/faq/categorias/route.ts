@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
 import { isAdminRequestAuthenticated } from "@/modules/admin/session";
-import { createFaqInputSchema } from "@/modules/content/admin-contracts";
-import { AdminContentService, FaqCategoryNotFoundError } from "@/modules/content/admin-service";
+import { createFaqCategoryInputSchema } from "@/modules/content/admin-contracts";
+import { AdminContentService } from "@/modules/content/admin-service";
 
 function unauthorized() {
   return NextResponse.json({ error: "No autorizado." }, { status: 401 });
@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
 
   try {
     const payload = await service.getContentAdminPayload();
-    return NextResponse.json({ faq: payload.faq, faqCategories: payload.faqCategories });
+    return NextResponse.json({ faqCategories: payload.faqCategories });
   } catch (error) {
-    service.handleError(error, { route: "admin_faq_get" });
-    return NextResponse.json({ error: "No se pudo cargar FAQ." }, { status: 500 });
+    service.handleError(error, { route: "admin_faq_categories_get" });
+    return NextResponse.json({ error: "No se pudo cargar categorias FAQ." }, { status: 500 });
   }
 }
 
@@ -40,17 +40,14 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const input = createFaqInputSchema.parse(body);
-    const created = await service.createFaq(input);
+    const input = createFaqCategoryInputSchema.parse(body);
+    const created = await service.createFaqCategory(input);
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json({ error: "Datos invalidos.", details: error.flatten() }, { status: 400 });
     }
-    if (error instanceof FaqCategoryNotFoundError) {
-      return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-    service.handleError(error, { route: "admin_faq_post" });
-    return NextResponse.json({ error: "No se pudo crear FAQ." }, { status: 500 });
+    service.handleError(error, { route: "admin_faq_categories_post" });
+    return NextResponse.json({ error: "No se pudo crear categoria FAQ." }, { status: 500 });
   }
 }

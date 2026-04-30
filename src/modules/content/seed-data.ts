@@ -13,6 +13,7 @@ export const fallbackContent: ContentPayload = {
     promesa:
       "Seleccionamos fragancias que aportan calma, presencia y calidez para hogares que valoran los detalles.",
   },
+  faqCategories: [],
   faq: [],
   blog: [],
   legales: [

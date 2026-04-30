@@ -1,9 +1,18 @@
 import { z } from "zod";
 
+export const faqCategorySchema = z.object({
+  id: z.string(),
+  nombre: z.string(),
+  descripcion: z.string().nullable(),
+  orden: z.number().int(),
+});
+
 export const faqSchema = z.object({
   id: z.string(),
   pregunta: z.string(),
   respuesta: z.string(),
+  faqCategoryId: z.string().nullable(),
+  faqCategory: faqCategorySchema.nullable(),
   orden: z.number().int(),
 });
 
@@ -34,6 +43,7 @@ export const contentPayloadSchema = z.object({
     historia: z.string(),
     promesa: z.string(),
   }),
+  faqCategories: z.array(faqCategorySchema),
   faq: z.array(faqSchema),
   blog: z.array(blogPostSchema),
   legales: z.array(legalPageSchema),

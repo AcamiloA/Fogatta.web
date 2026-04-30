@@ -11,6 +11,20 @@ export class FaqItemNotFoundError extends Error {
   }
 }
 
+export class FaqCategoryNotFoundError extends Error {
+  constructor() {
+    super("Categoria FAQ no encontrada.");
+    this.name = "FaqCategoryNotFoundError";
+  }
+}
+
+export class FaqCategoryInUseError extends Error {
+  constructor() {
+    super("No se puede eliminar la categoria FAQ porque tiene preguntas asociadas.");
+    this.name = "FaqCategoryInUseError";
+  }
+}
+
 function ensurePrisma() {
   if (!prisma) {
     throw new Error("DATABASE_URL is not configured");
@@ -30,9 +44,19 @@ export class AdminContentService {
   async getContentAdminPayload() {
     const db = ensurePrisma();
 
-    const [site, faq, legales] = await Promise.all([
+    const [site, faqCategories, faq, legales] = await Promise.all([
       db.siteContent.findUnique({ where: { id: "main" } }),
-      db.faqItem.findMany({ where: { activo: true }, orderBy: [{ orden: "asc" }, { createdAt: "asc" }] }),
+      db.faqCategory.findMany({
+        where: { activo: true },
+        orderBy: [{ orden: "asc" }, { createdAt: "asc" }],
+      }),
+      db.faqItem.findMany({
+        where: { activo: true },
+        include: {
+          faqCategory: true,
+        },
+        orderBy: [{ orden: "asc" }, { createdAt: "asc" }],
+      }),
       db.legalDocument.findMany({ orderBy: { updatedAt: "desc" } }),
     ]);
 
@@ -44,10 +68,25 @@ export class AdminContentService {
         nosotrosHistoria: site?.nosotrosHistoria ?? fallbackContent.nosotros.historia,
         nosotrosPromesa: site?.nosotrosPromesa ?? fallbackContent.nosotros.promesa,
       },
+      faqCategories: faqCategories.map((category) => ({
+        id: category.id,
+        nombre: category.nombre,
+        descripcion: category.descripcion,
+        orden: category.orden,
+      })),
       faq: faq.map((item) => ({
         id: item.id,
         pregunta: item.pregunta,
         respuesta: item.respuesta,
+        faqCategoryId: item.faqCategoryId,
+        faqCategory: item.faqCategory
+          ? {
+              id: item.faqCategory.id,
+              nombre: item.faqCategory.nombre,
+              descripcion: item.faqCategory.descripcion,
+              orden: item.faqCategory.orden,
+            }
+          : null,
         orden: item.orden,
       })),
       legales: ["privacidad", "terminos"].map((tipo) => {
@@ -95,23 +134,44 @@ export class AdminContentService {
     });
   }
 
-  async createFaq(input: { pregunta: string; respuesta: string; orden: number }) {
+  async createFaq(input: { pregunta: string; respuesta: string; faqCategoryId: string; orden: number }) {
     const db = ensurePrisma();
+    const category = await db.faqCategory.findUnique({
+      where: { id: input.faqCategoryId },
+      select: { id: true, activo: true },
+    });
+    if (!category || !category.activo) {
+      throw new FaqCategoryNotFoundError();
+    }
     return db.faqItem.create({
       data: {
         pregunta: input.pregunta.trim(),
         respuesta: input.respuesta.trim(),
+        faqCategoryId: input.faqCategoryId,
         orden: input.orden,
         activo: true,
       },
     });
   }
 
-  async updateFaq(id: string, input: { pregunta?: string; respuesta?: string; orden?: number }) {
+  async updateFaq(
+    id: string,
+    input: { pregunta?: string; respuesta?: string; faqCategoryId?: string | null; orden?: number },
+  ) {
     const db = ensurePrisma();
     const found = await db.faqItem.findUnique({ where: { id }, select: { id: true } });
     if (!found) {
       throw new FaqItemNotFoundError();
+    }
+
+    if (input.faqCategoryId !== undefined && input.faqCategoryId !== null) {
+      const category = await db.faqCategory.findUnique({
+        where: { id: input.faqCategoryId },
+        select: { id: true, activo: true },
+      });
+      if (!category || !category.activo) {
+        throw new FaqCategoryNotFoundError();
+      }
     }
 
     return db.faqItem.update({
@@ -119,6 +179,7 @@ export class AdminContentService {
       data: {
         pregunta: input.pregunta?.trim(),
         respuesta: input.respuesta?.trim(),
+        faqCategoryId: input.faqCategoryId,
         orden: input.orden,
       },
     });
@@ -131,6 +192,64 @@ export class AdminContentService {
       throw new FaqItemNotFoundError();
     }
     return db.faqItem.delete({ where: { id } });
+  }
+
+  async createFaqCategory(input: { nombre: string; descripcion?: string; orden: number }) {
+    const db = ensurePrisma();
+    return db.faqCategory.create({
+      data: {
+        nombre: input.nombre.trim(),
+        descripcion: input.descripcion?.trim() || null,
+        orden: input.orden,
+        activo: true,
+      },
+    });
+  }
+
+  async updateFaqCategory(
+    id: string,
+    input: { nombre?: string; descripcion?: string | null; orden?: number; activo?: boolean },
+  ) {
+    const db = ensurePrisma();
+    const found = await db.faqCategory.findUnique({ where: { id }, select: { id: true } });
+    if (!found) {
+      throw new FaqCategoryNotFoundError();
+    }
+
+    return db.faqCategory.update({
+      where: { id },
+      data: {
+        nombre: input.nombre?.trim(),
+        descripcion:
+          input.descripcion === undefined
+            ? undefined
+            : input.descripcion === null
+              ? null
+              : input.descripcion.trim() || null,
+        orden: input.orden,
+        activo: input.activo,
+      },
+    });
+  }
+
+  async deleteFaqCategory(id: string) {
+    const db = ensurePrisma();
+    const found = await db.faqCategory.findUnique({ where: { id }, select: { id: true } });
+    if (!found) {
+      throw new FaqCategoryNotFoundError();
+    }
+
+    const itemsCount = await db.faqItem.count({
+      where: {
+        faqCategoryId: id,
+        activo: true,
+      },
+    });
+    if (itemsCount > 0) {
+      throw new FaqCategoryInUseError();
+    }
+
+    return db.faqCategory.delete({ where: { id } });
   }
 
   async updateLegal(input: { tipo: "privacidad" | "terminos"; contenido: string; fechaVigencia: string }) {
