@@ -10,6 +10,10 @@ import { trackEvent } from "@/modules/analytics/track";
 export function SiteFooter() {
   const whatsappPhone = siteConfig.whatsappPhone.replace(/\D/g, "");
   const whatsappHref = `https://wa.me/${whatsappPhone}`;
+  const whatsappLabel =
+    whatsappPhone.length >= 10
+      ? `+${whatsappPhone.slice(0, 2)} ${whatsappPhone.slice(2)}`
+      : `+${whatsappPhone}`;
 
   return (
     <footer className="mt-16 border-t border-[var(--border)]/45 bg-[var(--surface-2)]">
@@ -101,7 +105,7 @@ export function SiteFooter() {
                 }
                 aria-label="WhatsApp de FOGATTA"
                 title="WhatsApp"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#d67b3f]/45 bg-[#d67b3f]/10 text-[#d67b3f] transition hover:bg-[#d67b3f]/20 hover:text-[#e58d50]"
+                className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-full border border-[#d67b3f]/45 bg-[#d67b3f]/10 px-3 text-[#d67b3f] transition hover:bg-[#d67b3f]/20 hover:text-[#e58d50]"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -109,12 +113,13 @@ export function SiteFooter() {
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="1.9"
-                  className="h-4.5 w-4.5"
+                  className="h-4.5 w-4.5 shrink-0"
                   aria-hidden="true"
                 >
                   <path d="M20 11.4a8.4 8.4 0 0 1-12.2 7.5L4 20l1.2-3.7A8.4 8.4 0 1 1 20 11.4Z" />
                   <path d="M9.1 8.8c.3-.6.6-.6.8-.6h.6c.2 0 .4 0 .6.4l.8 1.8c.1.2.1.4 0 .6l-.4.5c-.2.2-.3.3-.1.6.4.7 1 1.3 1.7 1.8.3.2.5.2.7.1l.6-.3c.2-.1.4-.1.6 0l1.7.8c.3.1.4.3.4.5v.5c0 .2-.1.4-.4.6-.5.3-1.2.5-1.9.4-1-.1-2-.5-2.8-1.1a8 8 0 0 1-2.3-2.3c-.6-.8-.9-1.7-1-2.6-.1-.7.1-1.3.4-1.7Z" />
                 </svg>
+                <span className="text-xs font-medium leading-none">{whatsappLabel}</span>
               </a>
             </div>
           </div>
