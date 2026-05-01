@@ -35,6 +35,9 @@ type ScopedFeedback = {
   message: string;
 };
 
+const BLOG_EXTRACT_MAX_CHARACTERS = 400;
+const BLOG_CONTENT_MAX_CHARACTERS = 12000;
+
 function toSlug(value: string) {
   return value
     .toLowerCase()
@@ -171,16 +174,24 @@ export function AdminBlogManager() {
       showFeedback(scope, "warning", "Ingresa un extracto.");
       return;
     }
-    if (extracto.length < 8 || extracto.length > 280) {
-      showFeedback(scope, "warning", "El extracto debe tener entre 8 y 280 caracteres.");
+    if (extracto.length < 8 || extracto.length > BLOG_EXTRACT_MAX_CHARACTERS) {
+      showFeedback(
+        scope,
+        "warning",
+        `El extracto debe tener entre 8 y ${BLOG_EXTRACT_MAX_CHARACTERS} caracteres.`,
+      );
       return;
     }
     if (!contenido) {
       showFeedback(scope, "warning", "Ingresa el contenido del articulo.");
       return;
     }
-    if (contenido.length < 20 || contenido.length > 12000) {
-      showFeedback(scope, "warning", "El contenido debe tener entre 20 y 12000 caracteres.");
+    if (contenido.length < 20 || contenido.length > BLOG_CONTENT_MAX_CHARACTERS) {
+      showFeedback(
+        scope,
+        "warning",
+        `El contenido debe tener entre 20 y ${BLOG_CONTENT_MAX_CHARACTERS} caracteres.`,
+      );
       return;
     }
 
@@ -251,12 +262,20 @@ export function AdminBlogManager() {
       showFeedback(scope, "warning", "Extracto y contenido son obligatorios.");
       return;
     }
-    if (extracto.length < 8 || extracto.length > 280) {
-      showFeedback(scope, "warning", "El extracto debe tener entre 8 y 280 caracteres.");
+    if (extracto.length < 8 || extracto.length > BLOG_EXTRACT_MAX_CHARACTERS) {
+      showFeedback(
+        scope,
+        "warning",
+        `El extracto debe tener entre 8 y ${BLOG_EXTRACT_MAX_CHARACTERS} caracteres.`,
+      );
       return;
     }
-    if (contenido.length < 20 || contenido.length > 12000) {
-      showFeedback(scope, "warning", "El contenido debe tener entre 20 y 12000 caracteres.");
+    if (contenido.length < 20 || contenido.length > BLOG_CONTENT_MAX_CHARACTERS) {
+      showFeedback(
+        scope,
+        "warning",
+        `El contenido debe tener entre 20 y ${BLOG_CONTENT_MAX_CHARACTERS} caracteres.`,
+      );
       return;
     }
 
@@ -353,16 +372,34 @@ export function AdminBlogManager() {
           />
           <textarea
             value={newPost.extracto}
-            onChange={(event) => setNewPost((current) => ({ ...current, extracto: event.target.value }))}
+            onChange={(event) =>
+              setNewPost((current) => ({
+                ...current,
+                extracto: event.target.value.slice(0, BLOG_EXTRACT_MAX_CHARACTERS),
+              }))
+            }
+            maxLength={BLOG_EXTRACT_MAX_CHARACTERS}
             placeholder="Extracto (resumen corto para la lista del blog)"
             className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           />
+          <p className="text-xs text-[var(--fg-soft)]">
+            Caracteres disponibles: {BLOG_EXTRACT_MAX_CHARACTERS - newPost.extracto.length}
+          </p>
           <textarea
             value={newPost.contenido}
-            onChange={(event) => setNewPost((current) => ({ ...current, contenido: event.target.value }))}
+            onChange={(event) =>
+              setNewPost((current) => ({
+                ...current,
+                contenido: event.target.value.slice(0, BLOG_CONTENT_MAX_CHARACTERS),
+              }))
+            }
+            maxLength={BLOG_CONTENT_MAX_CHARACTERS}
             placeholder="Contenido"
             className="min-h-40 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           />
+          <p className="text-xs text-[var(--fg-soft)]">
+            Caracteres disponibles: {BLOG_CONTENT_MAX_CHARACTERS - newPost.contenido.length}
+          </p>
           <button
             type="button"
             onClick={() => void createPost()}
@@ -405,18 +442,32 @@ export function AdminBlogManager() {
             <textarea
               value={post.extracto}
               onChange={(event) =>
-                updatePostState(post.id, (current) => ({ ...current, extracto: event.target.value }))
+                updatePostState(post.id, (current) => ({
+                  ...current,
+                  extracto: event.target.value.slice(0, BLOG_EXTRACT_MAX_CHARACTERS),
+                }))
               }
+              maxLength={BLOG_EXTRACT_MAX_CHARACTERS}
               placeholder="Extracto (resumen corto para la lista del blog)"
               className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
             />
+            <p className="text-xs text-[var(--fg-soft)]">
+              Caracteres disponibles: {BLOG_EXTRACT_MAX_CHARACTERS - post.extracto.length}
+            </p>
             <textarea
               value={post.contenido}
               onChange={(event) =>
-                updatePostState(post.id, (current) => ({ ...current, contenido: event.target.value }))
+                updatePostState(post.id, (current) => ({
+                  ...current,
+                  contenido: event.target.value.slice(0, BLOG_CONTENT_MAX_CHARACTERS),
+                }))
               }
+              maxLength={BLOG_CONTENT_MAX_CHARACTERS}
               className="min-h-40 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
             />
+            <p className="text-xs text-[var(--fg-soft)]">
+              Caracteres disponibles: {BLOG_CONTENT_MAX_CHARACTERS - post.contenido.length}
+            </p>
             <p className="text-xs text-[var(--fg-soft)]">Publicado: {post.fechaPublicacion}</p>
             <div className="flex flex-wrap items-center gap-3">
               <button

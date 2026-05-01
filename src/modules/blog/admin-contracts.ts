@@ -21,7 +21,7 @@ export const createBlogPostInputSchema = z.object({
   slug: z.string().min(2).max(160),
   titulo: z.string().min(2).max(180),
   autor: z.string().min(2).max(120),
-  extracto: z.string().min(8).max(280),
+  extracto: z.string().min(8).max(400),
   contenido: z.string().min(20).max(12000),
   imagen: z.string().max(600).optional(),
 });
@@ -32,7 +32,7 @@ export const updateBlogPostInputSchema = z
     slug: z.string().min(2).max(160).optional(),
     titulo: z.string().min(2).max(180).optional(),
     autor: z.string().min(2).max(120).optional(),
-    extracto: z.string().min(8).max(280).optional(),
+    extracto: z.string().min(8).max(400).optional(),
     contenido: z.string().min(20).max(12000).optional(),
     imagen: z.string().max(600).optional(),
   })
