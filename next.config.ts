@@ -55,6 +55,21 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: buildS3RemotePatterns(),
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.fogatta.co",
+          },
+        ],
+        destination: "https://fogatta.co/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

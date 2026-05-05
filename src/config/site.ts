@@ -12,6 +12,7 @@ function readIntEnv(name: string, fallback: number, min: number, max: number) {
 
 export const siteConfig = {
   name: "Fogatta",
+  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://fogatta.co").replace(/\/+$/, ""),
   description:
     "Velas artesanales para transformar espacios con aromas cálidos y una experiencia sensorial premium.",
   market: "Colombia",
@@ -39,3 +40,4 @@ export const navLinks = [
   { href: "/blog", label: "Blog" },
   { href: "/contacto", label: "Contacto" },
 ];
+

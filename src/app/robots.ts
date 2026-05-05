@@ -1,10 +1,17 @@
 import { MetadataRoute } from "next";
+import { siteConfig } from "@/config/site";
 
-const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://fogatta.com";
+const base = siteConfig.siteUrl;
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/" }],
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/admin", "/api/admin"],
+      },
+    ],
     sitemap: `${base}/sitemap.xml`,
   };
 }

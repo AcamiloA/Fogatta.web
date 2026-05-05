@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
+import { siteConfig } from "@/config/site";
 
-const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://fogatta.com";
+const base = siteConfig.siteUrl;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

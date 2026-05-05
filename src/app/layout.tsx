@@ -21,7 +21,16 @@ const fraunces = Fraunces({
   subsets: ["latin"],
 });
 
+const metadataBase = (() => {
+  try {
+    return new URL(siteConfig.siteUrl);
+  } catch {
+    return new URL("https://fogatta.co");
+  }
+})();
+
 export const metadata: Metadata = {
+  metadataBase,
   title: {
     default: "FOGATTA | Velas artesanales",
     template: "%s | FOGATTA",
