@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
+
 import { ContactForm } from "@/components/forms/contact-form";
 import { siteConfig } from "@/config/site";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Contacto",
+  description:
+    "Contacta a FOGATTA para comprar velas aromaticas artesanales, cotizar regalos y resolver dudas sobre entregas en Colombia.",
+  alternates: {
+    canonical: "/contacto",
+  },
 };
 
 export default function ContactoPage() {

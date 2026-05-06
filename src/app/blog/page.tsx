@@ -1,10 +1,16 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { ContentService } from "@/modules/content/service";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Blog",
+  description:
+    "Blog de FOGATTA con guias sobre velas aromaticas, ambientacion del hogar, bienestar, meditacion y cuidado de velas artesanales.",
+  alternates: {
+    canonical: "/blog",
+  },
 };
 
 export const dynamic = "force-dynamic";

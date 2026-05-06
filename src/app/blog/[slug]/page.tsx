@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
 import { BlogComments } from "@/components/blog/blog-comments";
 import { BlogCommentsService } from "@/modules/blog/comments-service";
@@ -9,6 +10,28 @@ type Props = {
 };
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await new ContentService().getBlogPostBySlug(slug);
+
+  if (!post) {
+    return {
+      title: "Articulo",
+      alternates: {
+        canonical: `/blog/${slug}`,
+      },
+    };
+  }
+
+  return {
+    title: post.titulo,
+    description: post.extracto?.trim() || `Articulo de FOGATTA sobre velas aromaticas: ${post.titulo}.`,
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
+  };
+}
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;

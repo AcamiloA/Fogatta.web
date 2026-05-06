@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { FeaturedCarousel } from "@/components/catalog/featured-carousel";
@@ -8,6 +9,15 @@ import { CatalogService } from "@/modules/catalog/service";
 import { ContentService } from "@/modules/content/service";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Velas artesanales aromaticas en Colombia",
+  description:
+    "Velas aromaticas artesanales FOGATTA en cera de palma. Compra velas para hogar, meditacion, regalos y ambientacion en Colombia.",
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export default async function Home() {
   const catalogService = new CatalogService();

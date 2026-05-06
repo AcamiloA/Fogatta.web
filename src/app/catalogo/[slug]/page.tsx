@@ -1,4 +1,5 @@
-﻿import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { ProductViewTracker } from "@/components/analytics/product-view-tracker";
 import { ProductDetailInteractive } from "@/components/catalog/product-detail-interactive";
@@ -9,6 +10,36 @@ type Props = {
 };
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const service = new CatalogService();
+  const product = await service.getProductBySlug(slug);
+
+  if (!product) {
+    return {
+      title: "Producto",
+      alternates: {
+        canonical: `/catalogo/${slug}`,
+      },
+    };
+  }
+
+  const description = [
+    product.descripcion?.trim(),
+    `Vela artesanal ${product.nombre} de FOGATTA en Colombia.`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return {
+    title: `${product.nombre} | Velas artesanales`,
+    description,
+    alternates: {
+      canonical: `/catalogo/${slug}`,
+    },
+  };
+}
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
@@ -21,11 +52,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-10">
-      <ProductViewTracker
-        nombre={product.nombre}
-        slug={product.slug}
-        categoria={product.categoria.nombre}
-      />
+      <ProductViewTracker nombre={product.nombre} slug={product.slug} categoria={product.categoria.nombre} />
       {product.variantes.length ? (
         <ProductDetailInteractive product={product} />
       ) : (

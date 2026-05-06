@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
+
 import { ContentService } from "@/modules/content/service";
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Nosotros",
+  description:
+    "Conoce la historia de FOGATTA, marca colombiana de velas aromaticas artesanales en cera de palma, hechas con enfoque en calidad y bienestar.",
+  alternates: {
+    canonical: "/nosotros",
+  },
 };
 
 export const dynamic = "force-dynamic";

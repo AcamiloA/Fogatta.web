@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
+
 import { CatalogListing } from "@/components/catalog/catalog-listing";
 import { CatalogService } from "@/modules/catalog/service";
 
-export const metadata = {
-  title: "Catalogo",
+export const metadata: Metadata = {
+  title: "Catalogo de velas aromaticas artesanales",
+  description:
+    "Explora el catalogo de velas artesanales FOGATTA: aromas premium para hogar, relajacion, meditacion y regalos especiales en Colombia.",
+  alternates: {
+    canonical: "/catalogo",
+  },
 };
 
 export const dynamic = "force-dynamic";
