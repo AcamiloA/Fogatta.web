@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 
 import { analyticsEvents } from "@/modules/analytics/events";
 import { trackEvent } from "@/modules/analytics/track";
+import { readStoredUtm } from "@/modules/analytics/utm";
 
 type ApiErrorPayload = {
   error?: string;
@@ -26,6 +27,7 @@ export function ContactForm() {
     setFeedback(null);
 
     try {
+      const utm = readStoredUtm();
       const response = await fetch("/api/leads/contacto", {
         method: "POST",
         headers: {
@@ -37,6 +39,8 @@ export function ContactForm() {
           telefono,
           ciudad: ciudad.trim() || undefined,
           mensaje,
+          source: utm.utm_source || "web_contacto",
+          utm,
         }),
       });
 
@@ -53,6 +57,7 @@ export function ContactForm() {
       trackEvent(analyticsEvents.generateLead, {
         lead_source: "web_contacto",
         contact_city: ciudad.trim() || "no_definida",
+        ...utm,
       });
       trackEvent(analyticsEvents.contactSubmit, {
         status: "success",

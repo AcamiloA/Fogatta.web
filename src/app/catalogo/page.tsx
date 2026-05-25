@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
 import { CatalogListing } from "@/components/catalog/catalog-listing";
+import { StructuredData } from "@/components/seo/structured-data";
+import { siteConfig } from "@/config/site";
 import { CatalogService } from "@/modules/catalog/service";
 
 export const metadata: Metadata = {
@@ -17,9 +19,28 @@ export const dynamic = "force-dynamic";
 export default async function CatalogoPage() {
   const service = new CatalogService();
   const products = await service.listProducts();
+  const breadcrumbsStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Inicio",
+        item: `${siteConfig.siteUrl}/`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Catalogo",
+        item: `${siteConfig.siteUrl}/catalogo`,
+      },
+    ],
+  } as const;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-10">
+      <StructuredData id="catalog-breadcrumb-jsonld" data={breadcrumbsStructuredData} />
       <h1 className="text-4xl text-[var(--fg-strong)]">Catalogo</h1>
       <p className="mt-3 max-w-2xl text-[var(--fg-muted)]">
         Coleccion de velas artesanales para hogares que buscan calma, calidez y presencia.

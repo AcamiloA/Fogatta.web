@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { ProductImageCarousel } from "@/components/catalog/product-image-carousel";
+import { siteConfig } from "@/config/site";
 import { formatCOP } from "@/lib/currency";
 import { analyticsEvents } from "@/modules/analytics/events";
 import { trackEvent } from "@/modules/analytics/track";
@@ -64,6 +65,7 @@ export function ProductDetailInteractive({ product }: Props) {
     selectedVariant && selectedVariantImages.length > 0 ? selectedVariantImages : productImages;
   const parsedQuantity = Number.parseInt(quantityInput, 10);
   const quantity = Number.isNaN(parsedQuantity) ? 0 : parsedQuantity;
+  const canAddToCart = Boolean(selectedVariant && selectedStock > 0 && quantity >= 1);
 
   function handleAdd() {
     if (!selectedVariant || unitPrice === null) {
@@ -112,7 +114,16 @@ export function ProductDetailInteractive({ product }: Props) {
       <div>
         <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">{product.categoria.nombre}</p>
         <h1 className="mt-2 text-4xl text-[var(--fg-strong)]">{product.nombre}</h1>
-        <p className="mt-4 whitespace-pre-line text-[var(--fg-muted)]">{product.descripcion}</p>
+        <p className="mt-4 whitespace-pre-line text-[var(--fg-muted)]">
+          {product.resumen?.trim() || product.descripcion}
+        </p>
+
+        <div className="mt-4 grid gap-2 text-sm text-[var(--fg-muted)] md:grid-cols-2">
+          {product.duracionAprox ? <p>Duracion aproximada: <strong>{product.duracionAprox}</strong></p> : null}
+          {product.tamanoPeso ? <p>Tamano/peso: <strong>{product.tamanoPeso}</strong></p> : null}
+          {product.notasOlfativas ? <p className="md:col-span-2">Notas olfativas: <strong>{product.notasOlfativas}</strong></p> : null}
+          {product.idealPara ? <p className="md:col-span-2">Ideal para: <strong>{product.idealPara}</strong></p> : null}
+        </div>
 
         <div className="mt-6 rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] p-4">
           <div className="space-y-2">
@@ -206,10 +217,48 @@ export function ProductDetailInteractive({ product }: Props) {
           <button
             type="button"
             onClick={handleAdd}
-            disabled={!selectedVariant || selectedStock <= 0 || quantity < 1}
+            disabled={!canAddToCart}
             className="mt-4 w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--accent-contrast)] transition hover:bg-[var(--accent-hover)] disabled:bg-[var(--accent-disabled)]"
           >
             {selectedVariant && selectedStock <= 0 ? "Sin stock disponible" : "Agregar al carrito"}
+          </button>
+
+          <div className="mt-4 rounded-xl border border-[var(--border)]/45 bg-[var(--surface)] p-3 text-xs text-[var(--fg-muted)]">
+            <p>Envios nacionales en Colombia.</p>
+            <p>Pagos por transferencia, Nequi y Daviplata.</p>
+            <p>Atencion: {siteConfig.supportHours}.</p>
+          </div>
+        </div>
+
+        {product.historiaAroma ? (
+          <section className="mt-6 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4">
+            <h2 className="text-base font-semibold text-[var(--fg-strong)]">Historia del aroma</h2>
+            <p className="mt-2 whitespace-pre-line text-sm text-[var(--fg-muted)]">{product.historiaAroma}</p>
+          </section>
+        ) : null}
+        {product.instruccionesUso ? (
+          <section className="mt-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4">
+            <h2 className="text-base font-semibold text-[var(--fg-strong)]">Uso recomendado</h2>
+            <p className="mt-2 whitespace-pre-line text-sm text-[var(--fg-muted)]">{product.instruccionesUso}</p>
+          </section>
+        ) : null}
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--border)]/60 bg-[var(--surface)]/95 p-3 backdrop-blur md:hidden">
+        <div className="mx-auto flex max-w-6xl items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs text-[var(--fg-soft)]">{product.nombre}</p>
+            <p className="text-sm font-semibold text-[var(--fg-strong)]">
+              {unitPrice !== null ? formatCOP(unitPrice) : "Selecciona variante"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={!canAddToCart}
+            className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
+          >
+            {selectedVariant && selectedStock <= 0 ? "Sin stock" : "Agregar"}
           </button>
         </div>
       </div>

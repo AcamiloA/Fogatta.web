@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Manrope } from "next/font/google";
 
 import { GAScript } from "@/components/analytics/ga-script";
+import { MetaPixelScript } from "@/components/analytics/meta-pixel-script";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { AppProviders } from "@/components/providers/app-providers";
@@ -76,6 +77,7 @@ export default async function RootLayout({
         } as React.CSSProperties}
       >
         <GAScript />
+        <MetaPixelScript />
         <AppProviders>
           <SeasonOverlay
             animationType={activeTheme.animationType}

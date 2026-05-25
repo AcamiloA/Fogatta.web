@@ -14,6 +14,17 @@ export const whatsappPreviewInputSchema = z.object({
   clienteCiudad: z.string().min(2).max(80),
   telefono: z.string().min(7).max(20),
   notas: z.string().max(280).optional(),
+  utm: z
+    .object({
+      utm_source: z.string().max(120).optional(),
+      utm_medium: z.string().max(120).optional(),
+      utm_campaign: z.string().max(120).optional(),
+      utm_term: z.string().max(120).optional(),
+      utm_content: z.string().max(120).optional(),
+      gclid: z.string().max(200).optional(),
+      fbclid: z.string().max(200).optional(),
+    })
+    .optional(),
   items: z.array(checkoutItemSchema).min(1),
 });
 

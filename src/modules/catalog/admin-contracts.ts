@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { categorySchema, productDetailSchema } from "@/modules/catalog/contracts";
+import {
+  categorySchema,
+  productCommercialStatusSchema,
+  productDetailSchema,
+} from "@/modules/catalog/contracts";
 
 export const adminCatalogResponseSchema = z.object({
   categories: z.array(categorySchema),
@@ -32,7 +36,19 @@ export const updateCategoryInputSchema = z
 export const createProductInputSchema = z.object({
   slug: z.string().min(2).max(120),
   nombre: z.string().min(2).max(160),
+  resumen: z.string().max(220).optional(),
   descripcion: z.string().min(5).max(1800),
+  historiaAroma: z.string().max(1800).optional(),
+  notasOlfativas: z.string().max(800).optional(),
+  duracionAprox: z.string().max(140).optional(),
+  tamanoPeso: z.string().max(140).optional(),
+  idealPara: z.string().max(400).optional(),
+  instruccionesUso: z.string().max(1800).optional(),
+  estadoComercial: productCommercialStatusSchema.default("standard"),
+  seoTitle: z.string().max(140).optional(),
+  seoDescription: z.string().max(220).optional(),
+  isFeatured: z.boolean().default(false),
+  sortOrder: z.number().int().min(0).max(9999).default(0),
   imagenes: z.array(z.string().min(1)).min(1).max(1),
   activo: z.boolean().default(true),
   categoryId: z.string().min(2),

@@ -3,10 +3,12 @@ import type { Metadata } from "next";
 
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { FeaturedCarousel } from "@/components/catalog/featured-carousel";
+import { StructuredData } from "@/components/seo/structured-data";
 import { homeCatalogConfig, siteConfig } from "@/config/site";
 import { buildHomeCatalogSections } from "@/modules/catalog/home-sections";
 import { CatalogService } from "@/modules/catalog/service";
 import { ContentService } from "@/modules/content/service";
+import { ProductReviewsService } from "@/modules/reviews/service";
 
 export const dynamic = "force-dynamic";
 
@@ -22,16 +24,37 @@ export const metadata: Metadata = {
 export default async function Home() {
   const catalogService = new CatalogService();
   const contentService = new ContentService();
+  const reviewsService = new ProductReviewsService();
 
-  const [products, content] = await Promise.all([
+  const [products, content, latestReviews] = await Promise.all([
     catalogService.listProducts(),
     contentService.getContent(),
+    reviewsService.listLatestApproved(3),
   ]);
 
   const { newProducts, featuredProducts } = buildHomeCatalogSections(products, homeCatalogConfig);
+  const organizationStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "FOGATTA",
+    url: siteConfig.siteUrl,
+    logo: `${siteConfig.siteUrl}/brand/flame.png`,
+    description: siteConfig.description,
+    sameAs: [siteConfig.social.instagram],
+    contactPoint: [
+      {
+        "@type": "ContactPoint",
+        telephone: `+${siteConfig.whatsappPhone}`,
+        contactType: "customer service",
+        areaServed: "CO",
+        availableLanguage: ["es"],
+      },
+    ],
+  } as const;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-10">
+      <StructuredData id="organization-jsonld" data={organizationStructuredData} />
       <section className="hero-gradient overflow-hidden rounded-3xl border border-[var(--accent)]/40 p-8 md:p-12">
         <p className="text-sm uppercase tracking-[0.25em] text-[var(--accent-soft)]">Artesanal premium</p>
         <h1 className="mt-4 max-w-2xl text-4xl leading-tight text-[var(--fg-strong)] md:text-6xl">
@@ -142,6 +165,39 @@ export default async function Home() {
         <p className="mt-4 text-[var(--fg-muted)]">{content.nosotros.historia}</p>
         <p className="mt-2 text-[var(--fg-muted)]">{content.nosotros.promesa}</p>
       </section>
+
+      {latestReviews.length ? (
+        <section className="mt-14">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-3xl text-[var(--fg-strong)]">Experiencias FOGATTA</h2>
+              <p className="mt-1 text-sm text-[var(--fg-muted)]">
+                Reseñas reales de clientes sobre aromas y momentos.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {latestReviews.map((review) => (
+              <article
+                key={review.id}
+                className="rounded-2xl border border-[var(--border)]/45 bg-[var(--surface)] p-4"
+              >
+                <p className="text-sm text-amber-600">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</p>
+                <p className="mt-2 line-clamp-4 text-sm text-[var(--fg-muted)]">{review.mensaje}</p>
+                <p className="mt-2 text-xs text-[var(--fg-soft)]">- {review.nombre || "Cliente FOGATTA"}</p>
+                {review.productSlug ? (
+                  <Link
+                    href={`/catalogo/${review.productSlug}`}
+                    className="mt-3 inline-flex text-xs text-[var(--accent)] hover:underline"
+                  >
+                    Ver producto
+                  </Link>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

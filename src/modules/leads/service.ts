@@ -17,14 +17,20 @@ export class LeadsService {
   async createLead(input: CreateLeadInput) {
     try {
       if (prisma) {
+        const utmText = input.utm
+          ? Object.entries(input.utm)
+              .filter(([, value]) => Boolean(value))
+              .map(([key, value]) => `${key}=${value}`)
+              .join(" | ")
+          : "";
         const created = await prisma.contactLead.create({
           data: {
             nombre: input.nombre,
             correo: input.correo,
             telefono: input.telefono,
             ciudad: input.ciudad,
-            mensaje: input.mensaje,
-            source: "web_contacto",
+            mensaje: utmText ? `${input.mensaje}\n\n[UTM] ${utmText}` : input.mensaje,
+            source: input.source?.trim() || "web_contacto",
           },
         });
         void notifyLeadEmailSafely(created.id, input);

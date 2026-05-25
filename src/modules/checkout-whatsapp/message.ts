@@ -30,6 +30,12 @@ export function buildWhatsAppMessage(
   }, 0);
 
   const notas = input.notas?.trim() ? `\nNotas: ${input.notas.trim()}` : "";
+  const utmText = input.utm
+    ? Object.entries(input.utm)
+        .filter(([, value]) => Boolean(value))
+        .map(([key, value]) => `${key}=${value}`)
+        .join(" | ")
+    : "";
   const pedido = options?.orderId ? `Pedido: #${options.orderId}` : null;
 
   const mensaje = [
@@ -46,6 +52,7 @@ export function buildWhatsAppMessage(
     `Ciudad: ${input.clienteCiudad}`,
     `Telefono: ${input.telefono}`,
     notas,
+    utmText ? `Tracking: ${utmText}` : "",
   ]
     .join("\n")
     .trim();

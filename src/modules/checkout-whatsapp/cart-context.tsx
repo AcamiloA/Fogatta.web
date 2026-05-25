@@ -10,6 +10,7 @@ import {
 
 import { analyticsEvents } from "@/modules/analytics/events";
 import { trackEvent } from "@/modules/analytics/track";
+import { readStoredUtm } from "@/modules/analytics/utm";
 import { whatsappPreviewResponseSchema } from "@/modules/checkout-whatsapp/contracts";
 import { siteConfig } from "@/config/site";
 
@@ -138,10 +139,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         quantity: item.cantidad,
       }));
       const checkoutValue = items.reduce((acc, item) => acc + item.precioUnitario * item.cantidad, 0);
+      const utm = readStoredUtm();
 
       trackEvent(analyticsEvents.beginCheckout, {
         currency: "COP",
         value: checkoutValue,
+        ...utm,
         items: itemsPayload,
       });
 
@@ -149,6 +152,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         currency: "COP",
         value: checkoutValue,
         items_count: items.length,
+        ...utm,
         items: itemsPayload,
       });
 
@@ -159,6 +163,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify({
           ...client,
+          utm,
           items,
         }),
       });
@@ -183,6 +188,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
         currency: "COP",
         value: payload.subtotalReferencia,
         items_count: items.length,
+        ...utm,
+      });
+      trackEvent(analyticsEvents.clickWhatsapp, {
+        source: "checkout_cart",
+        value: payload.subtotalReferencia,
+        ...utm,
+      });
+      trackEvent(analyticsEvents.purchase, {
+        currency: "COP",
+        value: payload.subtotalReferencia,
+        transaction_id: payload.orderId ?? undefined,
+        items: itemsPayload,
+        ...utm,
       });
 
       window.open(url, "_blank", "noopener,noreferrer");

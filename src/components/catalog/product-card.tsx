@@ -13,7 +13,8 @@ type Props = {
 };
 
 function getShortPreviewText(product: ProductSummaryDTO) {
-  const baseText = product.descripcion.replace(/\s+/g, " ").trim();
+  const source = product.resumen?.trim() || product.descripcion;
+  const baseText = source.replace(/\s+/g, " ").trim();
   if (!baseText) {
     return "Descubre esta vela artesanal de FOGATTA.";
   }
@@ -26,8 +27,22 @@ function getShortPreviewText(product: ProductSummaryDTO) {
   return `${baseText.slice(0, maxCharacters - 3).trimEnd()}...`;
 }
 
+function getCommercialBadge(product: ProductSummaryDTO) {
+  if (product.estadoComercial === "new") {
+    return "Nuevo";
+  }
+  if (product.estadoComercial === "limited") {
+    return "Edicion limitada";
+  }
+  if (product.estadoComercial === "low_stock") {
+    return "Ultimas unidades";
+  }
+  return null;
+}
+
 export function ProductCard({ product }: Props) {
   const shortDescription = getShortPreviewText(product);
+  const commercialBadge = getCommercialBadge(product);
 
   return (
     <article className="group flex h-[29rem] flex-col overflow-hidden rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:h-[30rem]">
@@ -41,6 +56,11 @@ export function ProductCard({ product }: Props) {
       </div>
       <div className="flex flex-1 flex-col p-4">
         <p className="text-xs uppercase tracking-wide text-[var(--ink-soft)]">{product.categoria.nombre}</p>
+        {commercialBadge ? (
+          <p className="mt-1 inline-flex w-fit rounded-full bg-[var(--accent)]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
+            {commercialBadge}
+          </p>
+        ) : null}
         <h3
           className="mt-1 min-h-[3.2rem] text-lg font-semibold text-[var(--ink)]"
           style={{

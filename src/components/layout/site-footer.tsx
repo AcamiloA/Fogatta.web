@@ -94,9 +94,9 @@ export function SiteFooter() {
                 target="_blank"
                 rel="noreferrer"
                 onClick={() =>
-                  trackEvent(analyticsEvents.selectItem, {
-                    item_list_name: "social_links",
-                    item_name: "whatsapp",
+                  trackEvent(analyticsEvents.clickWhatsapp, {
+                    source: "footer",
+                    destination: whatsappHref,
                   })
                 }
                 aria-label="WhatsApp de FOGATTA"

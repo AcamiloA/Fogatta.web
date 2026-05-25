@@ -20,7 +20,19 @@ function toSummaryDTO(product: {
   id: string;
   slug: string;
   nombre: string;
+  resumen: string | null;
   descripcion: string;
+  historiaAroma: string | null;
+  notasOlfativas: string | null;
+  duracionAprox: string | null;
+  tamanoPeso: string | null;
+  idealPara: string | null;
+  instruccionesUso: string | null;
+  estadoComercial: "standard" | "new" | "limited" | "low_stock";
+  seoTitle: string | null;
+  seoDescription: string | null;
+  isFeatured: boolean;
+  sortOrder: number;
   precioReferencia: number;
   imagenes: string[];
   activo: boolean;
@@ -39,7 +51,19 @@ function toSummaryDTO(product: {
     id: product.id,
     slug: product.slug,
     nombre: product.nombre,
+    resumen: product.resumen,
     descripcion: product.descripcion,
+    historiaAroma: product.historiaAroma,
+    notasOlfativas: product.notasOlfativas,
+    duracionAprox: product.duracionAprox,
+    tamanoPeso: product.tamanoPeso,
+    idealPara: product.idealPara,
+    instruccionesUso: product.instruccionesUso,
+    estadoComercial: product.estadoComercial,
+    seoTitle: product.seoTitle,
+    seoDescription: product.seoDescription,
+    isFeatured: product.isFeatured,
+    sortOrder: product.sortOrder,
     precioReferencia: product.precioReferencia,
     imagenes: product.imagenes,
     activo: product.activo,
@@ -54,7 +78,19 @@ function toDetailDTO(product: {
   id: string;
   slug: string;
   nombre: string;
+  resumen: string | null;
   descripcion: string;
+  historiaAroma: string | null;
+  notasOlfativas: string | null;
+  duracionAprox: string | null;
+  tamanoPeso: string | null;
+  idealPara: string | null;
+  instruccionesUso: string | null;
+  estadoComercial: "standard" | "new" | "limited" | "low_stock";
+  seoTitle: string | null;
+  seoDescription: string | null;
+  isFeatured: boolean;
+  sortOrder: number;
   precioReferencia: number;
   imagenes: string[];
   activo: boolean;
@@ -98,9 +134,7 @@ export class PrismaCatalogRepository implements CatalogRepository {
       include: {
         category: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     });
 
     return products.map(toSummaryDTO);

@@ -10,11 +10,14 @@ export const analyticsEvents = {
   beginCheckout: "begin_checkout",
   startWhatsappCheckout: "start_whatsapp_checkout",
   whatsappClickSent: "whatsapp_click_sent",
+  clickWhatsapp: "click_whatsapp",
+  purchase: "purchase",
   generateLead: "generate_lead",
   contactSubmit: "contact_submit",
   catalogFilterSelect: "catalog_filter_select",
   faqFilterSelect: "faq_filter_select",
   blogCommentSubmit: "blog_comment_submit",
+  productReviewSubmit: "product_review_submit",
 } as const;
 
 export type AnalyticsEventName = (typeof analyticsEvents)[keyof typeof analyticsEvents];

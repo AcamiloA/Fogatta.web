@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export const productCommercialStatusSchema = z.enum([
+  "standard",
+  "new",
+  "limited",
+  "low_stock",
+]);
+
 export const categorySchema = z.object({
   id: z.string(),
   slug: z.string(),
@@ -26,7 +33,19 @@ export const productSummarySchema = z.object({
   id: z.string(),
   slug: z.string(),
   nombre: z.string(),
+  resumen: z.string().nullable(),
   descripcion: z.string(),
+  historiaAroma: z.string().nullable(),
+  notasOlfativas: z.string().nullable(),
+  duracionAprox: z.string().nullable(),
+  tamanoPeso: z.string().nullable(),
+  idealPara: z.string().nullable(),
+  instruccionesUso: z.string().nullable(),
+  estadoComercial: productCommercialStatusSchema,
+  seoTitle: z.string().nullable(),
+  seoDescription: z.string().nullable(),
+  isFeatured: z.boolean(),
+  sortOrder: z.number().int(),
   precioReferencia: z.number().int(),
   imagenes: z.array(z.string()).min(1),
   activo: z.boolean(),
@@ -52,3 +71,4 @@ export type CategoryDTO = z.infer<typeof categorySchema>;
 export type VariantDTO = z.infer<typeof variantSchema>;
 export type ProductSummaryDTO = z.infer<typeof productSummarySchema>;
 export type ProductDetailDTO = z.infer<typeof productDetailSchema>;
+export type ProductCommercialStatusDTO = z.infer<typeof productCommercialStatusSchema>;

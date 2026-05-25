@@ -39,6 +39,13 @@ enum StockReservationStatus {
   expired
 }
 
+enum ProductCommercialStatus {
+  standard
+  new
+  limited
+  low_stock
+}
+
 model InventorySupply {
   id           String                @id @default(cuid())
   nombre       String
@@ -119,14 +126,42 @@ model Product {
   nombre          String
   resumen         String?
   descripcion     String
+  historiaAroma   String?
+  notasOlfativas  String?
+  duracionAprox   String?
+  tamanoPeso      String?
+  idealPara       String?
+  instruccionesUso String?
+  estadoComercial ProductCommercialStatus @default(standard)
+  seoTitle        String?
+  seoDescription  String?
+  isFeatured      Boolean             @default(false)
+  sortOrder       Int                 @default(0)
   precioReferencia Int
   imagenes        String[]
   activo          Boolean             @default(true)
   categoryId      String
   category        Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   variantes       Variant[]
+  reviews         ProductReview[]
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
+}
+
+model ProductReview {
+  id          String        @id @default(cuid())
+  productId   String
+  nombre      String?
+  rating      Int
+  mensaje     String
+  fotos       String[]      @default([])
+  status      CommentStatus @default(pending)
+  product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  moderatedAt DateTime?
+
+  @@index([productId, status, createdAt])
 }
 
 model Variant {

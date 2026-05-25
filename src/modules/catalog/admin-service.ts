@@ -83,7 +83,19 @@ function toDetailDTO(product: {
   id: string;
   slug: string;
   nombre: string;
+  resumen: string | null;
   descripcion: string;
+  historiaAroma: string | null;
+  notasOlfativas: string | null;
+  duracionAprox: string | null;
+  tamanoPeso: string | null;
+  idealPara: string | null;
+  instruccionesUso: string | null;
+  estadoComercial: "standard" | "new" | "limited" | "low_stock";
+  seoTitle: string | null;
+  seoDescription: string | null;
+  isFeatured: boolean;
+  sortOrder: number;
   precioReferencia: number;
   imagenes: string[];
   activo: boolean;
@@ -115,7 +127,19 @@ function toDetailDTO(product: {
     id: product.id,
     slug: product.slug,
     nombre: product.nombre,
+    resumen: product.resumen,
     descripcion: product.descripcion,
+    historiaAroma: product.historiaAroma,
+    notasOlfativas: product.notasOlfativas,
+    duracionAprox: product.duracionAprox,
+    tamanoPeso: product.tamanoPeso,
+    idealPara: product.idealPara,
+    instruccionesUso: product.instruccionesUso,
+    estadoComercial: product.estadoComercial,
+    seoTitle: product.seoTitle,
+    seoDescription: product.seoDescription,
+    isFeatured: product.isFeatured,
+    sortOrder: product.sortOrder,
     precioReferencia: product.precioReferencia,
     imagenes: product.imagenes,
     activo: product.activo,
@@ -147,9 +171,7 @@ export class AdminCatalogService {
             },
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
       }),
     ]);
 
@@ -274,7 +296,19 @@ export class AdminCatalogService {
   async createProduct(input: {
     slug: string;
     nombre: string;
+    resumen?: string;
     descripcion: string;
+    historiaAroma?: string;
+    notasOlfativas?: string;
+    duracionAprox?: string;
+    tamanoPeso?: string;
+    idealPara?: string;
+    instruccionesUso?: string;
+    estadoComercial: "standard" | "new" | "limited" | "low_stock";
+    seoTitle?: string;
+    seoDescription?: string;
+    isFeatured: boolean;
+    sortOrder: number;
     imagenes: string[];
     activo: boolean;
     categoryId: string;
@@ -284,7 +318,19 @@ export class AdminCatalogService {
       data: {
         slug: input.slug.trim(),
         nombre: input.nombre.trim(),
+        resumen: input.resumen?.trim() || null,
         descripcion: input.descripcion.trim(),
+        historiaAroma: input.historiaAroma?.trim() || null,
+        notasOlfativas: input.notasOlfativas?.trim() || null,
+        duracionAprox: input.duracionAprox?.trim() || null,
+        tamanoPeso: input.tamanoPeso?.trim() || null,
+        idealPara: input.idealPara?.trim() || null,
+        instruccionesUso: input.instruccionesUso?.trim() || null,
+        estadoComercial: input.estadoComercial,
+        seoTitle: input.seoTitle?.trim() || null,
+        seoDescription: input.seoDescription?.trim() || null,
+        isFeatured: input.isFeatured,
+        sortOrder: input.sortOrder,
         precioReferencia: 0,
         imagenes: input.imagenes.map((image) => image.trim()).filter(Boolean),
         activo: input.activo,
@@ -298,7 +344,19 @@ export class AdminCatalogService {
     input: {
       slug?: string;
       nombre?: string;
+      resumen?: string;
       descripcion?: string;
+      historiaAroma?: string;
+      notasOlfativas?: string;
+      duracionAprox?: string;
+      tamanoPeso?: string;
+      idealPara?: string;
+      instruccionesUso?: string;
+      estadoComercial?: "standard" | "new" | "limited" | "low_stock";
+      seoTitle?: string;
+      seoDescription?: string;
+      isFeatured?: boolean;
+      sortOrder?: number;
       imagenes?: string[];
       activo?: boolean;
       categoryId?: string;
@@ -316,7 +374,19 @@ export class AdminCatalogService {
     const data: {
       slug?: string;
       nombre?: string;
+      resumen?: string | null;
       descripcion?: string;
+      historiaAroma?: string | null;
+      notasOlfativas?: string | null;
+      duracionAprox?: string | null;
+      tamanoPeso?: string | null;
+      idealPara?: string | null;
+      instruccionesUso?: string | null;
+      estadoComercial?: "standard" | "new" | "limited" | "low_stock";
+      seoTitle?: string | null;
+      seoDescription?: string | null;
+      isFeatured?: boolean;
+      sortOrder?: number;
       imagenes?: string[];
       activo?: boolean;
       categoryId?: string;
@@ -324,7 +394,19 @@ export class AdminCatalogService {
 
     if (input.slug !== undefined) data.slug = input.slug.trim();
     if (input.nombre !== undefined) data.nombre = input.nombre.trim();
+    if (input.resumen !== undefined) data.resumen = input.resumen.trim() || null;
     if (input.descripcion !== undefined) data.descripcion = input.descripcion.trim();
+    if (input.historiaAroma !== undefined) data.historiaAroma = input.historiaAroma.trim() || null;
+    if (input.notasOlfativas !== undefined) data.notasOlfativas = input.notasOlfativas.trim() || null;
+    if (input.duracionAprox !== undefined) data.duracionAprox = input.duracionAprox.trim() || null;
+    if (input.tamanoPeso !== undefined) data.tamanoPeso = input.tamanoPeso.trim() || null;
+    if (input.idealPara !== undefined) data.idealPara = input.idealPara.trim() || null;
+    if (input.instruccionesUso !== undefined) data.instruccionesUso = input.instruccionesUso.trim() || null;
+    if (input.estadoComercial !== undefined) data.estadoComercial = input.estadoComercial;
+    if (input.seoTitle !== undefined) data.seoTitle = input.seoTitle.trim() || null;
+    if (input.seoDescription !== undefined) data.seoDescription = input.seoDescription.trim() || null;
+    if (input.isFeatured !== undefined) data.isFeatured = input.isFeatured;
+    if (input.sortOrder !== undefined) data.sortOrder = input.sortOrder;
     if (input.imagenes !== undefined) {
       data.imagenes = normalizeImageUrls(input.imagenes);
     }
@@ -622,7 +704,7 @@ export class AdminCatalogService {
       return false;
     }
 
-    const [productsCount, variantsCount, blogPostsCount, themesCount] = await Promise.all([
+    const [productsCount, variantsCount, blogPostsCount, themesCount, productReviewsCount] = await Promise.all([
       db.product.count({
         where: {
           imagenes: {
@@ -656,9 +738,22 @@ export class AdminCatalogService {
           ],
         },
       }),
+      db.productReview.count({
+        where: {
+          fotos: {
+            has: normalized,
+          },
+        },
+      }),
     ]);
 
-    return productsCount > 0 || variantsCount > 0 || blogPostsCount > 0 || themesCount > 0;
+    return (
+      productsCount > 0 ||
+      variantsCount > 0 ||
+      blogPostsCount > 0 ||
+      themesCount > 0 ||
+      productReviewsCount > 0
+    );
   }
 
   private async cleanupUnusedImages(candidateUrls: string[]) {

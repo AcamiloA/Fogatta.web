@@ -7,6 +7,7 @@ import { formatCOP } from "@/lib/currency";
 import { analyticsEvents } from "@/modules/analytics/events";
 import { trackEvent } from "@/modules/analytics/track";
 import { useCart } from "@/modules/checkout-whatsapp/cart-context";
+import { siteConfig } from "@/config/site";
 
 export function CartSheet() {
   const { items, subtotal, setQuantity, removeItem, checkoutByWhatsApp, clearCart } = useCart();
@@ -153,6 +154,12 @@ export function CartSheet() {
             )}
 
             <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
+              <div className="rounded-xl border border-[var(--border)]/45 bg-[var(--surface-2)] p-3 text-xs text-[var(--fg-muted)]">
+                <p className="font-medium text-[var(--fg-strong)]">Antes de finalizar</p>
+                <p>Envios: cobertura nacional en Colombia.</p>
+                <p>Pagos: transferencia, Nequi y Daviplata.</p>
+                <p>Atencion: {siteConfig.supportHours}.</p>
+              </div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--fg-soft)]">
                 Datos para pedido por WhatsApp
               </h3>

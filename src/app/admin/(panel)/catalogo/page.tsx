@@ -1,4 +1,6 @@
 import { AdminCatalogManager } from "@/components/admin/admin-catalog-manager";
+import { AdminProductCommercialManager } from "@/components/admin/admin-product-commercial-manager";
+import { AdminProductReviewsManager } from "@/components/admin/admin-product-reviews-manager";
 
 export const metadata = {
   title: "Admin Catalogo",
@@ -14,6 +16,8 @@ export default function AdminCatalogPage() {
         </p>
       </div>
       <AdminCatalogManager />
+      <AdminProductCommercialManager />
+      <AdminProductReviewsManager />
     </section>
   );
 }
