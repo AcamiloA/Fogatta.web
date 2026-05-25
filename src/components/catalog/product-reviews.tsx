@@ -217,17 +217,31 @@ export function ProductReviews({ productSlug }: Props) {
             placeholder="Tu nombre (opcional)"
             className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm"
           />
-          <select
-            value={rating}
-            onChange={(event) => setRating(Number.parseInt(event.target.value, 10) || 5)}
-            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm"
-          >
-            {[5, 4, 3, 2, 1].map((value) => (
-              <option key={value} value={value}>
-                {value} estrella{value === 1 ? "" : "s"}
-              </option>
-            ))}
-          </select>
+          <div className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2">
+            <p className="text-xs text-[var(--fg-soft)]">Calificación</p>
+            <div className="mt-1 flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((value) => {
+                const active = value <= rating;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setRating(value)}
+                    className={`text-xl leading-none transition ${
+                      active ? "text-amber-500" : "text-[var(--fg-soft)]/55"
+                    } hover:scale-105`}
+                    aria-label={`Calificar con ${value} estrella${value === 1 ? "" : "s"}`}
+                    title={`${value} estrella${value === 1 ? "" : "s"}`}
+                  >
+                    ★
+                  </button>
+                );
+              })}
+              <span className="ml-2 text-xs text-[var(--fg-muted)]">
+                {rating} estrella{rating === 1 ? "" : "s"}
+              </span>
+            </div>
+          </div>
         </div>
 
         <textarea
