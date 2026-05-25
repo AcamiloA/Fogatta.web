@@ -1,6 +1,6 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-import { isAdminRequestAuthenticated } from "@/modules/admin/session";
+import { isInventoryRequestAuthenticated } from "@/modules/inventory/auth";
 import { listAdminProductReviewsResponseSchema } from "@/modules/reviews/admin-contracts";
 import { reviewStatusSchema } from "@/modules/reviews/contracts";
 import { ProductReviewsService } from "@/modules/reviews/service";
@@ -10,7 +10,7 @@ function unauthorized() {
 }
 
 export async function GET(request: NextRequest) {
-  if (!isAdminRequestAuthenticated(request)) {
+  if (!isInventoryRequestAuthenticated(request)) {
     return unauthorized();
   }
 
@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
     const reviews = await service.listForModeration(parsedStatus?.success ? parsedStatus.data : undefined);
     return NextResponse.json(listAdminProductReviewsResponseSchema.parse({ reviews }));
   } catch {
-    return NextResponse.json({ error: "No se pudieron cargar reseñas." }, { status: 500 });
+    return NextResponse.json({ error: "No se pudieron cargar rese�as." }, { status: 500 });
   }
 }
+
 

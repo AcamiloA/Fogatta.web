@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { isAdminRequestAuthenticated } from "@/modules/admin/session";
+import { isInventoryRequestAuthenticated } from "@/modules/inventory/auth";
 import { listAdminBlogCommentsResponseSchema } from "@/modules/blog/comments-admin-contracts";
 import { commentStatusSchema } from "@/modules/blog/comments-contracts";
 import { BlogCommentsService } from "@/modules/blog/comments-service";
@@ -10,7 +10,7 @@ function unauthorized() {
 }
 
 export async function GET(request: NextRequest) {
-  if (!isAdminRequestAuthenticated(request)) {
+  if (!isInventoryRequestAuthenticated(request)) {
     return unauthorized();
   }
 
@@ -28,3 +28,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "No se pudo cargar comentarios." }, { status: 500 });
   }
 }
+

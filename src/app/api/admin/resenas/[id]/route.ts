@@ -1,7 +1,7 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
-import { isAdminRequestAuthenticated } from "@/modules/admin/session";
+import { isInventoryRequestAuthenticated } from "@/modules/inventory/auth";
 import { updateAdminProductReviewStatusInputSchema } from "@/modules/reviews/admin-contracts";
 import { ProductReviewNotFoundError, ProductReviewsService } from "@/modules/reviews/service";
 
@@ -14,7 +14,7 @@ type Params = {
 };
 
 export async function PATCH(request: NextRequest, { params }: Params) {
-  if (!isAdminRequestAuthenticated(request)) {
+  if (!isInventoryRequestAuthenticated(request)) {
     return unauthorized();
   }
 
@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(request: NextRequest, { params }: Params) {
-  if (!isAdminRequestAuthenticated(request)) {
+  if (!isInventoryRequestAuthenticated(request)) {
     return unauthorized();
   }
 
