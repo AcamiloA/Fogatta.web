@@ -28,4 +28,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "No se pudo cargar comentarios." }, { status: 500 });
   }
 }
-

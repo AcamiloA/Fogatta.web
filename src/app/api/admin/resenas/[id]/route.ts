@@ -38,7 +38,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    return NextResponse.json({ error: "No se pudo actualizar la reseña." }, { status: 500 });
+    return NextResponse.json({ error: "No se pudo actualizar la resena." }, { status: 500 });
   }
 }
 
@@ -57,7 +57,6 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    return NextResponse.json({ error: "No se pudo eliminar la reseña." }, { status: 500 });
+    return NextResponse.json({ error: "No se pudo eliminar la resena." }, { status: 500 });
   }
 }
-

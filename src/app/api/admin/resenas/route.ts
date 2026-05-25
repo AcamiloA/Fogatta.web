@@ -25,8 +25,6 @@ export async function GET(request: NextRequest) {
     const reviews = await service.listForModeration(parsedStatus?.success ? parsedStatus.data : undefined);
     return NextResponse.json(listAdminProductReviewsResponseSchema.parse({ reviews }));
   } catch {
-    return NextResponse.json({ error: "No se pudieron cargar reseñas." }, { status: 500 });
+    return NextResponse.json({ error: "No se pudieron cargar resenas." }, { status: 500 });
   }
 }
-
-
