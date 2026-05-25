@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { analyticsEvents } from "@/modules/analytics/events";
 import { trackEvent } from "@/modules/analytics/track";
@@ -25,6 +25,7 @@ type Props = {
 };
 
 const MAX_MESSAGE = 800;
+const MAX_PHOTOS = 3;
 
 function formatDate(value: string) {
   const date = new Date(value);
@@ -37,7 +38,7 @@ function formatDate(value: string) {
 }
 
 function renderStars(value: number) {
-  return "?".repeat(value) + "?".repeat(Math.max(0, 5 - value));
+  return "\u2605".repeat(value) + "\u2606".repeat(Math.max(0, 5 - value));
 }
 
 export function ProductReviews({ productSlug }: Props) {
@@ -49,9 +50,12 @@ export function ProductReviews({ productSlug }: Props) {
   const [nombre, setNombre] = useState("");
   const [rating, setRating] = useState(5);
   const [mensaje, setMensaje] = useState("");
-  const [fotosRaw, setFotosRaw] = useState("");
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+  const [uploadFeedback, setUploadFeedback] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const remainingChars = useMemo(() => MAX_MESSAGE - mensaje.length, [mensaje]);
 
@@ -80,6 +84,63 @@ export function ProductReviews({ productSlug }: Props) {
     void loadReviews();
   }, [productSlug]);
 
+  async function handleUploadFiles(files: FileList | null) {
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const slots = MAX_PHOTOS - photoUrls.length;
+    if (slots <= 0) {
+      setUploadFeedback("Ya cargaste el máximo de 3 fotos.");
+      return;
+    }
+
+    setUploadingPhotos(true);
+    setUploadFeedback(null);
+
+    const selected = Array.from(files).slice(0, slots);
+    const uploaded: string[] = [];
+
+    for (const file of selected) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/api/reviews/upload-image", {
+          method: "POST",
+          body: formData,
+        });
+        const payload = (await response.json()) as { error?: string; url?: string };
+
+        if (!response.ok || !payload.url) {
+          throw new Error(payload.error || "No se pudo subir una imagen.");
+        }
+
+        uploaded.push(payload.url);
+      } catch (error) {
+        setUploadFeedback(error instanceof Error ? error.message : "Error subiendo fotos.");
+      }
+    }
+
+    if (uploaded.length > 0) {
+      setPhotoUrls((current) => [...current, ...uploaded].slice(0, MAX_PHOTOS));
+      setUploadFeedback(
+        uploaded.length === 1
+          ? "1 foto cargada correctamente."
+          : `${uploaded.length} fotos cargadas correctamente.`,
+      );
+    }
+
+    setUploadingPhotos(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
+  function removePhoto(url: string) {
+    setPhotoUrls((current) => current.filter((item) => item !== url));
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) {
@@ -90,12 +151,6 @@ export function ProductReviews({ productSlug }: Props) {
     setFeedback(null);
 
     try {
-      const fotos = fotosRaw
-        .split("\n")
-        .map((value) => value.trim())
-        .filter(Boolean)
-        .slice(0, 3);
-
       const response = await fetch(`/api/catalogo/productos/${productSlug}/resenas`, {
         method: "POST",
         headers: {
@@ -105,7 +160,7 @@ export function ProductReviews({ productSlug }: Props) {
           nombre: nombre.trim() || undefined,
           rating,
           mensaje: mensaje.trim(),
-          fotos,
+          fotos: photoUrls,
         }),
       });
 
@@ -122,13 +177,14 @@ export function ProductReviews({ productSlug }: Props) {
 
       setFeedback({
         tone: "success",
-        message: payload.message || "Tu reseña se envio y quedo pendiente de aprobacion.",
+        message: payload.message || "Tu reseña se envío y quedó pendiente de aprobación.",
       });
 
       setNombre("");
       setRating(5);
       setMensaje("");
-      setFotosRaw("");
+      setPhotoUrls([]);
+      setUploadFeedback(null);
       await loadReviews();
     } catch (submitError) {
       setFeedback({
@@ -147,7 +203,7 @@ export function ProductReviews({ productSlug }: Props) {
         <p className="text-sm text-[var(--fg-muted)]">
           {totalReviews > 0
             ? `${averageRating.toFixed(1)} / 5 (${totalReviews} reseñas)`
-            : "Aun no hay reseñas aprobadas."}
+            : "Aún no hay reseñas aprobadas."}
         </p>
       </div>
 
@@ -183,12 +239,41 @@ export function ProductReviews({ productSlug }: Props) {
         />
         <p className="text-xs text-[var(--fg-soft)]">Caracteres disponibles: {remainingChars}</p>
 
-        <textarea
-          value={fotosRaw}
-          onChange={(event) => setFotosRaw(event.target.value)}
-          placeholder="URLs de fotos (opcional, una por linea, maximo 3)"
-          className="min-h-16 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm"
-        />
+        <div className="space-y-2 rounded-lg border border-[var(--input-border)]/65 bg-[var(--surface-3)] p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-[var(--fg-muted)]">Fotos opcionales ({photoUrls.length}/{MAX_PHOTOS})</p>
+            <label className="inline-flex cursor-pointer rounded-lg border border-[var(--accent)]/45 px-3 py-1.5 text-xs text-[var(--fg-strong)] hover:bg-[var(--surface)]">
+              {uploadingPhotos ? "Subiendo..." : "Seleccionar fotos"}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={(event) => void handleUploadFiles(event.target.files)}
+                disabled={uploadingPhotos || photoUrls.length >= MAX_PHOTOS}
+              />
+            </label>
+          </div>
+          <p className="text-xs text-[var(--fg-soft)]">Máximo 3 fotos. Límite por foto: 15 MB.</p>
+          {uploadFeedback ? <p className="text-xs text-[var(--fg-soft)]">{uploadFeedback}</p> : null}
+          {photoUrls.length ? (
+            <div className="grid gap-2 sm:grid-cols-3">
+              {photoUrls.map((url) => (
+                <div key={url} className="relative overflow-hidden rounded-lg border border-[var(--border)]/45">
+                  <img src={url} alt="Foto seleccionada" className="h-24 w-full object-cover" loading="lazy" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(url)}
+                    className="absolute right-1 top-1 rounded bg-black/60 px-2 py-0.5 text-[10px] text-white"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
 
         {feedback ? (
           <p
@@ -204,7 +289,7 @@ export function ProductReviews({ productSlug }: Props) {
 
         <button
           type="submit"
-          disabled={submitting || !mensaje.trim()}
+          disabled={submitting || uploadingPhotos || !mensaje.trim()}
           className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
         >
           {submitting ? "Enviando..." : "Enviar reseña"}
@@ -214,7 +299,7 @@ export function ProductReviews({ productSlug }: Props) {
       {loading ? <p className="text-sm text-[var(--fg-muted)]">Cargando reseñas...</p> : null}
 
       {!loading && reviews.length === 0 ? (
-        <p className="text-sm text-[var(--fg-muted)]">Todavia no hay reseñas visibles para este producto.</p>
+        <p className="text-sm text-[var(--fg-muted)]">Todavía no hay reseñas visibles para este producto.</p>
       ) : null}
 
       <div className="space-y-3">
