@@ -312,11 +312,11 @@ function updateVariantDraft(variantId: string, field: keyof VariantDraft, value:
     const stockVirtual = Number.parseInt(draft.stockVirtual || "0", 10);
     const stockMinimoAlerta = Number.parseInt(draft.stockMinimoAlerta || "0", 10);
     if (!Number.isFinite(stockVirtual) || stockVirtual < 0) {
-      showFeedback(scope, "warning", "Stock virtual invalido.");
+      showFeedback(scope, "warning", "Stock virtual inválido.");
       return;
     }
     if (!Number.isFinite(stockMinimoAlerta) || stockMinimoAlerta < 0) {
-      showFeedback(scope, "warning", "Stock minimo alerta invalido.");
+      showFeedback(scope, "warning", "Stock mínimo alerta inválido.");
       return;
     }
 
@@ -359,11 +359,11 @@ function updateVariantDraft(variantId: string, field: keyof VariantDraft, value:
       return;
     }
     if (!Number.isFinite(cantidadTotal) || cantidadTotal <= 0) {
-      showFeedback(scope, "warning", "Cantidad comprada invalida.");
+      showFeedback(scope, "warning", "Cantidad comprada inválida.");
       return;
     }
     if (!Number.isFinite(precioTotal) || precioTotal < 0) {
-      showFeedback(scope, "warning", "Costo total invalido.");
+      showFeedback(scope, "warning", "Costo total inválido.");
       return;
     }
 
@@ -406,11 +406,11 @@ function updateVariantDraft(variantId: string, field: keyof VariantDraft, value:
       return;
     }
     if (!Number.isFinite(cantidadTotal) || cantidadTotal <= 0) {
-      showFeedback(scope, "warning", "Cantidad comprada invalida.");
+      showFeedback(scope, "warning", "Cantidad comprada inválida.");
       return;
     }
     if (!Number.isFinite(precioTotal) || precioTotal < 0) {
-      showFeedback(scope, "warning", "Costo total invalido.");
+      showFeedback(scope, "warning", "Costo total inválido.");
       return;
     }
 
@@ -462,7 +462,7 @@ function updateVariantDraft(variantId: string, field: keyof VariantDraft, value:
             onChange={(event) => setCategoryFilter(event.target.value)}
             className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           >
-            <option value="all">Todas las categorias</option>
+            <option value="all">Todas las categorías</option>
             {(catalog?.categories ?? []).map((category) => (
               <option key={category.id} value={category.id}>{category.nombre}</option>
             ))}
@@ -600,7 +600,7 @@ function updateVariantDraft(variantId: string, field: keyof VariantDraft, value:
       <section className="space-y-4 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4">
         <h3 className="text-xl text-[var(--fg-strong)]">Capacidad estimada de produccion</h3>
         <p className="text-sm text-[var(--fg-muted)]">Estimacion por receta con materia prima activa. No considera consumo cruzado entre recetas.</p>
-        {!capacityRows.length ? <p className="text-sm text-[var(--fg-muted)]">Aun no hay recetas para calcular capacidad.</p> : null}
+        {!capacityRows.length ? <p className="text-sm text-[var(--fg-muted)]">Aún no hay recetas para calcular capacidad.</p> : null}
         <div className="space-y-3">
           {capacityRows.map((row) => (
             <article key={row.id} className="rounded-xl border border-[var(--border)]/40 bg-[var(--surface)] p-4">

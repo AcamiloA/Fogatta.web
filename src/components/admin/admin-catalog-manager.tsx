@@ -196,6 +196,9 @@ export function AdminCatalogManager() {
   const [categoryFilterTerm, setCategoryFilterTerm] = useState("");
   const [productFilterCategoryId, setProductFilterCategoryId] = useState("all");
   const [productFilterTerm, setProductFilterTerm] = useState("");
+  const [expandedProductIds, setExpandedProductIds] = useState<string[]>([]);
+  const [productsPerPage, setProductsPerPage] = useState(10);
+  const [productPage, setProductPage] = useState(1);
 
   const clearFeedback = useCallback((scope?: string) => {
     setFeedback((current) => {
@@ -419,7 +422,7 @@ export function AdminCatalogManager() {
       return;
     }
     if (newProduct.imagenes.length > MAX_PRODUCT_IMAGES) {
-      showFeedback(scope, "warning", `Maximo ${MAX_PRODUCT_IMAGES} imagen por producto.`);
+      showFeedback(scope, "warning", `Máximo ${MAX_PRODUCT_IMAGES} imagen por producto.`);
       return;
     }
 
@@ -845,6 +848,54 @@ export function AdminCatalogManager() {
     });
   }, [catalog?.products, normalizedProductFilter, productFilterCategoryId]);
 
+  const totalProductPages = useMemo(
+    () => Math.max(1, Math.ceil(filteredProducts.length / productsPerPage)),
+    [filteredProducts.length, productsPerPage],
+  );
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (productPage - 1) * productsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [filteredProducts, productPage, productsPerPage]);
+
+  useEffect(() => {
+    setProductPage(1);
+  }, [normalizedProductFilter, productFilterCategoryId, productsPerPage]);
+
+  useEffect(() => {
+    setProductPage((current) => Math.min(current, totalProductPages));
+  }, [totalProductPages]);
+
+  useEffect(() => {
+    const availableIds = new Set(filteredProducts.map((product) => product.id));
+    setExpandedProductIds((current) => current.filter((productId) => availableIds.has(productId)));
+  }, [filteredProducts]);
+
+  const allVisibleExpanded =
+    paginatedProducts.length > 0 && paginatedProducts.every((product) => expandedProductIds.includes(product.id));
+
+  function toggleProductExpansion(productId: string) {
+    setExpandedProductIds((current) =>
+      current.includes(productId)
+        ? current.filter((id) => id !== productId)
+        : [...current, productId],
+    );
+  }
+
+  function setVisibleExpansion(expand: boolean) {
+    setExpandedProductIds((current) => {
+      const currentSet = new Set(current);
+      for (const product of paginatedProducts) {
+        if (expand) {
+          currentSet.add(product.id);
+        } else {
+          currentSet.delete(product.id);
+        }
+      }
+      return Array.from(currentSet);
+    });
+  }
+
   if (loading) {
     return <p className="text-sm text-[var(--fg-muted)]">Cargando catálogo...</p>;
   }
@@ -1121,6 +1172,37 @@ export function AdminCatalogManager() {
           <p className="text-xs text-[var(--fg-soft)] md:col-span-3">
             Mostrando {filteredProducts.length} de {catalog?.products.length ?? 0} productos.
           </p>
+          <label className="space-y-1 text-sm text-[var(--fg-muted)]">
+            Productos por página
+            <select
+              value={productsPerPage}
+              onChange={(event) => setProductsPerPage(Number(event.target.value))}
+              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </label>
+          <div className="flex items-end gap-2 md:col-span-2 md:justify-end">
+            <button
+              type="button"
+              onClick={() => setVisibleExpansion(!allVisibleExpanded)}
+              disabled={!paginatedProducts.length}
+              className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {allVisibleExpanded ? "Contraer visibles" : "Expandir visibles"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setExpandedProductIds([])}
+              disabled={!expandedProductIds.length}
+              className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Contraer todo
+            </button>
+          </div>
         </div>
 
         {!catalog?.products.length ? (
@@ -1130,7 +1212,7 @@ export function AdminCatalogManager() {
             No encontramos productos con ese filtro.
           </p>
         ) : null}
-        {filteredProducts.map((product) => {
+        {paginatedProducts.map((product) => {
           const matchingVariants = normalizedProductFilter
             ? product.variantes.filter((variant) =>
                 normalizeForMatch(`${variant.nombreVariante} ${variant.sku}`).includes(
@@ -1142,157 +1224,192 @@ export function AdminCatalogManager() {
             normalizedProductFilter && matchingVariants.length > 0
               ? matchingVariants
               : product.variantes;
+          const isExpanded = expandedProductIds.includes(product.id);
+          const categoryName =
+            categoryOptions.find((category) => category.id === product.categoryId)?.nombre ??
+            product.categoria.nombre;
+          const shortDescription =
+            product.descripcion.length > 150
+              ? `${product.descripcion.slice(0, 147).trimEnd()}...`
+              : product.descripcion;
 
           return (
             <article
               key={product.id}
               className="space-y-4 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5"
             >
-              {renderFeedback(`product-${product.id}`)}
-              <div className="grid gap-2 md:grid-cols-2">
-              <input
-                value={product.nombre}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({ ...current, nombre: event.target.value }))
-                }
-                className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
-              <textarea
-                value={product.descripcion}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    descripcion: event.target.value,
-                  }))
-                }
-                placeholder="Descripción larga"
-                className="min-h-20 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)] md:col-span-2"
-              />
-              <select
-                value={product.categoryId}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    categoryId: event.target.value,
-                  }))
-                }
-                className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-              >
-                {categoryOptions.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.nombre}
-                  </option>
-                ))}
-              </select>
-              <div className="space-y-2 md:col-span-2">
-                <p className="text-xs text-[var(--fg-muted)]">
-                  Imágenes ({product.imagenes.length}/{MAX_PRODUCT_IMAGES})
-                </p>
-                {product.imagenes.length ? (
-                  <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-                    {product.imagenes.map((image, index) => (
-                      <div
-                        key={`${product.id}-${index}-${image}`}
-                        className="relative h-20 overflow-hidden rounded-lg border border-[var(--border)]"
-                      >
-                        <Image
-                          src={image}
-                          alt={`${product.nombre} ${index + 1}`}
-                          fill
-                          className="object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              imagenes: current.imagenes.filter((_, imageIndex) => imageIndex !== index),
-                            }))
-                          }
-                          className="absolute right-1 top-1 rounded bg-black/70 px-2 py-1 text-[10px] text-white"
-                        >
-                          Quitar
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-[var(--fg-muted)]">Sin imágenes.</p>
-                )}
-              </div>
-              <label className="flex items-center gap-2 text-sm text-[var(--fg-muted)]">
-                <input
-                  type="checkbox"
-                  checked={product.activo}
-                  onChange={(event) =>
-                    updateProductState(product.id, (current) => ({
-                      ...current,
-                      activo: event.target.checked,
-                    }))
-                  }
-                />
-                Activo
-              </label>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => void saveProduct(product)}
-                disabled={busyId === `save-product-${product.id}`}
-                className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
-              >
-                {busyId === `save-product-${product.id}` ? "Guardando..." : "Guardar producto"}
-              </button>
-              <button
-                type="button"
-                onClick={() => void deleteProduct(product.id)}
-                disabled={busyId === `delete-product-${product.id}`}
-                className="rounded-lg border border-rose-400 px-4 py-2 text-sm text-rose-600 disabled:opacity-60"
-              >
-                {busyId === `delete-product-${product.id}` ? "Eliminando..." : "Eliminar producto"}
-              </button>
-              <label className="inline-flex cursor-pointer items-center rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)]">
-                Subir imagen
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,image/avif"
-                  onChange={async (event) => {
-                    const input = event.currentTarget;
-                    const file = input.files?.[0];
-                    if (!file) return;
-                    const url = await uploadImage(file, `upload-image-${product.id}`, `product-${product.id}`);
-                    if (url) {
-                      updateProductState(product.id, (current) => ({
-                        ...current,
-                        imagenes: [url],
-                      }));
-                    }
-                    input.value = "";
-                  }}
-                  className="sr-only"
-                />
-              </label>
-            </div>
-
-            <div className="space-y-3 rounded-xl border border-[var(--border)]/30 bg-[var(--surface)] p-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg text-[var(--fg-strong)]">Variantes</h3>
+              <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-[var(--border)]/40 bg-[var(--surface-3)] p-3">
+                <div className="space-y-1">
+                  <h3 className="text-lg text-[var(--fg-strong)]">{product.nombre}</h3>
+                  <p className="text-xs text-[var(--fg-muted)]">
+                    {categoryName} · {product.variantes.length} variante{product.variantes.length === 1 ? "" : "s"} ·{" "}
+                    {product.activo ? "Activo" : "Inactivo"}
+                  </p>
+                  {!isExpanded ? (
+                    <p className="max-w-3xl text-sm text-[var(--fg-soft)]">{shortDescription}</p>
+                  ) : null}
+                </div>
                 <button
                   type="button"
-                  onClick={() => void createVariant(product.id)}
-                  disabled={busyId === `create-variant-${product.id}`}
-                  className="rounded-lg border border-[var(--border)] px-3 py-1 text-xs text-[var(--fg-muted)] hover:text-[var(--fg-strong)]"
+                  onClick={() => toggleProductExpansion(product.id)}
+                  className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)] hover:text-[var(--fg-strong)]"
                 >
-                  {busyId === `create-variant-${product.id}` ? "Creando..." : "Nueva variante"}
+                  {isExpanded ? "Contraer" : "Editar"}
                 </button>
               </div>
-              {normalizedProductFilter && visibleVariants.length !== product.variantes.length ? (
-                <p className="text-xs text-[var(--fg-soft)]">
-                  Mostrando {visibleVariants.length} de {product.variantes.length} variantes.
-                </p>
-              ) : null}
-              {visibleVariants.map((variant) => (
+
+              {renderFeedback(`product-${product.id}`)}
+
+              {isExpanded ? (
+                <>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <input
+                      value={product.nombre}
+                      onChange={(event) =>
+                        updateProductState(product.id, (current) => ({ ...current, nombre: event.target.value }))
+                      }
+                      className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    />
+                    <textarea
+                      value={product.descripcion}
+                      onChange={(event) =>
+                        updateProductState(product.id, (current) => ({
+                          ...current,
+                          descripcion: event.target.value,
+                        }))
+                      }
+                      placeholder="Descripción larga"
+                      className="min-h-20 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)] md:col-span-2"
+                    />
+                    <select
+                      value={product.categoryId}
+                      onChange={(event) =>
+                        updateProductState(product.id, (current) => ({
+                          ...current,
+                          categoryId: event.target.value,
+                        }))
+                      }
+                      className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    >
+                      {categoryOptions.map((category) => (
+                        <option key={category.id} value={category.id}>
+                          {category.nombre}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="space-y-2 md:col-span-2">
+                      <p className="text-xs text-[var(--fg-muted)]">
+                        Imágenes ({product.imagenes.length}/{MAX_PRODUCT_IMAGES})
+                      </p>
+                      {product.imagenes.length ? (
+                        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                          {product.imagenes.map((image, index) => (
+                            <div
+                              key={`${product.id}-${index}-${image}`}
+                              className="relative h-20 overflow-hidden rounded-lg border border-[var(--border)]"
+                            >
+                              <Image
+                                src={image}
+                                alt={`${product.nombre} ${index + 1}`}
+                                fill
+                                className="object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  updateProductState(product.id, (current) => ({
+                                    ...current,
+                                    imagenes: current.imagenes.filter((_, imageIndex) => imageIndex !== index),
+                                  }))
+                                }
+                                className="absolute right-1 top-1 rounded bg-black/70 px-2 py-1 text-[10px] text-white"
+                              >
+                                Quitar
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-[var(--fg-muted)]">Sin imágenes.</p>
+                      )}
+                    </div>
+                    <label className="flex items-center gap-2 text-sm text-[var(--fg-muted)]">
+                      <input
+                        type="checkbox"
+                        checked={product.activo}
+                        onChange={(event) =>
+                          updateProductState(product.id, (current) => ({
+                            ...current,
+                            activo: event.target.checked,
+                          }))
+                        }
+                      />
+                      Activo
+                    </label>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => void saveProduct(product)}
+                      disabled={busyId === `save-product-${product.id}`}
+                      className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
+                    >
+                      {busyId === `save-product-${product.id}` ? "Guardando..." : "Guardar producto"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void deleteProduct(product.id)}
+                      disabled={busyId === `delete-product-${product.id}`}
+                      className="rounded-lg border border-rose-400 px-4 py-2 text-sm text-rose-600 disabled:opacity-60"
+                    >
+                      {busyId === `delete-product-${product.id}` ? "Eliminando..." : "Eliminar producto"}
+                    </button>
+                    <label className="inline-flex cursor-pointer items-center rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)]">
+                      Subir imagen
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/avif"
+                        onChange={async (event) => {
+                          const input = event.currentTarget;
+                          const file = input.files?.[0];
+                          if (!file) return;
+                          const url = await uploadImage(
+                            file,
+                            `upload-image-${product.id}`,
+                            `product-${product.id}`,
+                          );
+                          if (url) {
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              imagenes: [url],
+                            }));
+                          }
+                          input.value = "";
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="space-y-3 rounded-xl border border-[var(--border)]/30 bg-[var(--surface)] p-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg text-[var(--fg-strong)]">Variantes</h3>
+                      <button
+                        type="button"
+                        onClick={() => void createVariant(product.id)}
+                        disabled={busyId === `create-variant-${product.id}`}
+                        className="rounded-lg border border-[var(--border)] px-3 py-1 text-xs text-[var(--fg-muted)] hover:text-[var(--fg-strong)]"
+                      >
+                        {busyId === `create-variant-${product.id}` ? "Creando..." : "Nueva variante"}
+                      </button>
+                    </div>
+                    {normalizedProductFilter && visibleVariants.length !== product.variantes.length ? (
+                      <p className="text-xs text-[var(--fg-soft)]">
+                        Mostrando {visibleVariants.length} de {product.variantes.length} variantes.
+                      </p>
+                    ) : null}
+                    {visibleVariants.map((variant) => (
                 <div
                   key={variant.id}
                   className="grid gap-2 rounded-lg border border-[var(--border)]/30 bg-[var(--surface-2)] p-3 md:grid-cols-6"
@@ -1433,7 +1550,7 @@ export function AdminCatalogManager() {
                   </div>
                   <div className="space-y-2 md:col-span-6">
                     <p className="text-xs text-[var(--fg-muted)]">
-                      Imagenes de la variante ({variant.imagenes.length}/{MAX_VARIANT_IMAGES})
+                      Imágenes de la variante ({variant.imagenes.length}/{MAX_VARIANT_IMAGES})
                     </p>
                     {variant.imagenes.length ? (
                       <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
@@ -1464,7 +1581,7 @@ export function AdminCatalogManager() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-[var(--fg-muted)]">Sin imagenes en esta variante.</p>
+                      <p className="text-xs text-[var(--fg-muted)]">Sin imágenes en esta variante.</p>
                     )}
                     <label className="inline-flex cursor-pointer rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)]">
                       Subir imagen variante
@@ -1480,7 +1597,7 @@ export function AdminCatalogManager() {
                             showFeedback(
                               `variant-${variant.id}`,
                               "warning",
-                              `Maximo ${MAX_VARIANT_IMAGES} imagenes por variante.`,
+                              `Máximo ${MAX_VARIANT_IMAGES} imágenes por variante.`,
                             );
                             input.value = "";
                             return;
@@ -1518,14 +1635,41 @@ export function AdminCatalogManager() {
                     {busyId === `delete-variant-${variant.id}` ? "Eliminando..." : "Eliminar variante"}
                   </button>
                 </div>
-              ))}
-              {!visibleVariants.length ? (
-                <p className="text-xs text-[var(--fg-muted)]">Sin variantes todavía.</p>
+                    ))}
+                    {!visibleVariants.length ? (
+                      <p className="text-xs text-[var(--fg-muted)]">Sin variantes todavía.</p>
+                    ) : null}
+                  </div>
+                </>
               ) : null}
-            </div>
           </article>
           );
         })}
+        {filteredProducts.length > productsPerPage ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--border)]/45 bg-[var(--surface-2)] p-4">
+            <p className="text-xs text-[var(--fg-soft)]">
+              Página {productPage} de {totalProductPages}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setProductPage((current) => Math.max(1, current - 1))}
+                disabled={productPage === 1}
+                className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                onClick={() => setProductPage((current) => Math.min(totalProductPages, current + 1))}
+                disabled={productPage >= totalProductPages}
+                className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
+        ) : null}
       </section>
     </div>
   );

@@ -3,16 +3,16 @@ import { AdminProductCommercialManager } from "@/components/admin/admin-product-
 import { AdminProductReviewsManager } from "@/components/admin/admin-product-reviews-manager";
 
 export const metadata = {
-  title: "Admin Catalogo",
+  title: "Admin Catálogo",
 };
 
 export default function AdminCatalogPage() {
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-2xl text-[var(--fg-strong)]">Catalogo</h2>
+        <h2 className="text-2xl text-[var(--fg-strong)]">Catálogo</h2>
         <p className="text-sm text-[var(--fg-muted)]">
-          Gestiona categorias, productos y variantes.
+          Gestiona categorías, productos y variantes.
         </p>
       </div>
       <AdminCatalogManager />

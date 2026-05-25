@@ -155,15 +155,15 @@ export function AdminBlogManager() {
     const slug = toSlug(titulo);
 
     if (!titulo || !slug) {
-      showFeedback(scope, "warning", "Ingresa un titulo valido.");
+      showFeedback(scope, "warning", "Ingresa un título válido.");
       return;
     }
     if (titulo.length < 2 || titulo.length > 180) {
-      showFeedback(scope, "warning", "El titulo debe tener entre 2 y 180 caracteres.");
+      showFeedback(scope, "warning", "El título debe tener entre 2 y 180 caracteres.");
       return;
     }
     if (!autor) {
-      showFeedback(scope, "warning", "Ingresa el autor del articulo.");
+      showFeedback(scope, "warning", "Ingresa el autor del artículo.");
       return;
     }
     if (autor.length < 2 || autor.length > 120) {
@@ -183,7 +183,7 @@ export function AdminBlogManager() {
       return;
     }
     if (!contenido) {
-      showFeedback(scope, "warning", "Ingresa el contenido del articulo.");
+      showFeedback(scope, "warning", "Ingresa el contenido del artículo.");
       return;
     }
     if (contenido.length < 20 || contenido.length > BLOG_CONTENT_MAX_CHARACTERS) {
@@ -212,7 +212,7 @@ export function AdminBlogManager() {
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(resolveApiError(payload, "No se pudo crear el articulo."));
+        throw new Error(resolveApiError(payload, "No se pudo crear el artículo."));
       }
 
       setNewPost({
@@ -227,7 +227,7 @@ export function AdminBlogManager() {
       showFeedback(
         scope,
         "error",
-        createError instanceof Error ? createError.message : "Error creando articulo.",
+        createError instanceof Error ? createError.message : "Error creando artículo.",
       );
     } finally {
       setBusyId(null);
@@ -243,11 +243,11 @@ export function AdminBlogManager() {
     const slug = toSlug(titulo);
 
     if (!titulo || !slug) {
-      showFeedback(scope, "warning", "El titulo del articulo no es valido.");
+      showFeedback(scope, "warning", "El título del artículo no es válido.");
       return;
     }
     if (titulo.length < 2 || titulo.length > 180) {
-      showFeedback(scope, "warning", "El titulo debe tener entre 2 y 180 caracteres.");
+      showFeedback(scope, "warning", "El título debe tener entre 2 y 180 caracteres.");
       return;
     }
     if (!autor) {
@@ -296,7 +296,7 @@ export function AdminBlogManager() {
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(resolveApiError(payload, "No se pudo guardar el articulo."));
+        throw new Error(resolveApiError(payload, "No se pudo guardar el artículo."));
       }
 
       await loadPosts();
@@ -305,7 +305,7 @@ export function AdminBlogManager() {
       showFeedback(
         scope,
         "error",
-        saveError instanceof Error ? saveError.message : "Error guardando articulo.",
+        saveError instanceof Error ? saveError.message : "Error guardando artículo.",
       );
     } finally {
       setBusyId(null);
@@ -314,7 +314,7 @@ export function AdminBlogManager() {
 
   async function deletePost(post: BlogPost) {
     const scope = `blog-post-${post.id}`;
-    const confirmed = window.confirm(`Vas a eliminar "${post.titulo}". Esta accion no se puede deshacer.`);
+    const confirmed = window.confirm(`Vas a eliminar "${post.titulo}". Esta acción no se puede deshacer.`);
     if (!confirmed) {
       return;
     }
@@ -328,7 +328,7 @@ export function AdminBlogManager() {
 
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(resolveApiError(payload, "No se pudo eliminar el articulo."));
+        throw new Error(resolveApiError(payload, "No se pudo eliminar el artículo."));
       }
 
       await loadPosts();
@@ -337,7 +337,7 @@ export function AdminBlogManager() {
       showFeedback(
         scope,
         "error",
-        deleteError instanceof Error ? deleteError.message : "Error eliminando articulo.",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando artículo.",
       );
     } finally {
       setBusyId(null);
@@ -356,12 +356,12 @@ export function AdminBlogManager() {
     <div className="space-y-6">
       <section className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
         {renderFeedback("blog-create")}
-        <h2 className="text-xl text-[var(--fg-strong)]">Crear articulo</h2>
+        <h2 className="text-xl text-[var(--fg-strong)]">Crear artículo</h2>
         <div className="grid gap-2">
           <input
             value={newPost.titulo}
             onChange={(event) => setNewPost((current) => ({ ...current, titulo: event.target.value }))}
-            placeholder="Titulo del articulo"
+            placeholder="Título del artículo"
             className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           />
           <input
@@ -406,7 +406,7 @@ export function AdminBlogManager() {
             disabled={busyId === "create-post"}
             className="w-fit rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
           >
-            {busyId === "create-post" ? "Creando..." : "Crear articulo"}
+            {busyId === "create-post" ? "Creando..." : "Crear artículo"}
           </button>
         </div>
       </section>
@@ -415,7 +415,7 @@ export function AdminBlogManager() {
         {renderFeedback("blog-list")}
         <h2 className="text-2xl text-[var(--fg-strong)]">Articulos</h2>
         {!posts.length ? (
-          <p className="text-sm text-[var(--fg-muted)]">Aun no hay articulos registrados.</p>
+          <p className="text-sm text-[var(--fg-muted)]">Aún no hay artículos registrados.</p>
         ) : null}
         {posts.map((post) => (
           <article
@@ -476,7 +476,7 @@ export function AdminBlogManager() {
                 disabled={busyId === `save-post-${post.id}`}
                 className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
               >
-                {busyId === `save-post-${post.id}` ? "Guardando..." : "Guardar articulo"}
+                {busyId === `save-post-${post.id}` ? "Guardando..." : "Guardar artículo"}
               </button>
               <button
                 type="button"
@@ -484,7 +484,7 @@ export function AdminBlogManager() {
                 disabled={busyId === `delete-post-${post.id}`}
                 className="rounded-lg border border-rose-400 px-4 py-2 text-sm text-rose-600 disabled:opacity-60"
               >
-                {busyId === `delete-post-${post.id}` ? "Eliminando..." : "Eliminar articulo"}
+                {busyId === `delete-post-${post.id}` ? "Eliminando..." : "Eliminar artículo"}
               </button>
             </div>
           </article>

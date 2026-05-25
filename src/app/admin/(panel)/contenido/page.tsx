@@ -12,7 +12,7 @@ export default function AdminContentPage() {
       <div>
         <h2 className="text-2xl text-[var(--fg-strong)]">Contenido</h2>
         <p className="mt-2 text-sm text-[var(--fg-muted)]">
-          Gestiona portada, seccion nosotros, FAQ, legales y blog sin tocar codigo.
+          Gestiona portada, sección nosotros, FAQ, legales y blog sin tocar código.
         </p>
       </div>
       <AdminContentManager />

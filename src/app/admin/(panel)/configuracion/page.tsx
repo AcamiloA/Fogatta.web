@@ -2,7 +2,7 @@ import { AdminThemeSettingsManager } from "@/components/admin/admin-theme-settin
 import { requireAdminRole } from "@/modules/admin/session";
 
 export const metadata = {
-  title: "Admin Configuracion",
+  title: "Admin Configuración",
 };
 
 export default async function AdminSettingsPage() {
@@ -11,9 +11,9 @@ export default async function AdminSettingsPage() {
   return (
     <section className="space-y-4">
       <header className="rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
-        <h2 className="text-2xl text-[var(--fg-strong)]">Configuracion de temas</h2>
+        <h2 className="text-2xl text-[var(--fg-strong)]">Configuración de temas</h2>
         <p className="mt-2 text-sm text-[var(--fg-muted)]">
-          Crea y administra temas personalizados con imagenes, iconos y animaciones sin tocar codigo.
+          Crea y administra temas personalizados con imágenes, íconos y animaciones sin tocar código.
         </p>
       </header>
       <AdminThemeSettingsManager />

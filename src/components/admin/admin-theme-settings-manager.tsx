@@ -179,7 +179,7 @@ export function AdminThemeSettingsManager() {
       const response = await fetch("/api/admin/configuracion/temas", { cache: "no-store" });
       const payload = (await response.json()) as ThemePayload | ApiErrorPayload;
       if (!response.ok) {
-        throw new Error(resolveApiError(payload, "No se pudo cargar la configuracion de temas."));
+        throw new Error(resolveApiError(payload, "No se pudo cargar la configuración de temas."));
       }
 
       const typed = payload as ThemePayload;
@@ -194,7 +194,7 @@ export function AdminThemeSettingsManager() {
       showFeedback(
         scope,
         "error",
-        loadError instanceof Error ? loadError.message : "Error cargando configuracion.",
+        loadError instanceof Error ? loadError.message : "Error cargando configuración.",
       );
     } finally {
       setLoading(false);
@@ -210,7 +210,7 @@ export function AdminThemeSettingsManager() {
     const nombre = newTheme.nombre.trim();
     const slug = toSlug(newTheme.slug);
     if (!nombre || !slug) {
-      showFeedback(scope, "warning", "Nombre o slug invalido.");
+      showFeedback(scope, "warning", "Nombre o slug inválido.");
       return;
     }
 
@@ -445,7 +445,7 @@ export function AdminThemeSettingsManager() {
   }
 
   if (loading) {
-    return <p className="text-sm text-[var(--fg-muted)]">Cargando configuracion de temas...</p>;
+    return <p className="text-sm text-[var(--fg-muted)]">Cargando configuración de temas...</p>;
   }
 
   return (
@@ -783,7 +783,7 @@ export function AdminThemeSettingsManager() {
 
                   <div className="space-y-2 rounded-xl border border-[var(--border)]/35 bg-[var(--surface-3)] p-4">
                     <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">
-                      Iconos flotantes (maximo 4)
+                      Íconos flotantes (máximo 4)
                     </p>
                     <div className="space-y-2">
                       {Array.from({ length: MAX_THEME_ICONS }).map((_, iconIndex) => (

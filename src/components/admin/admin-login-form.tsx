@@ -118,9 +118,9 @@ export function AdminLoginForm() {
           return;
         }
 
-        throw new Error("No se pudo iniciar sesion.");
+        throw new Error("No se pudo iniciar sesión.");
       } catch (submitError) {
-        const message = submitError instanceof Error ? submitError.message : "No se pudo iniciar sesion.";
+        const message = submitError instanceof Error ? submitError.message : "No se pudo iniciar sesión.";
         setError(message);
       } finally {
         setLoading(false);

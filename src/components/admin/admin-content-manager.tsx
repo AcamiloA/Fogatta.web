@@ -223,7 +223,7 @@ export function AdminContentManager() {
       return;
     }
     if (nombre.length < 3) {
-      showFeedback(scope, "warning", "Categoria FAQ: minimo 3 caracteres.");
+      showFeedback(scope, "warning", "Categoría FAQ: mínimo 3 caracteres.");
       return;
     }
     if (!Number.isInteger(orden) || orden < 1 || orden > 999) {
@@ -245,7 +245,7 @@ export function AdminContentManager() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(resolveApiError(payload, "No se pudo crear categoria FAQ."));
+        throw new Error(resolveApiError(payload, "No se pudo crear categoría FAQ."));
       }
       setNewFaqCategory((current) => ({ ...current, nombre: "", descripcion: "" }));
       await loadContent();
@@ -254,7 +254,7 @@ export function AdminContentManager() {
       showFeedback(
         scope,
         "error",
-        createError instanceof Error ? createError.message : "Error creando categoria FAQ.",
+        createError instanceof Error ? createError.message : "Error creando categoría FAQ.",
       );
     } finally {
       setBusyId(null);
@@ -277,7 +277,7 @@ export function AdminContentManager() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(resolveApiError(payload, "No se pudo guardar categoria FAQ."));
+        throw new Error(resolveApiError(payload, "No se pudo guardar categoría FAQ."));
       }
       await loadContent();
       showFeedback(scope, "success", "Categoria FAQ guardada correctamente.");
@@ -285,7 +285,7 @@ export function AdminContentManager() {
       showFeedback(
         scope,
         "error",
-        saveError instanceof Error ? saveError.message : "Error guardando categoria FAQ.",
+        saveError instanceof Error ? saveError.message : "Error guardando categoría FAQ.",
       );
     } finally {
       setBusyId(null);
@@ -294,7 +294,7 @@ export function AdminContentManager() {
 
   async function deleteFaqCategory(category: FaqCategory) {
     const scope = `faq-category-${category.id}`;
-    const confirmed = window.confirm(`Vas a eliminar la categoria FAQ: "${category.nombre}".`);
+    const confirmed = window.confirm(`Vas a eliminar la categoría FAQ: "${category.nombre}".`);
     if (!confirmed) {
       return;
     }
@@ -307,7 +307,7 @@ export function AdminContentManager() {
       });
       const payload = await response.json();
       if (!response.ok) {
-        throw new Error(resolveApiError(payload, "No se pudo eliminar categoria FAQ."));
+        throw new Error(resolveApiError(payload, "No se pudo eliminar categoría FAQ."));
       }
       await loadContent();
       showFeedback(scope, "success", "Categoria FAQ eliminada correctamente.");
@@ -315,7 +315,7 @@ export function AdminContentManager() {
       showFeedback(
         scope,
         "error",
-        deleteError instanceof Error ? deleteError.message : "Error eliminando categoria FAQ.",
+        deleteError instanceof Error ? deleteError.message : "Error eliminando categoría FAQ.",
       );
     } finally {
       setBusyId(null);
@@ -330,7 +330,7 @@ export function AdminContentManager() {
     const orden = Number(newFaq.orden);
 
     if (!faqCategoryId) {
-      showFeedback(scope, "warning", "FAQ: selecciona una categoria.");
+      showFeedback(scope, "warning", "FAQ: selecciona una categoría.");
       return;
     }
 
@@ -340,12 +340,12 @@ export function AdminContentManager() {
     }
 
     if (pregunta.length < 6) {
-      showFeedback(scope, "warning", "FAQ: la pregunta debe tener minimo 6 caracteres.");
+      showFeedback(scope, "warning", "FAQ: la pregunta debe tener mínimo 6 caracteres.");
       return;
     }
 
     if (respuesta.length < 8) {
-      showFeedback(scope, "warning", "FAQ: la respuesta debe tener minimo 8 caracteres.");
+      showFeedback(scope, "warning", "FAQ: la respuesta debe tener mínimo 8 caracteres.");
       return;
     }
     if (respuesta.length > FAQ_RESPONSE_MAX_CHARACTERS) {
@@ -511,7 +511,7 @@ export function AdminContentManager() {
         <input
           value={site.heroTitulo}
           onChange={(event) => setSite((current) => (current ? { ...current, heroTitulo: event.target.value } : current))}
-          placeholder="Titulo principal del hero"
+          placeholder="Título principal del hero"
           className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
         />
         <textarea
@@ -519,7 +519,7 @@ export function AdminContentManager() {
           onChange={(event) =>
             setSite((current) => (current ? { ...current, heroDescripcion: event.target.value } : current))
           }
-          placeholder="Descripcion del hero"
+          placeholder="Descripción del hero"
           className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
         />
         <input
@@ -527,7 +527,7 @@ export function AdminContentManager() {
           onChange={(event) =>
             setSite((current) => (current ? { ...current, nosotrosTitulo: event.target.value } : current))
           }
-          placeholder="Titulo de seccion Nosotros"
+          placeholder="Título de sección Nosotros"
           className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
         />
         <textarea
@@ -562,7 +562,7 @@ export function AdminContentManager() {
         <h2 className="text-xl text-[var(--fg-strong)]">FAQ</h2>
         <div className="space-y-3 rounded-xl border border-[var(--border)]/35 bg-[var(--surface-3)] p-4">
           <h3 className="text-sm font-medium uppercase tracking-wide text-[var(--fg-soft)]">
-            Categorias FAQ
+            Categorías FAQ
           </h3>
           <div className="grid gap-2 md:grid-cols-[1.4fr,2fr,100px,auto]">
             <input
@@ -570,7 +570,7 @@ export function AdminContentManager() {
               onChange={(event) =>
                 setNewFaqCategory((current) => ({ ...current, nombre: event.target.value }))
               }
-              placeholder="Nombre de categoria"
+              placeholder="Nombre de categoría"
               className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
             />
             <input
@@ -578,7 +578,7 @@ export function AdminContentManager() {
               onChange={(event) =>
                 setNewFaqCategory((current) => ({ ...current, descripcion: event.target.value }))
               }
-              placeholder="Descripcion breve (opcional)"
+              placeholder="Descripción breve (opcional)"
               className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
             />
             <input
@@ -660,7 +660,7 @@ export function AdminContentManager() {
                   >
                     {busyId === `save-faq-category-${category.id}`
                       ? "Guardando..."
-                      : "Guardar categoria"}
+                      : "Guardar categoría"}
                   </button>
                   <button
                     type="button"
@@ -674,7 +674,7 @@ export function AdminContentManager() {
               </article>
             ))}
             {!faqCategories.length ? (
-              <p className="text-sm text-[var(--fg-muted)]">Aun no hay categorias FAQ.</p>
+              <p className="text-sm text-[var(--fg-muted)]">Aún no hay categorías FAQ.</p>
             ) : null}
           </div>
         </div>
@@ -687,7 +687,7 @@ export function AdminContentManager() {
             }
             className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           >
-            <option value="">Seleccione categoria FAQ</option>
+            <option value="">Seleccione categoría FAQ</option>
             {faqCategories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.nombre}
@@ -750,7 +750,7 @@ export function AdminContentManager() {
                 }
                 className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
               >
-                <option value="">Sin categoria</option>
+                <option value="">Sin categoría</option>
                 {faqCategories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.nombre}
