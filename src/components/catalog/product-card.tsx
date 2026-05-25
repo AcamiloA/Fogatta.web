@@ -40,9 +40,17 @@ function getCommercialBadge(product: ProductSummaryDTO) {
   return null;
 }
 
+function formatRating(product: ProductSummaryDTO) {
+  if (!product.ratingCantidad || product.ratingPromedio === null) {
+    return null;
+  }
+  return `${product.ratingPromedio.toFixed(1)} (${product.ratingCantidad})`;
+}
+
 export function ProductCard({ product }: Props) {
   const shortDescription = getShortPreviewText(product);
   const commercialBadge = getCommercialBadge(product);
+  const ratingText = formatRating(product);
 
   return (
     <article className="group flex h-[29rem] flex-col overflow-hidden rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:h-[30rem]">
@@ -83,6 +91,9 @@ export function ProductCard({ product }: Props) {
         >
           {shortDescription}
         </p>
+        {ratingText ? (
+          <p className="mt-1 text-xs text-amber-700">★ {ratingText}</p>
+        ) : null}
         <div className="mt-auto space-y-2 pt-2">
           <p className="text-base font-semibold text-[var(--ink)]">
             Desde {formatCOP(product.precioReferencia)}

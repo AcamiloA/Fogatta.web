@@ -28,6 +28,8 @@ export class FallbackCatalogRepository implements CatalogRepository {
       updatedAt: product.updatedAt,
       categoryId: product.categoryId,
       categoria: product.categoria,
+      ratingPromedio: product.ratingPromedio ?? null,
+      ratingCantidad: product.ratingCantidad ?? 0,
     }));
   }
 

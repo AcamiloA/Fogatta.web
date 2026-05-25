@@ -29,6 +29,7 @@ function normalizeText(value: string) {
 
 export function CatalogListing({ products }: Props) {
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
+  const [selectedRating, setSelectedRating] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const hasTrackedListViewRef = useRef(false);
   const lastSearchTermTrackedRef = useRef("");
@@ -70,6 +71,18 @@ export function CatalogListing({ products }: Props) {
         return false;
       }
 
+      if (selectedRating !== "all") {
+        const minRating = Number.parseInt(selectedRating, 10);
+        const ratingPromedio = product.ratingPromedio ?? 0;
+        if (
+          !Number.isFinite(minRating) ||
+          product.ratingCantidad <= 0 ||
+          ratingPromedio < minRating
+        ) {
+          return false;
+        }
+      }
+
       if (!normalizedSearch) {
         return true;
       }
@@ -77,9 +90,10 @@ export function CatalogListing({ products }: Props) {
       const searchableContent = normalizeText(`${product.nombre} ${product.descripcion}`);
       return searchableContent.includes(normalizedSearch);
     });
-  }, [normalizedSearch, products, selectedCategoryId]);
+  }, [normalizedSearch, products, selectedCategoryId, selectedRating]);
 
-  const showCategoryCards = !normalizedSearch && selectedCategoryId === "all";
+  const showCategoryCards =
+    !normalizedSearch && selectedCategoryId === "all" && selectedRating === "all";
 
   useEffect(() => {
     if (hasTrackedListViewRef.current) {
@@ -123,7 +137,7 @@ export function CatalogListing({ products }: Props) {
   return (
     <>
       <section className="mt-8 rounded-2xl border border-[var(--border)]/45 bg-[var(--surface-2)] p-4">
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-3">
           <label className="space-y-1 text-sm text-[var(--fg-muted)]">
             Categoria
             <select
@@ -145,6 +159,28 @@ export function CatalogListing({ products }: Props) {
                   {category.nombre} ({category.total})
                 </option>
               ))}
+            </select>
+          </label>
+
+          <label className="space-y-1 text-sm text-[var(--fg-muted)]">
+            Valoracion
+            <select
+              value={selectedRating}
+              onChange={(event) => {
+                const nextRating = event.target.value;
+                setSelectedRating(nextRating);
+                trackEvent(analyticsEvents.catalogFilterSelect, {
+                  filter_type: "catalogo_valoracion",
+                  filter_value: nextRating,
+                });
+              }}
+              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            >
+              <option value="all">Todas</option>
+              <option value="4">4 estrellas o mas</option>
+              <option value="3">3 estrellas o mas</option>
+              <option value="2">2 estrellas o mas</option>
+              <option value="1">1 estrella o mas</option>
             </select>
           </label>
 

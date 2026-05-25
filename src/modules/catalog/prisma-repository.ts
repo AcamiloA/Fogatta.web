@@ -46,6 +46,8 @@ function toSummaryDTO(product: {
     resumen: string | null;
     descripcion: string | null;
   };
+  ratingPromedio?: number | null;
+  ratingCantidad?: number;
 }): ProductSummaryDTO {
   return productSummarySchema.parse({
     id: product.id,
@@ -71,6 +73,8 @@ function toSummaryDTO(product: {
     updatedAt: product.updatedAt.toISOString(),
     categoryId: product.categoryId,
     categoria: product.category,
+    ratingPromedio: product.ratingPromedio ?? null,
+    ratingCantidad: product.ratingCantidad ?? 0,
   });
 }
 
@@ -117,6 +121,8 @@ function toDetailDTO(product: {
     descuentoActivo: boolean;
     descuentoPorcentaje: number;
   }[];
+  ratingPromedio?: number | null;
+  ratingCantidad?: number;
 }): ProductDetailDTO {
   return productDetailSchema.parse({
     ...toSummaryDTO(product),
@@ -136,8 +142,42 @@ export class PrismaCatalogRepository implements CatalogRepository {
       },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     });
+    const productIds = products.map((product) => product.id);
+    const ratingsByProduct = new Map<string, { promedio: number | null; cantidad: number }>();
 
-    return products.map(toSummaryDTO);
+    if (productIds.length > 0) {
+      const grouped = await db.productReview.groupBy({
+        by: ["productId"],
+        where: {
+          status: "approved",
+          productId: {
+            in: productIds,
+          },
+        },
+        _avg: {
+          rating: true,
+        },
+        _count: {
+          rating: true,
+        },
+      });
+
+      for (const row of grouped) {
+        ratingsByProduct.set(row.productId, {
+          promedio: row._avg.rating ?? null,
+          cantidad: row._count.rating ?? 0,
+        });
+      }
+    }
+
+    return products.map((product) => {
+      const rating = ratingsByProduct.get(product.id);
+      return toSummaryDTO({
+        ...product,
+        ratingPromedio: rating?.promedio ?? null,
+        ratingCantidad: rating?.cantidad ?? 0,
+      });
+    });
   }
 
   async getProductBySlug(slug: string): Promise<ProductDetailDTO | null> {
@@ -178,8 +218,23 @@ export class PrismaCatalogRepository implements CatalogRepository {
       }
     }
 
+    const ratingAggregate = await db.productReview.aggregate({
+      where: {
+        productId: product.id,
+        status: "approved",
+      },
+      _avg: {
+        rating: true,
+      },
+      _count: {
+        rating: true,
+      },
+    });
+
     return toDetailDTO({
       ...product,
+      ratingPromedio: ratingAggregate._avg.rating ?? null,
+      ratingCantidad: ratingAggregate._count.rating ?? 0,
       variantes: product.variantes.map((variant) => {
         const pendingReserved = pendingByVariant.get(variant.id) ?? 0;
         return {

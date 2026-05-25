@@ -41,9 +41,9 @@ export default async function CatalogoPage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-10">
       <StructuredData id="catalog-breadcrumb-jsonld" data={breadcrumbsStructuredData} />
-      <h1 className="text-4xl text-[var(--fg-strong)]">Catalogo</h1>
+      <h1 className="text-4xl text-[var(--fg-strong)]">Catálogo</h1>
       <p className="mt-3 max-w-2xl text-[var(--fg-muted)]">
-        Coleccion de velas artesanales para hogares que buscan calma, calidez y presencia.
+        Colección de velas artesanales para hogares que buscan calma, calidez y presencia.
       </p>
 
       {products.length ? (

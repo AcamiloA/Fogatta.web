@@ -53,6 +53,8 @@ export const productSummarySchema = z.object({
   updatedAt: z.string().datetime(),
   categoryId: z.string(),
   categoria: categorySchema,
+  ratingPromedio: z.number().min(0).max(5).nullable().default(null),
+  ratingCantidad: z.number().int().nonnegative().default(0),
 });
 
 export const productDetailSchema = productSummarySchema.extend({
