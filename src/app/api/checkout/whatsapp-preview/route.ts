@@ -7,6 +7,7 @@ import {
   whatsappPreviewResponseSchema,
 } from "@/modules/checkout-whatsapp/contracts";
 import {
+  CheckoutShippingDestinationError,
   CheckoutStockUnavailableError,
   CheckoutWhatsAppService,
 } from "@/modules/checkout-whatsapp/service";
@@ -33,6 +34,10 @@ export async function POST(request: Request) {
         },
         { status: 409 },
       );
+    }
+
+    if (error instanceof CheckoutShippingDestinationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     logError("api_checkout_whatsapp_failed", { error });

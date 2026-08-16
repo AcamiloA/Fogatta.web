@@ -8,15 +8,19 @@ import { analyticsEvents } from "@/modules/analytics/events";
 import { trackEvent } from "@/modules/analytics/track";
 import { useCart } from "@/modules/checkout-whatsapp/cart-context";
 import { siteConfig } from "@/config/site";
+import { listShippingDestinationRatesResponseSchema } from "@/modules/shipping/contracts";
+import type { ShippingDestinationRateDTO } from "@/modules/shipping/contracts";
 
 export function CartSheet() {
   const { items, subtotal, setQuantity, removeItem, checkoutByWhatsApp, clearCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shippingDestinations, setShippingDestinations] = useState<ShippingDestinationRateDTO[]>([]);
+  const [loadingDestinations, setLoadingDestinations] = useState(false);
 
   const [clienteNombre, setClienteNombre] = useState("");
-  const [clienteCiudad, setClienteCiudad] = useState("");
+  const [destinoSlug, setDestinoSlug] = useState("");
   const [telefono, setTelefono] = useState("");
   const [notas, setNotas] = useState("");
 
@@ -24,6 +28,50 @@ export function CartSheet() {
     () => items.reduce((acc, item) => acc + item.cantidad, 0),
     [items],
   );
+  const selectedDestination = useMemo(
+    () => shippingDestinations.find((destination) => destination.destinoSlug === destinoSlug),
+    [destinoSlug, shippingDestinations],
+  );
+  const shippingCost = selectedDestination
+    ? selectedDestination.promedioEnvioUnitario * totalItems
+    : 0;
+  const totalWithShipping = subtotal + shippingCost;
+
+  useEffect(() => {
+    if (!isOpen || shippingDestinations.length || loadingDestinations) {
+      return;
+    }
+
+    let ignore = false;
+
+    async function loadDestinations() {
+      setLoadingDestinations(true);
+      try {
+        const response = await fetch("/api/envios/destinos");
+        if (!response.ok) {
+          throw new Error("No se pudieron cargar los destinos.");
+        }
+        const payload = listShippingDestinationRatesResponseSchema.parse(await response.json());
+        if (!ignore) {
+          setShippingDestinations(payload.data);
+        }
+      } catch {
+        if (!ignore) {
+          setError("No se pudieron cargar las ciudades de envio.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoadingDestinations(false);
+        }
+      }
+    }
+
+    void loadDestinations();
+
+    return () => {
+      ignore = true;
+    };
+  }, [isOpen, loadingDestinations, shippingDestinations.length]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -32,7 +80,7 @@ export function CartSheet() {
 
     trackEvent(analyticsEvents.viewCart, {
       currency: "COP",
-      value: subtotal,
+      value: totalWithShipping,
       items_count: totalItems,
       items: items.map((item) => ({
         item_id: item.variantId ?? item.productId ?? item.slug,
@@ -42,16 +90,23 @@ export function CartSheet() {
         quantity: item.cantidad,
       })),
     });
-  }, [isOpen, items, subtotal, totalItems]);
+  }, [isOpen, items, totalItems, totalWithShipping]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
     setError(null);
 
+    if (!selectedDestination) {
+      setLoading(false);
+      setError("Selecciona una ciudad de envio.");
+      return;
+    }
+
     const result = await checkoutByWhatsApp({
       clienteNombre,
-      clienteCiudad,
+      clienteCiudad: selectedDestination.destino,
+      destinoSlug: selectedDestination.destinoSlug,
       telefono,
       notas: notas.trim() ? notas.trim() : undefined,
     });
@@ -66,7 +121,7 @@ export function CartSheet() {
     clearCart();
     setIsOpen(false);
     setClienteNombre("");
-    setClienteCiudad("");
+    setDestinoSlug("");
     setTelefono("");
     setNotas("");
   }
@@ -170,13 +225,22 @@ export function CartSheet() {
                 onChange={(event) => setClienteNombre(event.target.value)}
                 className="w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
               />
-              <input
+              <select
                 required
-                placeholder="Ciudad"
-                value={clienteCiudad}
-                onChange={(event) => setClienteCiudad(event.target.value)}
+                value={destinoSlug}
+                onChange={(event) => setDestinoSlug(event.target.value)}
+                disabled={loadingDestinations}
                 className="w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
+              >
+                <option value="">
+                  {loadingDestinations ? "Cargando ciudades..." : "Ciudad"}
+                </option>
+                {shippingDestinations.map((destination) => (
+                  <option key={destination.destinoSlug} value={destination.destinoSlug}>
+                    {destination.destino} - {destination.departamento}
+                  </option>
+                ))}
+              </select>
               <input
                 required
                 placeholder="Teléfono"
@@ -190,13 +254,51 @@ export function CartSheet() {
                 onChange={(event) => setNotas(event.target.value)}
                 className="min-h-20 w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
               />
-              <div className="rounded-xl bg-[var(--surface-2)] p-3 text-sm text-[var(--fg-muted)]">
-                Subtotal referencia: <strong>{formatCOP(subtotal)}</strong>
+              <div className="space-y-2 rounded-xl bg-[var(--surface-2)] p-3 text-sm text-[var(--fg-muted)]">
+                <p className="font-medium text-[var(--fg-strong)]">Detalle del pedido</p>
+                <div className="space-y-1">
+                  {items.map((item) => (
+                    <div
+                      key={`${item.slug}:${item.nombreVariante ?? "base"}:summary`}
+                      className="flex items-start justify-between gap-3"
+                    >
+                      <span className="min-w-0 break-words">
+                        {item.nombreProducto}
+                        {item.nombreVariante ? ` (${item.nombreVariante})` : ""} x{" "}
+                        {item.cantidad}
+                      </span>
+                      <strong className="shrink-0 text-[var(--fg-strong)]">
+                        {formatCOP(item.precioUnitario * item.cantidad)}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-[var(--border)]/45 pt-2">
+                  <div className="flex justify-between gap-3">
+                    <span>Subtotal productos</span>
+                    <strong className="text-[var(--fg-strong)]">{formatCOP(subtotal)}</strong>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span>
+                      Envio
+                      {selectedDestination
+                        ? ` a ${selectedDestination.destino}`
+                        : " (selecciona ciudad)"}
+                    </span>
+                    <strong className="text-[var(--fg-strong)]">
+                      {selectedDestination ? formatCOP(shippingCost) : "--"}
+                    </strong>
+                  </div>
+                  <div className="mt-2 flex justify-between gap-3 text-base text-[var(--fg-strong)]">
+                    <span>Total referencia</span>
+                    <strong>{formatCOP(totalWithShipping)}</strong>
+                  </div>
+                </div>
               </div>
               {error ? <p className="text-sm text-rose-600">{error}</p> : null}
               <button
                 type="submit"
-                disabled={loading || !items.length}
+                disabled={loading || loadingDestinations || !items.length || !selectedDestination}
                 className="w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
               >
                 {loading ? "Abriendo WhatsApp..." : "Enviar pedido a WhatsApp"}

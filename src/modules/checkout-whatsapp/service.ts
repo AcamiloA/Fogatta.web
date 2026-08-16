@@ -9,6 +9,7 @@ import {
 } from "@/modules/checkout-whatsapp/contracts";
 import { buildWhatsAppMessage } from "@/modules/checkout-whatsapp/message";
 import { expirePendingReservations } from "@/modules/checkout-whatsapp/reservation-expiration";
+import { ShippingService } from "@/modules/shipping/service";
 
 export class CheckoutStockUnavailableError extends Error {
   readonly details: Array<{
@@ -34,9 +35,33 @@ export class CheckoutStockUnavailableError extends Error {
   }
 }
 
+export class CheckoutShippingDestinationError extends Error {
+  constructor() {
+    super("Selecciona una ciudad de envio valida.");
+    this.name = "CheckoutShippingDestinationError";
+  }
+}
+
 export class CheckoutWhatsAppService {
   async preview(input: WhatsAppPreviewInput): Promise<WhatsAppPreviewResponse> {
-    const previewWithoutOrder = buildWhatsAppMessage(input);
+    const shippingDestination = await new ShippingService().findDestinationRate(input.destinoSlug);
+
+    if (!shippingDestination) {
+      throw new CheckoutShippingDestinationError();
+    }
+
+    const totalItems = input.items.reduce((acc, item) => acc + item.cantidad, 0);
+    const costoEnvio = shippingDestination.promedioEnvioUnitario * totalItems;
+    const messageInput = {
+      ...input,
+      clienteCiudad: shippingDestination.destino,
+    };
+    const shippingMessageOptions = {
+      costoEnvio,
+      destino: shippingDestination.destino,
+      departamento: shippingDestination.departamento,
+    };
+    const previewWithoutOrder = buildWhatsAppMessage(messageInput, shippingMessageOptions);
 
     if (!prisma) {
       return whatsappPreviewResponseSchema.parse({
@@ -136,7 +161,7 @@ export class CheckoutWhatsAppService {
           const created = await tx.whatsappOrder.create({
             data: {
               clienteNombre: input.clienteNombre,
-              clienteCiudad: input.clienteCiudad,
+              clienteCiudad: shippingDestination.destino,
               telefono: input.telefono,
               subtotalReferencia: previewWithoutOrder.subtotalReferencia,
               mensaje: previewWithoutOrder.mensaje,
@@ -174,7 +199,10 @@ export class CheckoutWhatsAppService {
             });
           }
 
-          const previewWithOrder = buildWhatsAppMessage(input, { orderId: created.id });
+          const previewWithOrder = buildWhatsAppMessage(messageInput, {
+            ...shippingMessageOptions,
+            orderId: created.id,
+          });
 
           await tx.whatsappOrder.update({
             where: {
@@ -188,6 +216,9 @@ export class CheckoutWhatsAppService {
           return {
             orderId: created.id,
             subtotalReferencia: previewWithOrder.subtotalReferencia,
+            subtotalProductos: previewWithOrder.subtotalProductos,
+            costoEnvio: previewWithOrder.costoEnvio,
+            totalReferencia: previewWithOrder.totalReferencia,
             mensaje: previewWithOrder.mensaje,
             mensajeUrlEncoded: previewWithOrder.mensajeUrlEncoded,
           };
