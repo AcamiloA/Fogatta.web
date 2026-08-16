@@ -28,7 +28,19 @@ type Product = {
   id: string;
   slug: string;
   nombre: string;
+  resumen: string | null;
   descripcion: string;
+  historiaAroma: string | null;
+  notasOlfativas: string | null;
+  duracionAprox: string | null;
+  tamanoPeso: string | null;
+  idealPara: string | null;
+  instruccionesUso: string | null;
+  estadoComercial: ProductCommercialStatus;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  isFeatured: boolean;
+  sortOrder: number;
   precioReferencia: number;
   imagenes: string[];
   activo: boolean;
@@ -36,6 +48,8 @@ type Product = {
   categoria: Category;
   variantes: Variant[];
 };
+
+type ProductCommercialStatus = "standard" | "new" | "limited" | "low_stock";
 
 type CatalogPayload = {
   categories: Category[];
@@ -91,6 +105,54 @@ function normalizeForMatch(value: string) {
 
 const MAX_PRODUCT_IMAGES = 1;
 const MAX_VARIANT_IMAGES = 3;
+const SEO_TITLE_SUFFIX = "Velas artesanales FOGATTA";
+const SEO_DESCRIPTION_SUFFIX = "Compra velas artesanales FOGATTA en Colombia.";
+
+const commercialStatusOptions: { value: ProductCommercialStatus; label: string }[] = [
+  { value: "standard", label: "Estándar" },
+  { value: "new", label: "Nuevo" },
+  { value: "limited", label: "Edición limitada" },
+  { value: "low_stock", label: "Últimas unidades" },
+];
+
+function getCommercialStatusLabel(status: ProductCommercialStatus) {
+  return commercialStatusOptions.find((option) => option.value === status)?.label ?? "Estándar";
+}
+
+function normalizeWhitespace(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function truncateText(value: string, maxCharacters: number) {
+  const normalized = normalizeWhitespace(value);
+  if (normalized.length <= maxCharacters) {
+    return normalized;
+  }
+  return `${normalized.slice(0, maxCharacters - 3).trimEnd()}...`;
+}
+
+function buildAutomaticSeo(product: Product) {
+  const titleBase = normalizeWhitespace(product.nombre) || "Producto FOGATTA";
+  const descriptionBase =
+    normalizeWhitespace(product.resumen ?? "") || normalizeWhitespace(product.descripcion);
+  const descriptionWithSuffix = descriptionBase
+    ? `${descriptionBase} ${SEO_DESCRIPTION_SUFFIX}`
+    : SEO_DESCRIPTION_SUFFIX;
+
+  return {
+    title: truncateText(`${titleBase} | ${SEO_TITLE_SUFFIX}`, 60),
+    description: truncateText(descriptionWithSuffix, 155),
+  };
+}
+
+function getVisibleProductSummary(product: Product) {
+  return truncateText(
+    normalizeWhitespace(product.resumen ?? "") ||
+      normalizeWhitespace(product.descripcion) ||
+      "Producto FOGATTA sin descripción.",
+    150,
+  );
+}
 
 function normalizeDiscountPercentageInput(rawValue: string) {
   const digitsOnly = rawValue.replace(/\D/g, "");
@@ -550,7 +612,19 @@ export function AdminCatalogManager() {
         body: JSON.stringify({
           slug: product.slug,
           nombre: product.nombre,
+          resumen: product.resumen?.trim() || "",
           descripcion: product.descripcion,
+          historiaAroma: product.historiaAroma?.trim() || "",
+          notasOlfativas: product.notasOlfativas?.trim() || "",
+          duracionAprox: product.duracionAprox?.trim() || "",
+          tamanoPeso: product.tamanoPeso?.trim() || "",
+          idealPara: product.idealPara?.trim() || "",
+          instruccionesUso: product.instruccionesUso?.trim() || "",
+          estadoComercial: product.estadoComercial,
+          seoTitle: product.seoTitle?.trim() || "",
+          seoDescription: product.seoDescription?.trim() || "",
+          isFeatured: product.isFeatured,
+          sortOrder: Number.isFinite(product.sortOrder) ? Math.max(0, product.sortOrder) : 0,
           imagenes: product.imagenes,
           categoryId: product.categoryId,
           activo: product.activo,
@@ -835,7 +909,7 @@ export function AdminCatalogManager() {
       }
 
       const productMatch = normalizeForMatch(
-        `${product.nombre} ${product.slug} ${product.descripcion} ${product.categoria.nombre}`,
+        `${product.nombre} ${product.slug} ${product.resumen ?? ""} ${product.descripcion} ${product.notasOlfativas ?? ""} ${product.categoria.nombre}`,
       ).includes(normalizedProductFilter);
 
       if (productMatch) {
@@ -871,29 +945,12 @@ export function AdminCatalogManager() {
     setExpandedProductIds((current) => current.filter((productId) => availableIds.has(productId)));
   }, [filteredProducts]);
 
-  const allVisibleExpanded =
-    paginatedProducts.length > 0 && paginatedProducts.every((product) => expandedProductIds.includes(product.id));
-
   function toggleProductExpansion(productId: string) {
     setExpandedProductIds((current) =>
       current.includes(productId)
         ? current.filter((id) => id !== productId)
-        : [...current, productId],
+        : [productId],
     );
-  }
-
-  function setVisibleExpansion(expand: boolean) {
-    setExpandedProductIds((current) => {
-      const currentSet = new Set(current);
-      for (const product of paginatedProducts) {
-        if (expand) {
-          currentSet.add(product.id);
-        } else {
-          currentSet.delete(product.id);
-        }
-      }
-      return Array.from(currentSet);
-    });
   }
 
   if (loading) {
@@ -1188,14 +1245,6 @@ export function AdminCatalogManager() {
           <div className="flex items-end gap-2 md:col-span-2 md:justify-end">
             <button
               type="button"
-              onClick={() => setVisibleExpansion(!allVisibleExpanded)}
-              disabled={!paginatedProducts.length}
-              className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {allVisibleExpanded ? "Contraer visibles" : "Expandir visibles"}
-            </button>
-            <button
-              type="button"
               onClick={() => setExpandedProductIds([])}
               disabled={!expandedProductIds.length}
               className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)] disabled:cursor-not-allowed disabled:opacity-60"
@@ -1228,10 +1277,11 @@ export function AdminCatalogManager() {
           const categoryName =
             categoryOptions.find((category) => category.id === product.categoryId)?.nombre ??
             product.categoria.nombre;
-          const shortDescription =
-            product.descripcion.length > 150
-              ? `${product.descripcion.slice(0, 147).trimEnd()}...`
-              : product.descripcion;
+          const shortDescription = getVisibleProductSummary(product);
+          const automaticSeo = buildAutomaticSeo(product);
+          const effectiveSeoTitle = product.seoTitle?.trim() || automaticSeo.title;
+          const effectiveSeoDescription = product.seoDescription?.trim() || automaticSeo.description;
+          const hasCustomSeo = Boolean(product.seoTitle?.trim() || product.seoDescription?.trim());
 
           return (
             <article
@@ -1262,44 +1312,265 @@ export function AdminCatalogManager() {
 
               {isExpanded ? (
                 <>
-                  <div className="grid gap-2 md:grid-cols-2">
-                    <input
-                      value={product.nombre}
-                      onChange={(event) =>
-                        updateProductState(product.id, (current) => ({ ...current, nombre: event.target.value }))
-                      }
-                      className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                    />
-                    <textarea
-                      value={product.descripcion}
-                      onChange={(event) =>
-                        updateProductState(product.id, (current) => ({
-                          ...current,
-                          descripcion: event.target.value,
-                        }))
-                      }
-                      placeholder="Descripción larga"
-                      className="min-h-20 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)] md:col-span-2"
-                    />
-                    <select
-                      value={product.categoryId}
-                      onChange={(event) =>
-                        updateProductState(product.id, (current) => ({
-                          ...current,
-                          categoryId: event.target.value,
-                        }))
-                      }
-                      className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                    >
-                      {categoryOptions.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.nombre}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="space-y-2 md:col-span-2">
+                  <div className="space-y-4 rounded-xl border border-[var(--border)]/30 bg-[var(--surface)] p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-lg text-[var(--fg-strong)]">Ficha unificada</h3>
+                        <p className="text-xs text-[var(--fg-muted)]">
+                          Un solo guardado actualiza contenido, presentación comercial y SEO.
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-[var(--border)] px-3 py-1 text-xs text-[var(--fg-muted)]">
+                        {getCommercialStatusLabel(product.estadoComercial)}
+                      </span>
+                    </div>
+
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <label className="space-y-1 text-xs text-[var(--fg-muted)]">
+                        Nombre del producto
+                        <input
+                          value={product.nombre}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              nombre: event.target.value,
+                            }))
+                          }
+                          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                      </label>
+                      <label className="space-y-1 text-xs text-[var(--fg-muted)]">
+                        Categoría
+                        <select
+                          value={product.categoryId}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              categoryId: event.target.value,
+                            }))
+                          }
+                          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        >
+                          {categoryOptions.map((category) => (
+                            <option key={category.id} value={category.id}>
+                              {category.nombre}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="space-y-1 text-xs text-[var(--fg-muted)] md:col-span-2">
+                        Descripción corta
+                        <input
+                          value={product.resumen ?? ""}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              resumen: event.target.value,
+                            }))
+                          }
+                          placeholder="Texto breve para tarjetas, buscadores y vista previa"
+                          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                        <span className="block text-[11px] text-[var(--fg-soft)]">
+                          Si lo dejas vacío, el catálogo usará la descripción larga.
+                        </span>
+                      </label>
+                      <label className="space-y-1 text-xs text-[var(--fg-muted)] md:col-span-2">
+                        Descripción larga
+                        <textarea
+                          value={product.descripcion}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              descripcion: event.target.value,
+                            }))
+                          }
+                          placeholder="Descripción larga"
+                          className="min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                      </label>
+                    </div>
+
+                    <details className="rounded-lg border border-[var(--border)]/35 bg-[var(--surface-2)] p-3" open>
+                      <summary className="cursor-pointer text-sm font-medium text-[var(--fg-strong)]">
+                        Presentación comercial
+                      </summary>
+                      <div className="mt-3 grid gap-3 md:grid-cols-2">
+                        <input
+                          value={product.notasOlfativas ?? ""}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              notasOlfativas: event.target.value,
+                            }))
+                          }
+                          placeholder="Notas olfativas (ej: vainilla, canela, madera)"
+                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                        <input
+                          value={product.duracionAprox ?? ""}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              duracionAprox: event.target.value,
+                            }))
+                          }
+                          placeholder="Duración aproximada (ej: 35h)"
+                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                        <input
+                          value={product.tamanoPeso ?? ""}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              tamanoPeso: event.target.value,
+                            }))
+                          }
+                          placeholder="Tamaño / peso (ej: 220g)"
+                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                        <input
+                          value={product.idealPara ?? ""}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              idealPara: event.target.value,
+                            }))
+                          }
+                          placeholder="Ideal para (regalo, lectura, ritual nocturno...)"
+                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                        <textarea
+                          value={product.historiaAroma ?? ""}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              historiaAroma: event.target.value,
+                            }))
+                          }
+                          placeholder="Historia del aroma"
+                          className="min-h-24 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)] md:col-span-2"
+                        />
+                        <textarea
+                          value={product.instruccionesUso ?? ""}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              instruccionesUso: event.target.value,
+                            }))
+                          }
+                          placeholder="Instrucciones de uso y seguridad"
+                          className="min-h-24 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)] md:col-span-2"
+                        />
+                        <select
+                          value={product.estadoComercial}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              estadoComercial: event.target.value as ProductCommercialStatus,
+                            }))
+                          }
+                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        >
+                          {commercialStatusOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="number"
+                          min={0}
+                          value={product.sortOrder}
+                          onChange={(event) =>
+                            updateProductState(product.id, (current) => ({
+                              ...current,
+                              sortOrder: Number.parseInt(event.target.value || "0", 10) || 0,
+                            }))
+                          }
+                          placeholder="Orden"
+                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                        <label className="flex items-center gap-2 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]">
+                          <input
+                            type="checkbox"
+                            checked={product.isFeatured}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                isFeatured: event.target.checked,
+                              }))
+                            }
+                          />
+                          Destacado
+                        </label>
+                        <label className="flex items-center gap-2 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]">
+                          <input
+                            type="checkbox"
+                            checked={product.activo}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                activo: event.target.checked,
+                              }))
+                            }
+                          />
+                          Activo
+                        </label>
+                      </div>
+                    </details>
+
+                    <div className="rounded-lg border border-[var(--border)]/35 bg-[var(--surface-2)] p-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h4 className="text-sm font-medium text-[var(--fg-strong)]">SEO automático</h4>
+                          <p className="text-xs text-[var(--fg-muted)]">
+                            Se genera desde nombre y descripción corta. Solo personaliza si necesitas un texto distinto.
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-[var(--accent)]/15 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
+                          {hasCustomSeo ? "Personalizado" : "Automático"}
+                        </span>
+                      </div>
+                      <div className="mt-3 rounded-lg border border-[var(--border)]/35 bg-[var(--surface-3)] p-3">
+                        <p className="text-sm font-semibold text-[var(--fg-strong)]">{effectiveSeoTitle}</p>
+                        <p className="mt-1 text-xs text-emerald-600">/catalogo/{product.slug}</p>
+                        <p className="mt-2 text-sm text-[var(--fg-muted)]">{effectiveSeoDescription}</p>
+                      </div>
+                      <details className="mt-3">
+                        <summary className="cursor-pointer text-xs font-medium text-[var(--fg-muted)]">
+                          Personalizar SEO avanzado
+                        </summary>
+                        <div className="mt-3 grid gap-3 md:grid-cols-2">
+                          <input
+                            value={product.seoTitle ?? ""}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                seoTitle: event.target.value,
+                              }))
+                            }
+                            placeholder={automaticSeo.title}
+                            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                          />
+                          <input
+                            value={product.seoDescription ?? ""}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                seoDescription: event.target.value,
+                              }))
+                            }
+                            placeholder={automaticSeo.description}
+                            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                          />
+                        </div>
+                      </details>
+                    </div>
+
+                    <div className="space-y-2">
                       <p className="text-xs text-[var(--fg-muted)]">
-                        Imágenes ({product.imagenes.length}/{MAX_PRODUCT_IMAGES})
+                        Imagen principal ({product.imagenes.length}/{MAX_PRODUCT_IMAGES})
                       </p>
                       {product.imagenes.length ? (
                         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
@@ -1330,22 +1601,9 @@ export function AdminCatalogManager() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-[var(--fg-muted)]">Sin imágenes.</p>
+                        <p className="text-xs text-[var(--fg-muted)]">Sin imagen principal.</p>
                       )}
                     </div>
-                    <label className="flex items-center gap-2 text-sm text-[var(--fg-muted)]">
-                      <input
-                        type="checkbox"
-                        checked={product.activo}
-                        onChange={(event) =>
-                          updateProductState(product.id, (current) => ({
-                            ...current,
-                            activo: event.target.checked,
-                          }))
-                        }
-                      />
-                      Activo
-                    </label>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3">

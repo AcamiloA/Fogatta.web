@@ -13,7 +13,19 @@ function createProduct(
     id,
     slug: `slug-${id}`,
     nombre: `Producto ${id}`,
+    resumen: null,
     descripcion: "Demo",
+    historiaAroma: null,
+    notasOlfativas: null,
+    duracionAprox: null,
+    tamanoPeso: null,
+    idealPara: null,
+    instruccionesUso: null,
+    estadoComercial: "standard",
+    seoTitle: null,
+    seoDescription: null,
+    isFeatured: false,
+    sortOrder: 0,
     precioReferencia: 10000,
     imagenes: ["/images/demo.png"],
     activo: true,
@@ -27,6 +39,8 @@ function createProduct(
       resumen: null,
       descripcion: null,
     },
+    ratingPromedio: null,
+    ratingCantidad: 0,
   };
 }
 

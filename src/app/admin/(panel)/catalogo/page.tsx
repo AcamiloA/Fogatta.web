@@ -1,5 +1,4 @@
 import { AdminCatalogManager } from "@/components/admin/admin-catalog-manager";
-import { AdminProductCommercialManager } from "@/components/admin/admin-product-commercial-manager";
 import { AdminProductReviewsManager } from "@/components/admin/admin-product-reviews-manager";
 
 export const metadata = {
@@ -12,11 +11,10 @@ export default function AdminCatalogPage() {
       <div>
         <h2 className="text-2xl text-[var(--fg-strong)]">Catálogo</h2>
         <p className="text-sm text-[var(--fg-muted)]">
-          Gestiona categorías, productos y variantes.
+          Gestiona productos, contenido comercial, SEO, categorías, variantes y reseñas.
         </p>
       </div>
       <AdminCatalogManager />
-      <AdminProductCommercialManager />
       <AdminProductReviewsManager />
     </section>
   );

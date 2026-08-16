@@ -28,14 +28,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const description = [
-    product.seoDescription?.trim() || product.resumen?.trim() || product.descripcion?.trim(),
-    `Vela artesanal ${product.nombre} de FOGATTA en Colombia.`,
+  const automaticDescription = [
+    product.resumen?.trim() || product.descripcion?.trim(),
+    "Compra velas artesanales FOGATTA en Colombia.",
   ]
     .filter(Boolean)
     .join(" ");
+  const description = product.seoDescription?.trim() || automaticDescription;
   const ogImage = product.imagenes.find((image) => image.trim().length > 0) || "/brand/flame.png";
-  const title = product.seoTitle?.trim() || `${product.nombre} | Velas artesanales`;
+  const title = product.seoTitle?.trim() || `${product.nombre} | Velas artesanales FOGATTA`;
 
   return {
     title,
