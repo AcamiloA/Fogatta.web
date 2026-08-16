@@ -6,9 +6,15 @@ export function buildWhatsAppMessage(
   input: WhatsAppPreviewInput,
   options?: {
     orderId?: string;
+    costoEnvio?: number;
+    destino?: string;
+    departamento?: string;
   },
 ): {
   subtotalReferencia: number;
+  subtotalProductos: number;
+  costoEnvio: number;
+  totalReferencia: number;
   mensaje: string;
   mensajeUrlEncoded: string;
 } {
@@ -25,9 +31,14 @@ export function buildWhatsAppMessage(
     ];
   });
 
-  const subtotalReferencia = input.items.reduce((acc, item) => {
+  const subtotalProductos = input.items.reduce((acc, item) => {
     return acc + item.precioUnitario * item.cantidad;
   }, 0);
+  const costoEnvio = options?.costoEnvio ?? 0;
+  const totalReferencia = subtotalProductos + costoEnvio;
+  const destino = options?.departamento
+    ? `${options.destino ?? input.clienteCiudad}, ${options.departamento}`
+    : input.clienteCiudad;
 
   const notas = input.notas?.trim() ? `\nNotas: ${input.notas.trim()}` : "";
   const utmText = input.utm
@@ -45,11 +56,13 @@ export function buildWhatsAppMessage(
     "========== RESUMEN ==========",
     ...lines,
     "------------------------------",
+    `Subtotal productos: ${formatCOP(subtotalProductos)}`,
+    `Envio a ${destino}: ${formatCOP(costoEnvio)}`,
     "",
-    `TOTAL GENERAL: ${formatCOP(subtotalReferencia)}`,
+    `TOTAL GENERAL: ${formatCOP(totalReferencia)}`,
     "=============================",
     `Cliente: ${input.clienteNombre}`,
-    `Ciudad: ${input.clienteCiudad}`,
+    `Ciudad: ${destino}`,
     `Telefono: ${input.telefono}`,
     notas,
     utmText ? `Tracking: ${utmText}` : "",
@@ -58,7 +71,10 @@ export function buildWhatsAppMessage(
     .trim();
 
   return {
-    subtotalReferencia,
+    subtotalReferencia: totalReferencia,
+    subtotalProductos,
+    costoEnvio,
+    totalReferencia,
     mensaje,
     mensajeUrlEncoded: encodeURIComponent(mensaje),
   };

@@ -12,6 +12,7 @@ export const checkoutItemSchema = z.object({
 export const whatsappPreviewInputSchema = z.object({
   clienteNombre: z.string().min(2).max(80),
   clienteCiudad: z.string().min(2).max(80),
+  destinoSlug: z.string().min(2).max(160),
   telefono: z.string().min(7).max(20),
   notas: z.string().max(280).optional(),
   utm: z
@@ -31,6 +32,9 @@ export const whatsappPreviewInputSchema = z.object({
 export const whatsappPreviewResponseSchema = z.object({
   orderId: z.string().optional(),
   subtotalReferencia: z.number().int().nonnegative(),
+  subtotalProductos: z.number().int().nonnegative(),
+  costoEnvio: z.number().int().nonnegative(),
+  totalReferencia: z.number().int().nonnegative(),
   mensaje: z.string(),
   mensajeUrlEncoded: z.string(),
 });

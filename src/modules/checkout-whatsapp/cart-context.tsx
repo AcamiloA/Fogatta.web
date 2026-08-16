@@ -27,6 +27,7 @@ export type CartItem = {
 type ClientData = {
   clienteNombre: string;
   clienteCiudad: string;
+  destinoSlug: string;
   telefono: string;
   notas?: string;
 };
@@ -186,18 +187,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       trackEvent(analyticsEvents.whatsappClickSent, {
         currency: "COP",
-        value: payload.subtotalReferencia,
+        value: payload.totalReferencia,
         items_count: items.length,
         ...utm,
       });
       trackEvent(analyticsEvents.clickWhatsapp, {
         source: "checkout_cart",
-        value: payload.subtotalReferencia,
+        value: payload.totalReferencia,
         ...utm,
       });
       trackEvent(analyticsEvents.purchase, {
         currency: "COP",
-        value: payload.subtotalReferencia,
+        value: payload.totalReferencia,
         transaction_id: payload.orderId ?? undefined,
         items: itemsPayload,
         ...utm,

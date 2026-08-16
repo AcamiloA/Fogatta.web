@@ -2,11 +2,28 @@
 
 import { PrismaClient } from "@prisma/client";
 
+import { shippingDestinationRates } from "../src/modules/shipping/seed-data";
+
 const prisma = new PrismaClient();
 
 async function main() {
+  for (const destinationRate of shippingDestinationRates) {
+    await prisma.shippingDestinationRate.upsert({
+      where: {
+        destinoSlug: destinationRate.destinoSlug,
+      },
+      update: {
+        destino: destinationRate.destino,
+        departamento: destinationRate.departamento,
+        promedioEnvioUnitario: destinationRate.promedioEnvioUnitario,
+        activo: destinationRate.activo,
+      },
+      create: destinationRate,
+    });
+  }
+
   console.log("Seed ejecutado correctamente");
-  console.log("Sin datos precargados: carga catalogo, FAQ y blog desde el panel admin.");
+  console.log(`${shippingDestinationRates.length} tarifas de envio por destino listas.`);
 }
 
 main()

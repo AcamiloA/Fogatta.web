@@ -7,6 +7,7 @@ describe("checkout contracts", () => {
     const result = whatsappPreviewInputSchema.safeParse({
       clienteNombre: "Juan",
       clienteCiudad: "Bogota",
+      destinoSlug: "bogota-d-c-bogota-d-c",
       telefono: "3001234567",
       items: [],
     });
@@ -18,6 +19,7 @@ describe("checkout contracts", () => {
     const result = whatsappPreviewInputSchema.safeParse({
       clienteNombre: "Juan",
       clienteCiudad: "Bogota",
+      destinoSlug: "bogota-d-c-bogota-d-c",
       telefono: "3001234567",
       items: [
         {

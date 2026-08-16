@@ -43,6 +43,7 @@ yarn-error.log*
 
 # local tooling
 .codex-dev.log
+/outputs/
 
 # vercel
 .vercel
