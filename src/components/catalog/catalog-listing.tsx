@@ -139,7 +139,7 @@ export function CatalogListing({ products }: Props) {
       <section className="mt-8 rounded-2xl border border-[var(--border)]/45 bg-[var(--surface-2)] p-4">
         <div className="grid gap-3 md:grid-cols-3">
           <label className="space-y-1 text-sm text-[var(--fg-muted)]">
-            Categoria
+            Categoría
             <select
               value={selectedCategoryId}
               onChange={(event) => {
@@ -153,7 +153,7 @@ export function CatalogListing({ products }: Props) {
               }}
               className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
             >
-              <option value="all">Todas las categorias ({products.length})</option>
+              <option value="all">Todas las categorías ({products.length})</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.nombre} ({category.total})
@@ -163,7 +163,7 @@ export function CatalogListing({ products }: Props) {
           </label>
 
           <label className="space-y-1 text-sm text-[var(--fg-muted)]">
-            Valoracion
+            Valoración
             <select
               value={selectedRating}
               onChange={(event) => {
@@ -177,10 +177,10 @@ export function CatalogListing({ products }: Props) {
               className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
             >
               <option value="all">Todas</option>
-              <option value="4">4 estrellas o mas</option>
-              <option value="3">3 estrellas o mas</option>
-              <option value="2">2 estrellas o mas</option>
-              <option value="1">1 estrella o mas</option>
+              <option value="4">4 estrellas o más</option>
+              <option value="3">3 estrellas o más</option>
+              <option value="2">2 estrellas o más</option>
+              <option value="1">1 estrella o más</option>
             </select>
           </label>
 
@@ -190,7 +190,7 @@ export function CatalogListing({ products }: Props) {
               type="text"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Nombre o descripcion"
+              placeholder="Nombre o descripción"
               className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
             />
           </label>
@@ -279,3 +279,4 @@ export function CatalogListing({ products }: Props) {
     </>
   );
 }
+

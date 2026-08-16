@@ -27,3 +27,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "No se pudo cargar reservas." }, { status: 500 });
   }
 }
+

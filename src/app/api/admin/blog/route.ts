@@ -52,15 +52,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, id: created.id }, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json({ error: "Datos invalidos.", details: error.flatten() }, { status: 400 });
+      return NextResponse.json({ error: "Datos inválidos.", details: error.flatten() }, { status: 400 });
     }
     if (isUniqueConstraintError(error)) {
       return NextResponse.json(
-        { error: "Ya existe un articulo con ese slug. Cambia el titulo e intenta de nuevo." },
+        { error: "Ya existe un artículo con ese slug. Cambia el título e intenta de nuevo." },
         { status: 409 },
       );
     }
     service.handleError(error, { route: "admin_blog_create" });
-    return NextResponse.json({ error: "No se pudo crear el articulo." }, { status: 500 });
+    return NextResponse.json({ error: "No se pudo crear el artículo." }, { status: 500 });
   }
 }
+

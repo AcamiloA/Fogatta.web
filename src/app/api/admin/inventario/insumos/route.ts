@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, data: created }, { status: 201 });
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json({ error: "Datos invalidos.", details: error.flatten() }, { status: 400 });
+      return NextResponse.json({ error: "Datos inválidos.", details: error.flatten() }, { status: 400 });
     }
 
     const businessError = resolveBusinessError(error);
@@ -80,3 +80,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No se pudo crear el insumo." }, { status: 500 });
   }
 }
+

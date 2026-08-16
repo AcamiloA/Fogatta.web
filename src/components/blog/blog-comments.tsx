@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useMemo, useState } from "react";
 
@@ -81,7 +81,7 @@ export function BlogComments({ slug, initialComments }: Props) {
         type: "ok",
         text:
           payload?.message ||
-          "Tu comentario fue recibido y esta en revision. Aparecera cuando sea aprobado.",
+          "Tu comentario fue recibido y está en revisión. Aparecerá cuando sea aprobado.",
       });
     } catch (error) {
       trackEvent(analyticsEvents.blogCommentSubmit, {
@@ -101,7 +101,7 @@ export function BlogComments({ slug, initialComments }: Props) {
     <section className="mt-10 rounded-2xl border border-[var(--accent)]/25 bg-[var(--surface-2)] p-5">
       <h2 className="text-2xl text-[var(--fg-strong)]">Comentarios</h2>
       <p className="mt-1 text-sm text-[var(--fg-muted)]">
-        Comparte tu opinion sobre este articulo.
+        Comparte tu opinión sobre este artículo.
       </p>
 
       <form className="mt-4 space-y-2" onSubmit={submitComment}>
@@ -109,7 +109,7 @@ export function BlogComments({ slug, initialComments }: Props) {
           value={mensaje}
           onChange={(event) => setMensaje(event.target.value.slice(0, MAX_COMMENT_LENGTH))}
           maxLength={MAX_COMMENT_LENGTH}
-          placeholder="Cuentanos tu experiencia"
+          placeholder="Cuéntanos tu experiencia"
           className="min-h-28 w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
         />
 
@@ -176,10 +176,11 @@ export function BlogComments({ slug, initialComments }: Props) {
           ))
         ) : (
           <p className="text-sm text-[var(--fg-muted)]">
-            Todavia no hay comentarios aprobados. Se la primera persona en comentar.
+            Todavía no hay comentarios aprobados. Sé la primera persona en comentar.
           </p>
         )}
       </div>
     </section>
   );
 }
+

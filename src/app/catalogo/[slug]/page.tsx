@@ -124,7 +124,7 @@ export default async function ProductPage({ params }: Props) {
       {
         "@type": "ListItem",
         position: 2,
-        name: "Catalogo",
+        name: "Catálogo",
         item: `${siteConfig.siteUrl}/catalogo`,
       },
       {
@@ -151,7 +151,7 @@ export default async function ProductPage({ params }: Props) {
         <ProductDetailInteractive product={product} />
       ) : (
         <p className="mt-6 rounded-xl border border-dashed border-[var(--border)]/45 bg-[var(--surface-2)] p-4 text-sm text-[var(--fg-muted)]">
-          Este producto todavia no tiene variantes configuradas.
+          Este producto todavía no tiene variantes configuradas.
         </p>
       )}
       <ProductReviews productSlug={product.slug} />

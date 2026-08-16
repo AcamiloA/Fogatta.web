@@ -48,9 +48,10 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json({ error: "Datos invalidos.", details: error.flatten() }, { status: 400 });
+      return NextResponse.json({ error: "Datos inválidos.", details: error.flatten() }, { status: 400 });
     }
     service.handleError(error, { route: "admin_content_patch" });
     return NextResponse.json({ error: "No se pudo guardar contenido." }, { status: 500 });
   }
 }
+

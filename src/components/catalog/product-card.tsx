@@ -32,10 +32,10 @@ function getCommercialBadge(product: ProductSummaryDTO) {
     return "Nuevo";
   }
   if (product.estadoComercial === "limited") {
-    return "Edicion limitada";
+    return "Edición limitada";
   }
   if (product.estadoComercial === "low_stock") {
-    return "Ultimas unidades";
+    return "Últimas unidades";
   }
   return null;
 }
@@ -53,13 +53,13 @@ export function ProductCard({ product }: Props) {
   const ratingText = formatRating(product);
 
   return (
-    <article className="group flex h-[29rem] flex-col overflow-hidden rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:h-[30rem]">
-      <div className="relative h-[56%] w-full overflow-hidden bg-stone-100">
+    <article className="group flex h-[30rem] flex-col overflow-hidden rounded-2xl border border-[var(--accent)]/35 bg-[var(--card)] shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+      <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-stone-100">
         <Image
           src={product.imagenes[0]}
           alt={product.nombre}
           fill
-          className="object-cover transition duration-300 group-hover:scale-105"
+          className="object-cover object-center transition duration-300 group-hover:scale-105"
         />
       </div>
       <div className="flex flex-1 flex-col p-4">
@@ -122,3 +122,4 @@ export function ProductCard({ product }: Props) {
     </article>
   );
 }
+

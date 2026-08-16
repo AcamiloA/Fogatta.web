@@ -14,3 +14,4 @@ export async function GET() {
     return NextResponse.json({ error: "No se pudo cargar el catálogo." }, { status: 500 });
   }
 }
+

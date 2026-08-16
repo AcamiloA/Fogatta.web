@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: "Datos invalidos en formulario.", details: error.flatten() },
+        { error: "Datos inválidos en formulario.", details: error.flatten() },
         { status: 400 },
       );
     }
@@ -76,3 +76,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No se pudo registrar el lead." }, { status: 500 });
   }
 }
+

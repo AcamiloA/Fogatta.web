@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { analyticsEvents } from "@/modules/analytics/events";
 import { trackEvent } from "@/modules/analytics/track";
@@ -59,7 +60,7 @@ export function ProductReviews({ productSlug }: Props) {
 
   const remainingChars = useMemo(() => MAX_MESSAGE - mensaje.length, [mensaje]);
 
-  async function loadReviews() {
+  const loadReviews = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`/api/catalogo/productos/${productSlug}/resenas`, { cache: "no-store" });
@@ -78,11 +79,11 @@ export function ProductReviews({ productSlug }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [productSlug]);
 
   useEffect(() => {
     void loadReviews();
-  }, [productSlug]);
+  }, [loadReviews]);
 
   async function handleUploadFiles(files: FileList | null) {
     if (!files || files.length === 0) {
@@ -177,7 +178,7 @@ export function ProductReviews({ productSlug }: Props) {
 
       setFeedback({
         tone: "success",
-        message: payload.message || "Tu reseña se envío y quedó pendiente de aprobación.",
+        message: payload.message || "Tu reseña se envió y quedó pendiente de aprobación.",
       });
 
       setNombre("");
@@ -274,8 +275,8 @@ export function ProductReviews({ productSlug }: Props) {
           {photoUrls.length ? (
             <div className="grid gap-2 sm:grid-cols-3">
               {photoUrls.map((url) => (
-                <div key={url} className="relative overflow-hidden rounded-lg border border-[var(--border)]/45">
-                  <img src={url} alt="Foto seleccionada" className="h-24 w-full object-cover" loading="lazy" />
+                <div key={url} className="relative h-24 overflow-hidden rounded-lg border border-[var(--border)]/45">
+                  <Image src={url} alt="Foto seleccionada" fill className="object-cover" />
                   <button
                     type="button"
                     onClick={() => removePhoto(url)}
@@ -332,9 +333,9 @@ export function ProductReviews({ productSlug }: Props) {
                     href={photoUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="block overflow-hidden rounded-lg border border-[var(--border)]/45"
+                    className="relative block h-28 overflow-hidden rounded-lg border border-[var(--border)]/45"
                   >
-                    <img src={photoUrl} alt="Foto de reseña" className="h-28 w-full object-cover" loading="lazy" />
+                    <Image src={photoUrl} alt="Foto de reseña" fill className="object-cover" />
                   </a>
                 ))}
               </div>

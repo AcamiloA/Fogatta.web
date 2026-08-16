@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { checkRateLimit } from "@/lib/rate-limit";
 import { uploadManagedImage } from "@/modules/storage/upload-image";
@@ -49,4 +49,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 

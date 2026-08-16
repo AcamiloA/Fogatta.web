@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(
-        { error: "Datos invalidos para el pedido.", details: error.flatten() },
+        { error: "Datos inválidos para el pedido.", details: error.flatten() },
         { status: 400 },
       );
     }
@@ -39,3 +39,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No se pudo preparar el pedido." }, { status: 500 });
   }
 }
+

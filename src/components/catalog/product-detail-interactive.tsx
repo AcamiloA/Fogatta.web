@@ -119,8 +119,8 @@ export function ProductDetailInteractive({ product }: Props) {
         </p>
 
         <div className="mt-4 grid gap-2 text-sm text-[var(--fg-muted)] md:grid-cols-2">
-          {product.duracionAprox ? <p>Duracion aproximada: <strong>{product.duracionAprox}</strong></p> : null}
-          {product.tamanoPeso ? <p>Tamano/peso: <strong>{product.tamanoPeso}</strong></p> : null}
+          {product.duracionAprox ? <p>Duración aproximada: <strong>{product.duracionAprox}</strong></p> : null}
+          {product.tamanoPeso ? <p>Tamaño/peso: <strong>{product.tamanoPeso}</strong></p> : null}
           {product.notasOlfativas ? <p className="md:col-span-2">Notas olfativas: <strong>{product.notasOlfativas}</strong></p> : null}
           {product.idealPara ? <p className="md:col-span-2">Ideal para: <strong>{product.idealPara}</strong></p> : null}
         </div>
@@ -224,9 +224,9 @@ export function ProductDetailInteractive({ product }: Props) {
           </button>
 
           <div className="mt-4 rounded-xl border border-[var(--border)]/45 bg-[var(--surface)] p-3 text-xs text-[var(--fg-muted)]">
-            <p>Envios nacionales en Colombia.</p>
+            <p>Envíos nacionales en Colombia.</p>
             <p>Pagos por transferencia, Nequi y Daviplata.</p>
-            <p>Atencion: {siteConfig.supportHours}.</p>
+            <p>Atención: {siteConfig.supportHours}.</p>
           </div>
         </div>
 
@@ -265,3 +265,4 @@ export function ProductDetailInteractive({ product }: Props) {
     </div>
   );
 }
+

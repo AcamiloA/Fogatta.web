@@ -1,5 +1,6 @@
-﻿"use client";
+"use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type ReviewStatus = "pending" | "approved" | "rejected";
@@ -98,7 +99,7 @@ export function AdminProductReviewsManager() {
   }
 
   async function deleteReview(id: string) {
-    const confirmed = window.confirm("Vas a eliminar esta reseña. Esta accion no se puede deshacer.");
+    const confirmed = window.confirm("Vas a eliminar esta reseña. Esta acción no se puede deshacer.");
     if (!confirmed) {
       return;
     }
@@ -176,7 +177,8 @@ export function AdminProductReviewsManager() {
               {review.productNombre} (/{review.productSlug})
             </p>
             <p className="text-sm text-[var(--fg)]">
-              {"?".repeat(review.rating)}{"?".repeat(5 - review.rating)} · {review.nombre || "Cliente"}
+              {"★".repeat(review.rating)}
+              {"☆".repeat(5 - review.rating)} · {review.nombre || "Cliente"}
             </p>
             <p className="whitespace-pre-line text-sm text-[var(--fg-muted)]">{review.mensaje}</p>
             {review.fotos.length ? (
@@ -187,9 +189,9 @@ export function AdminProductReviewsManager() {
                     href={photoUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="block overflow-hidden rounded-lg border border-[var(--border)]/45"
+                    className="relative block h-24 overflow-hidden rounded-lg border border-[var(--border)]/45"
                   >
-                    <img src={photoUrl} alt="Foto de reseña" className="h-24 w-full object-cover" loading="lazy" />
+                    <Image src={photoUrl} alt="Foto de reseña" fill className="object-cover" />
                   </a>
                 ))}
               </div>

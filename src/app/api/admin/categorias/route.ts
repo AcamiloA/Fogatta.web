@@ -32,3 +32,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No se pudo crear la categoría." }, { status: 500 });
   }
 }
+

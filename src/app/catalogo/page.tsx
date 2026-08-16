@@ -6,9 +6,9 @@ import { siteConfig } from "@/config/site";
 import { CatalogService } from "@/modules/catalog/service";
 
 export const metadata: Metadata = {
-  title: "Catalogo de velas aromaticas artesanales",
+  title: "Catálogo de velas aromáticas artesanales",
   description:
-    "Explora el catalogo de velas artesanales FOGATTA: aromas premium para hogar, relajacion, meditacion y regalos especiales en Colombia.",
+    "Explora el catálogo de velas artesanales FOGATTA: aromas premium para hogar, relajación, meditación y regalos especiales en Colombia.",
   alternates: {
     canonical: "/catalogo",
   },
@@ -32,7 +32,7 @@ export default async function CatalogoPage() {
       {
         "@type": "ListItem",
         position: 2,
-        name: "Catalogo",
+        name: "Catálogo",
         item: `${siteConfig.siteUrl}/catalogo`,
       },
     ],
@@ -50,9 +50,11 @@ export default async function CatalogoPage() {
         <CatalogListing products={products} />
       ) : (
         <p className="mt-8 rounded-2xl border border-dashed border-stone-300 bg-white p-6 text-stone-600">
-          Aun no hay productos publicados por ahora.
+          Aún no hay productos publicados por ahora.
         </p>
       )}
     </div>
   );
 }
+
+

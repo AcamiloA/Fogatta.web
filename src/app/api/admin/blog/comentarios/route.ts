@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const statusRaw = request.nextUrl.searchParams.get("status");
   const parsedStatus = statusRaw ? commentStatusSchema.safeParse(statusRaw) : null;
   if (statusRaw && !parsedStatus?.success) {
-    return NextResponse.json({ error: "Estado invalido." }, { status: 400 });
+    return NextResponse.json({ error: "Estado inválido." }, { status: 400 });
   }
 
   try {

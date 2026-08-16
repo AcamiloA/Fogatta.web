@@ -8,7 +8,7 @@ import { ContentService } from "@/modules/content/service";
 export const metadata: Metadata = {
   title: "Preguntas frecuentes",
   description:
-    "Resuelve dudas sobre velas aromaticas FOGATTA: uso, cuidados, duracion, envios y pedidos por WhatsApp en Colombia.",
+    "Resuelve dudas sobre velas aromáticas FOGATTA: uso, cuidados, duración, envíos y pedidos por WhatsApp en Colombia.",
   alternates: {
     canonical: "/faq",
   },
@@ -43,9 +43,10 @@ export default async function FAQPage() {
         <FAQListing categories={content.faqCategories} faq={faq} />
       ) : (
         <p className="mt-8 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-2)] p-6 text-[var(--fg-muted)]">
-          Aun no hay publicaciones en esta seccion.
+          Aún no hay publicaciones en esta sección.
         </p>
       )}
     </div>
   );
 }
+

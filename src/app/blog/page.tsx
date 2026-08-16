@@ -7,7 +7,7 @@ import { ContentService } from "@/modules/content/service";
 export const metadata: Metadata = {
   title: "Blog",
   description:
-    "Blog de FOGATTA con guias sobre velas aromaticas, ambientacion del hogar, bienestar, meditacion y cuidado de velas artesanales.",
+    "Blog de FOGATTA con guías sobre velas aromáticas, ambientación del hogar, bienestar, meditación y cuidado de velas artesanales.",
   alternates: {
     canonical: "/blog",
   },
@@ -38,16 +38,17 @@ export default async function BlogPage() {
                 href={`/blog/${post.slug}`}
                 className="mt-4 inline-flex rounded-lg border border-[var(--accent-outline)] px-3 py-2 text-sm text-[var(--fg-strong)] hover:bg-[var(--accent-outline)] hover:text-[var(--accent-outline-contrast)]"
               >
-                Leer articulo
+                Leer artículo
               </Link>
             </article>
           ))
         ) : (
           <p className="rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface-2)] p-6 text-[var(--fg-muted)]">
-            Aun no hay publicaciones.
+            Aún no hay publicaciones.
           </p>
         )}
       </div>
     </div>
   );
 }
+
