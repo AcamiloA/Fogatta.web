@@ -211,9 +211,8 @@ export function CartSheet() {
             <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
               <div className="rounded-xl border border-[var(--border)]/45 bg-[var(--surface-2)] p-3 text-xs text-[var(--fg-muted)]">
                 <p className="font-medium text-[var(--fg-strong)]">Antes de finalizar</p>
-                <p>Envios: cobertura nacional en Colombia.</p>
-                <p>Pagos: transferencia, Nequi y Daviplata.</p>
-                <p>Atencion: {siteConfig.supportHours}.</p>
+                <p>Envíos: Cobertura nacional en Colombia.</p>
+                <p>Atención: {siteConfig.supportHours}.</p>
               </div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--fg-soft)]">
                 Datos para pedido por WhatsApp
@@ -280,7 +279,7 @@ export function CartSheet() {
                   </div>
                   <div className="flex justify-between gap-3">
                     <span>
-                      Envio
+                      Envío
                       {selectedDestination
                         ? ` a ${selectedDestination.destino}`
                         : " (selecciona ciudad)"}
