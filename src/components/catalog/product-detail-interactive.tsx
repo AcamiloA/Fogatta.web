@@ -224,8 +224,7 @@ export function ProductDetailInteractive({ product }: Props) {
           </button>
 
           <div className="mt-4 rounded-xl border border-[var(--border)]/45 bg-[var(--surface)] p-3 text-xs text-[var(--fg-muted)]">
-            <p>Envíos nacionales en Colombia.</p>
-            <p>Pagos por transferencia, Nequi y Daviplata.</p>
+            <p>Envíos nacionales a toda Colombia.</p>
             <p>Atención: {siteConfig.supportHours}.</p>
           </div>
         </div>
