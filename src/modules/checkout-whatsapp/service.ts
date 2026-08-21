@@ -9,6 +9,7 @@ import {
 } from "@/modules/checkout-whatsapp/contracts";
 import { buildWhatsAppMessage } from "@/modules/checkout-whatsapp/message";
 import { expirePendingReservations } from "@/modules/checkout-whatsapp/reservation-expiration";
+import { calculateShippingCost } from "@/modules/shipping/pricing";
 import { ShippingService } from "@/modules/shipping/service";
 
 export class CheckoutStockUnavailableError extends Error {
@@ -51,10 +52,7 @@ export class CheckoutWhatsAppService {
     }
 
     const totalItems = input.items.reduce((acc, item) => acc + item.cantidad, 0);
-    const costoEnvio = Math.max(
-      shippingDestination.costoMinimoEnvio,
-      shippingDestination.costoEnvioUnitario * totalItems,
-    );
+    const costoEnvio = calculateShippingCost(shippingDestination, totalItems);
     const messageInput = {
       ...input,
       clienteCiudad: shippingDestination.destino,
