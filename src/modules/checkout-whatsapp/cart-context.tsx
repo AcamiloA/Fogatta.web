@@ -22,6 +22,7 @@ export type CartItem = {
   nombreVariante?: string;
   precioUnitario: number;
   cantidad: number;
+  stockDisponible?: number;
 };
 
 type ClientData = {
@@ -38,7 +39,6 @@ type CartContextValue = {
   subtotal: number;
   addItem: (item: CartItem) => void;
   removeItem: (slug: string, variantName?: string) => void;
-  setQuantity: (slug: string, variantName: string | undefined, quantity: number) => void;
   clearCart: () => void;
   checkoutByWhatsApp: (client: ClientData) => Promise<{ ok: true } | { ok: false; error: string }>;
 };
@@ -49,6 +49,28 @@ const STORAGE_KEY = "fogatta_cart_v1";
 
 function getItemKey(item: CartItem) {
   return `${item.slug}:${item.nombreVariante ?? "base"}`;
+}
+
+function getStockLimit(item: Pick<CartItem, "stockDisponible">) {
+  if (
+    item.stockDisponible === undefined ||
+    !Number.isFinite(item.stockDisponible) ||
+    item.stockDisponible < 0
+  ) {
+    return undefined;
+  }
+
+  return Math.floor(item.stockDisponible);
+}
+
+function normalizeCartQuantity(quantity: number, stockLimit?: number) {
+  const safeQuantity = Number.isFinite(quantity) ? Math.max(Math.floor(quantity), 1) : 1;
+
+  if (stockLimit === undefined) {
+    return safeQuantity;
+  }
+
+  return Math.min(safeQuantity, stockLimit);
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -78,15 +100,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       const key = getItemKey(incoming);
       const current = prev.find((item) => getItemKey(item) === key);
+      const incomingStockLimit = getStockLimit(incoming);
+      const incomingQuantity = normalizeCartQuantity(incoming.cantidad, incomingStockLimit);
+
+      if (incomingStockLimit !== undefined && incomingQuantity <= 0) {
+        return prev;
+      }
+
       if (!current) {
-        return [...prev, incoming];
+        return [...prev, { ...incoming, cantidad: incomingQuantity }];
       }
       return prev.map((item) =>
-        getItemKey(item) === key
-          ? { ...item, cantidad: item.cantidad + incoming.cantidad }
-          : item,
+        getItemKey(item) === key ? mergeCartItemQuantity(item, incoming, incomingQuantity) : item,
       );
     });
+  }
+
+  function mergeCartItemQuantity(
+    current: CartItem,
+    incoming: CartItem,
+    incomingQuantity: number,
+  ) {
+    const stockLimit = getStockLimit(incoming) ?? getStockLimit(current);
+    const nextQuantity = normalizeCartQuantity(current.cantidad + incomingQuantity, stockLimit);
+
+    return {
+      ...current,
+      precioUnitario: incoming.precioUnitario,
+      stockDisponible: stockLimit ?? current.stockDisponible,
+      cantidad: nextQuantity,
+    };
   }
 
   function removeItem(slug: string, variantName?: string) {
@@ -109,17 +152,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     setItems((prev) => prev.filter((item) => getItemKey(item) !== key));
-  }
-
-  function setQuantity(slug: string, variantName: string | undefined, quantity: number) {
-    const key = `${slug}:${variantName ?? "base"}`;
-    setItems((prev) =>
-      prev
-        .map((item) =>
-          getItemKey(item) === key ? { ...item, cantidad: Math.max(quantity, 1) } : item,
-        )
-        .filter((item) => item.cantidad > 0),
-    );
   }
 
   function clearCart() {
@@ -165,7 +197,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           ...client,
           utm,
-          items,
+          items: items.map((item) => ({
+            productId: item.productId,
+            variantId: item.variantId,
+            nombreProducto: item.nombreProducto,
+            nombreVariante: item.nombreVariante,
+            precioUnitario: item.precioUnitario,
+            cantidad: item.cantidad,
+          })),
         }),
       });
 
@@ -220,7 +259,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     totalItems,
     addItem,
     removeItem,
-    setQuantity,
     clearCart,
     checkoutByWhatsApp,
   };

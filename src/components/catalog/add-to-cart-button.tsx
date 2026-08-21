@@ -43,7 +43,7 @@ function normalizeQuantityInput(rawValue: string, maxStock: number) {
 }
 
 export function AddToCartButton({ product }: Props) {
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
   const [variantId, setVariantId] = useState(product.variantes[0]?.id ?? "");
   const [quantityInput, setQuantityInput] = useState("");
 
@@ -56,14 +56,29 @@ export function AddToCartButton({ product }: Props) {
   const selectedStock = selectedVariant
     ? (selectedVariant.stockDisponible ?? selectedVariant.stockVirtual)
     : 0;
-  const parsedQuantity = Number.parseInt(quantityInput, 10);
+  const currentCartQuantity = useMemo(() => {
+    if (!selectedVariant) {
+      return 0;
+    }
+
+    return items.reduce((acc, item) => {
+      const sameVariant = item.variantId
+        ? item.variantId === selectedVariant.id
+        : item.slug === product.slug && item.nombreVariante === selectedVariant.nombreVariante;
+
+      return sameVariant ? acc + item.cantidad : acc;
+    }, 0);
+  }, [items, product.slug, selectedVariant]);
+  const remainingStock = Math.max(selectedStock - currentCartQuantity, 0);
+  const quantityInputValue = normalizeQuantityInput(quantityInput, remainingStock);
+  const parsedQuantity = Number.parseInt(quantityInputValue, 10);
   const quantity = Number.isNaN(parsedQuantity) ? 0 : parsedQuantity;
 
   function handleAdd() {
     if (!selectedVariant) {
       return;
     }
-    if (selectedStock <= 0) {
+    if (remainingStock <= 0) {
       return;
     }
 
@@ -71,7 +86,7 @@ export function AddToCartButton({ product }: Props) {
       return;
     }
 
-    const safeQuantity = Math.min(quantity, selectedStock);
+    const safeQuantity = Math.min(quantity, remainingStock);
 
     addItem({
       productId: product.id,
@@ -81,6 +96,7 @@ export function AddToCartButton({ product }: Props) {
       nombreVariante: selectedVariant.nombreVariante,
       precioUnitario: unitPrice,
       cantidad: safeQuantity,
+      stockDisponible: selectedStock,
     });
 
     trackEvent(analyticsEvents.addToCart, {
@@ -149,9 +165,9 @@ export function AddToCartButton({ product }: Props) {
             inputMode="numeric"
             pattern="[0-9]*"
             placeholder="Cantidad"
-            value={quantityInput}
+            value={quantityInputValue}
             onChange={(event) => {
-              setQuantityInput(normalizeQuantityInput(event.target.value, selectedStock));
+              setQuantityInput(normalizeQuantityInput(event.target.value, remainingStock));
             }}
             className="w-24 rounded-lg border border-[var(--input-border)] bg-[var(--card)] px-2 py-2"
           />
@@ -174,16 +190,22 @@ export function AddToCartButton({ product }: Props) {
         {selectedVariant ? (
           <p className="text-xs text-[var(--ink-soft)]">
             Stock disponible: <strong>{selectedStock}</strong>
+            {currentCartQuantity > 0 ? (
+              <>
+                {" "}
+                | En carrito: <strong>{currentCartQuantity}</strong>
+              </>
+            ) : null}
           </p>
         ) : null}
       </div>
       <button
         type="button"
         onClick={handleAdd}
-        disabled={!selectedVariant || selectedStock <= 0 || quantity < 1}
+        disabled={!selectedVariant || remainingStock <= 0 || quantity < 1}
         className="mt-4 w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--accent-contrast)] transition hover:bg-[var(--accent-hover)] disabled:bg-[var(--accent-disabled)]"
       >
-        {selectedVariant && selectedStock <= 0 ? "Sin stock disponible" : "Agregar al carrito"}
+        {selectedVariant && remainingStock <= 0 ? "Sin stock disponible" : "Agregar al carrito"}
       </button>
     </div>
   );

@@ -8,11 +8,15 @@ import { analyticsEvents } from "@/modules/analytics/events";
 import { trackEvent } from "@/modules/analytics/track";
 import { useCart } from "@/modules/checkout-whatsapp/cart-context";
 import { siteConfig } from "@/config/site";
+import {
+  readCachedShippingDestinationRates,
+  writeCachedShippingDestinationRates,
+} from "@/modules/shipping/client-destination-cache";
 import { listShippingDestinationRatesResponseSchema } from "@/modules/shipping/contracts";
 import type { ShippingDestinationRateDTO } from "@/modules/shipping/contracts";
 
 export function CartSheet() {
-  const { items, subtotal, setQuantity, removeItem, checkoutByWhatsApp, clearCart } = useCart();
+  const { items, subtotal, removeItem, checkoutByWhatsApp, clearCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,18 +46,31 @@ export function CartSheet() {
       return;
     }
 
+    const cachedDestinations = readCachedShippingDestinationRates();
+    if (cachedDestinations?.length) {
+      setShippingDestinations(cachedDestinations);
+      setError(null);
+      return;
+    }
+
     let ignore = false;
 
     async function loadDestinations() {
       setLoadingDestinations(true);
       try {
-        const response = await fetch("/api/envios/destinos");
+        const response = await fetch("/api/envios/destinos", {
+          headers: {
+            Accept: "application/json",
+          },
+        });
         if (!response.ok) {
           throw new Error("No se pudieron cargar los destinos.");
         }
         const payload = listShippingDestinationRatesResponseSchema.parse(await response.json());
         if (!ignore) {
           setShippingDestinations(payload.data);
+          writeCachedShippingDestinationRates(payload.data);
+          setError(null);
         }
       } catch {
         if (!ignore) {
@@ -149,8 +166,19 @@ export function CartSheet() {
         Carrito ({totalItems})
       </button>
       {isOpen ? (
-        <div className="fixed inset-0 z-50 bg-black/40 p-4">
-          <div className="ml-auto h-full w-full max-w-lg overflow-y-auto rounded-2xl bg-[var(--surface)] p-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 p-4">
+          <button
+            type="button"
+            aria-label="Cerrar carrito"
+            className="absolute inset-0 h-full w-full cursor-default bg-black/40"
+            onClick={() => setIsOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Carrito de compras"
+            className="relative z-10 ml-auto h-full w-full max-w-lg overflow-y-auto rounded-2xl bg-[var(--surface)] p-5 shadow-2xl"
+          >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-[var(--fg-strong)]">
                 Carrito <BrandWordmark />
@@ -179,24 +207,16 @@ export function CartSheet() {
                     >
                       <h3 className="font-medium text-[var(--fg-strong)]">{item.nombreProducto}</h3>
                       <p className="text-xs text-[var(--fg-soft)]">{item.nombreVariante ?? "Base"}</p>
-                      <p className="text-sm text-[var(--fg-muted)]">{formatCOP(itemSubtotal)}</p>
-                      <div className="mt-2 flex items-center gap-2">
-                        <input
-                          type="number"
-                          min={1}
-                          value={item.cantidad}
-                          onChange={(event) =>
-                            setQuantity(
-                              item.slug,
-                              item.nombreVariante,
-                              Number(event.target.value),
-                            )
-                          }
-                          className="w-20 rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-1 text-sm text-[var(--fg)]"
-                        />
+                      <div className="mt-2 flex items-center justify-between gap-3">
+                        <div className="text-sm text-[var(--fg-muted)]">
+                          <p>
+                            Cantidad: <strong className="text-[var(--fg-strong)]">{item.cantidad}</strong>
+                          </p>
+                          <p>{formatCOP(itemSubtotal)}</p>
+                        </div>
                         <button
                           type="button"
-                          className="text-xs text-rose-300 hover:text-rose-200"
+                          className="shrink-0 text-xs text-rose-300 hover:text-rose-200"
                           onClick={() => removeItem(item.slug, item.nombreVariante)}
                         >
                           Eliminar
