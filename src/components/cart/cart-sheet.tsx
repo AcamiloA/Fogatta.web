@@ -8,6 +8,10 @@ import { analyticsEvents } from "@/modules/analytics/events";
 import { trackEvent } from "@/modules/analytics/track";
 import { useCart } from "@/modules/checkout-whatsapp/cart-context";
 import { siteConfig } from "@/config/site";
+import {
+  readCachedShippingDestinationRates,
+  writeCachedShippingDestinationRates,
+} from "@/modules/shipping/client-destination-cache";
 import { listShippingDestinationRatesResponseSchema } from "@/modules/shipping/contracts";
 import type { ShippingDestinationRateDTO } from "@/modules/shipping/contracts";
 
@@ -42,18 +46,31 @@ export function CartSheet() {
       return;
     }
 
+    const cachedDestinations = readCachedShippingDestinationRates();
+    if (cachedDestinations?.length) {
+      setShippingDestinations(cachedDestinations);
+      setError(null);
+      return;
+    }
+
     let ignore = false;
 
     async function loadDestinations() {
       setLoadingDestinations(true);
       try {
-        const response = await fetch("/api/envios/destinos");
+        const response = await fetch("/api/envios/destinos", {
+          headers: {
+            Accept: "application/json",
+          },
+        });
         if (!response.ok) {
           throw new Error("No se pudieron cargar los destinos.");
         }
         const payload = listShippingDestinationRatesResponseSchema.parse(await response.json());
         if (!ignore) {
           setShippingDestinations(payload.data);
+          writeCachedShippingDestinationRates(payload.data);
+          setError(null);
         }
       } catch {
         if (!ignore) {
