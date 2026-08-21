@@ -4,7 +4,8 @@ export const shippingDestinationRateSchema = z.object({
   destino: z.string(),
   departamento: z.string(),
   destinoSlug: z.string(),
-  promedioEnvioUnitario: z.number().int().nonnegative(),
+  costoMinimoEnvio: z.number().int().nonnegative(),
+  costoEnvioUnitario: z.number().int().nonnegative(),
 });
 
 export const listShippingDestinationRatesResponseSchema = z.object({

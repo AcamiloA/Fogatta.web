@@ -1,13 +1,16 @@
 type ShippingRateCategory = "local" | "regional" | "nacional" | "zonal" | "otros" | "especial";
 
-// Promedios unitarios COP derivados del escenario "Caja 4 grandes" / 4 unidades.
-const averageShippingCostPerUnitByCategory: Record<ShippingRateCategory, number> = {
-  local: 4158,
-  regional: 5493,
-  nacional: 7911,
-  zonal: 9036,
-  otros: 11988,
-  especial: 15291,
+const shippingCostByCategory: Record<
+  ShippingRateCategory,
+  { costoMinimoEnvio: number; costoEnvioUnitario: number }
+> = {
+  // Minimos derivados del menor costo para 1 unidad; unitario deriva de "Caja 4 grandes" / 4.
+  local: { costoMinimoEnvio: 8500, costoEnvioUnitario: 4158 },
+  regional: { costoMinimoEnvio: 9830, costoEnvioUnitario: 5493 },
+  nacional: { costoMinimoEnvio: 16420, costoEnvioUnitario: 7911 },
+  zonal: { costoMinimoEnvio: 21000, costoEnvioUnitario: 9036 },
+  otros: { costoMinimoEnvio: 22000, costoEnvioUnitario: 11988 },
+  especial: { costoMinimoEnvio: 32000, costoEnvioUnitario: 15291 },
 };
 
 const destinations: Array<{
@@ -144,6 +147,7 @@ export const shippingDestinationRates = destinations.map((destination) => ({
   destino: destination.destino,
   departamento: destination.departamento,
   destinoSlug: toDestinationSlug(destination.destino, destination.departamento),
-  promedioEnvioUnitario: averageShippingCostPerUnitByCategory[destination.category],
+  costoMinimoEnvio: shippingCostByCategory[destination.category].costoMinimoEnvio,
+  costoEnvioUnitario: shippingCostByCategory[destination.category].costoEnvioUnitario,
   activo: true,
 }));

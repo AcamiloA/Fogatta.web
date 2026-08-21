@@ -51,7 +51,10 @@ export class CheckoutWhatsAppService {
     }
 
     const totalItems = input.items.reduce((acc, item) => acc + item.cantidad, 0);
-    const costoEnvio = shippingDestination.promedioEnvioUnitario * totalItems;
+    const costoEnvio = Math.max(
+      shippingDestination.costoMinimoEnvio,
+      shippingDestination.costoEnvioUnitario * totalItems,
+    );
     const messageInput = {
       ...input,
       clienteCiudad: shippingDestination.destino,

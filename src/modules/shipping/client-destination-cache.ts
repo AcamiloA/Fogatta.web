@@ -7,7 +7,7 @@ import {
 
 export const SHIPPING_DESTINATIONS_STORAGE_KEY = "fogatta_shipping_destinations_v1";
 export const SHIPPING_DESTINATIONS_COOKIE_NAME = "fogatta_shipping_destinations_cache";
-export const SHIPPING_DESTINATIONS_CACHE_VERSION = "2026-08-20-v1";
+export const SHIPPING_DESTINATIONS_CACHE_VERSION = "2026-08-20-v2";
 
 const CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 const COOKIE_MAX_AGE_SECONDS = CACHE_TTL_MS / 1000;

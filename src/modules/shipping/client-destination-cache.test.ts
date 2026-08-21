@@ -13,7 +13,8 @@ const destination: ShippingDestinationRateDTO = {
   destino: "Bogota D.C.",
   departamento: "Bogota D.C.",
   destinoSlug: "bogota-d-c-bogota-d-c",
-  promedioEnvioUnitario: 4158,
+  costoMinimoEnvio: 8500,
+  costoEnvioUnitario: 4158,
 };
 
 function buildPayload(cachedAt: number, data: ShippingDestinationRateDTO[] = [destination]) {
