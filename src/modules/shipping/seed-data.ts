@@ -4,13 +4,13 @@ const shippingCostByCategory: Record<
   ShippingRateCategory,
   { costoMinimoEnvio: number; costoEnvioUnitario: number }
 > = {
-  // Minimos derivados del menor costo para 1 unidad; unitario deriva de "Caja 4 grandes" / 4.
-  local: { costoMinimoEnvio: 8500, costoEnvioUnitario: 4158 },
-  regional: { costoMinimoEnvio: 9830, costoEnvioUnitario: 5493 },
-  nacional: { costoMinimoEnvio: 16420, costoEnvioUnitario: 7911 },
-  zonal: { costoMinimoEnvio: 21000, costoEnvioUnitario: 9036 },
-  otros: { costoMinimoEnvio: 22000, costoEnvioUnitario: 11988 },
-  especial: { costoMinimoEnvio: 32000, costoEnvioUnitario: 15291 },
+  // Redondeados hacia arriba a multiplos de $500 para mantener precios comerciales.
+  local: { costoMinimoEnvio: 8500, costoEnvioUnitario: 4500 },
+  regional: { costoMinimoEnvio: 10000, costoEnvioUnitario: 5500 },
+  nacional: { costoMinimoEnvio: 16500, costoEnvioUnitario: 8000 },
+  zonal: { costoMinimoEnvio: 21000, costoEnvioUnitario: 9500 },
+  otros: { costoMinimoEnvio: 22000, costoEnvioUnitario: 12000 },
+  especial: { costoMinimoEnvio: 32000, costoEnvioUnitario: 15500 },
 };
 
 const destinations: Array<{

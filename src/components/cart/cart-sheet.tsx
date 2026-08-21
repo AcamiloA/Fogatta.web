@@ -14,6 +14,7 @@ import {
 } from "@/modules/shipping/client-destination-cache";
 import { listShippingDestinationRatesResponseSchema } from "@/modules/shipping/contracts";
 import type { ShippingDestinationRateDTO } from "@/modules/shipping/contracts";
+import { calculateShippingCost } from "@/modules/shipping/pricing";
 
 export function CartSheet() {
   const { items, subtotal, removeItem, checkoutByWhatsApp, clearCart } = useCart();
@@ -39,12 +40,7 @@ export function CartSheet() {
     () => shippingDestinations.find((destination) => destination.destinoSlug === destinoSlug),
     [destinoSlug, shippingDestinations],
   );
-  const shippingCost = selectedDestination
-    ? Math.max(
-        selectedDestination.costoMinimoEnvio,
-        selectedDestination.costoEnvioUnitario * totalItems,
-      )
-    : 0;
+  const shippingCost = selectedDestination ? calculateShippingCost(selectedDestination, totalItems) : 0;
   const totalWithShipping = subtotal + shippingCost;
 
   useEffect(() => {

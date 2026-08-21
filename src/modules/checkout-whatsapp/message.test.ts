@@ -20,16 +20,16 @@ describe("checkout whatsapp message", () => {
         ],
       },
       {
-        costoEnvio: 8316,
+        costoEnvio: 8500,
         destino: "Bogota D.C.",
         departamento: "Bogota D.C.",
       },
     );
 
     expect(output.subtotalProductos).toBe(136000);
-    expect(output.costoEnvio).toBe(8316);
-    expect(output.subtotalReferencia).toBe(144316);
-    expect(output.totalReferencia).toBe(144316);
+    expect(output.costoEnvio).toBe(8500);
+    expect(output.subtotalReferencia).toBe(144500);
+    expect(output.totalReferencia).toBe(144500);
     expect(output.mensaje).toContain("========== RESUMEN ==========");
     expect(output.mensaje).toContain("Item 1:");
     expect(output.mensaje).toContain("Valor unt:");
