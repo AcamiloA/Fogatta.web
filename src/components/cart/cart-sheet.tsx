@@ -166,8 +166,19 @@ export function CartSheet() {
         Carrito ({totalItems})
       </button>
       {isOpen ? (
-        <div className="fixed inset-0 z-50 bg-black/40 p-4">
-          <div className="ml-auto h-full w-full max-w-lg overflow-y-auto rounded-2xl bg-[var(--surface)] p-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 p-4">
+          <button
+            type="button"
+            aria-label="Cerrar carrito"
+            className="absolute inset-0 h-full w-full cursor-default bg-black/40"
+            onClick={() => setIsOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Carrito de compras"
+            className="relative z-10 ml-auto h-full w-full max-w-lg overflow-y-auto rounded-2xl bg-[var(--surface)] p-5 shadow-2xl"
+          >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-[var(--fg-strong)]">
                 Carrito <BrandWordmark />
