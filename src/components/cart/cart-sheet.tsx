@@ -16,7 +16,7 @@ import { listShippingDestinationRatesResponseSchema } from "@/modules/shipping/c
 import type { ShippingDestinationRateDTO } from "@/modules/shipping/contracts";
 
 export function CartSheet() {
-  const { items, subtotal, setQuantity, removeItem, checkoutByWhatsApp, clearCart } = useCart();
+  const { items, subtotal, removeItem, checkoutByWhatsApp, clearCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -196,24 +196,16 @@ export function CartSheet() {
                     >
                       <h3 className="font-medium text-[var(--fg-strong)]">{item.nombreProducto}</h3>
                       <p className="text-xs text-[var(--fg-soft)]">{item.nombreVariante ?? "Base"}</p>
-                      <p className="text-sm text-[var(--fg-muted)]">{formatCOP(itemSubtotal)}</p>
-                      <div className="mt-2 flex items-center gap-2">
-                        <input
-                          type="number"
-                          min={1}
-                          value={item.cantidad}
-                          onChange={(event) =>
-                            setQuantity(
-                              item.slug,
-                              item.nombreVariante,
-                              Number(event.target.value),
-                            )
-                          }
-                          className="w-20 rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-1 text-sm text-[var(--fg)]"
-                        />
+                      <div className="mt-2 flex items-center justify-between gap-3">
+                        <div className="text-sm text-[var(--fg-muted)]">
+                          <p>
+                            Cantidad: <strong className="text-[var(--fg-strong)]">{item.cantidad}</strong>
+                          </p>
+                          <p>{formatCOP(itemSubtotal)}</p>
+                        </div>
                         <button
                           type="button"
-                          className="text-xs text-rose-300 hover:text-rose-200"
+                          className="shrink-0 text-xs text-rose-300 hover:text-rose-200"
                           onClick={() => removeItem(item.slug, item.nombreVariante)}
                         >
                           Eliminar
