@@ -40,7 +40,10 @@ export function CartSheet() {
     [destinoSlug, shippingDestinations],
   );
   const shippingCost = selectedDestination
-    ? selectedDestination.promedioEnvioUnitario * totalItems
+    ? Math.max(
+        selectedDestination.costoMinimoEnvio,
+        selectedDestination.costoEnvioUnitario * totalItems,
+      )
     : 0;
   const totalWithShipping = subtotal + shippingCost;
 
@@ -255,6 +258,7 @@ export function CartSheet() {
               <div className="rounded-xl border border-[var(--border)]/45 bg-[var(--surface-2)] p-3 text-xs text-[var(--fg-muted)]">
                 <p className="font-medium text-[var(--fg-strong)]">Antes de finalizar</p>
                 <p>Envíos: Cobertura nacional en Colombia.</p>
+                <p>El costo de envío es estimado y está sujeto a cambios</p>
                 <p>Atención: {siteConfig.supportHours}.</p>
               </div>
               <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--fg-soft)]">

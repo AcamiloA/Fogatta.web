@@ -15,7 +15,8 @@ async function main() {
       update: {
         destino: destinationRate.destino,
         departamento: destinationRate.departamento,
-        promedioEnvioUnitario: destinationRate.promedioEnvioUnitario,
+        costoMinimoEnvio: destinationRate.costoMinimoEnvio,
+        costoEnvioUnitario: destinationRate.costoEnvioUnitario,
         activo: destinationRate.activo,
       },
       create: destinationRate,

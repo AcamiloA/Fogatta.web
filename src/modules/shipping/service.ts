@@ -17,7 +17,8 @@ function getFallbackDestinationRates(): ShippingDestinationRateDTO[] {
     destino: rate.destino,
     departamento: rate.departamento,
     destinoSlug: rate.destinoSlug,
-    promedioEnvioUnitario: rate.promedioEnvioUnitario,
+    costoMinimoEnvio: rate.costoMinimoEnvio,
+    costoEnvioUnitario: rate.costoEnvioUnitario,
   }));
 }
 
@@ -59,7 +60,8 @@ export class ShippingService {
           destino: true,
           departamento: true,
           destinoSlug: true,
-          promedioEnvioUnitario: true,
+          costoMinimoEnvio: true,
+          costoEnvioUnitario: true,
         },
       });
 
@@ -87,7 +89,8 @@ export class ShippingService {
           destino: true,
           departamento: true,
           destinoSlug: true,
-          promedioEnvioUnitario: true,
+          costoMinimoEnvio: true,
+          costoEnvioUnitario: true,
         },
       });
 
