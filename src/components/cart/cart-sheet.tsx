@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { BrandWordmark } from "@/components/layout/brand-wordmark";
 import { formatCOP } from "@/lib/currency";
@@ -22,6 +22,9 @@ export function CartSheet() {
   const [error, setError] = useState<string | null>(null);
   const [shippingDestinations, setShippingDestinations] = useState<ShippingDestinationRateDTO[]>([]);
   const [loadingDestinations, setLoadingDestinations] = useState(false);
+  const [shippingDestinationsLoaded, setShippingDestinationsLoaded] = useState(false);
+  const [shippingDestinationsLoadFailed, setShippingDestinationsLoadFailed] = useState(false);
+  const shippingDestinationsLoadStartedRef = useRef(false);
 
   const [clienteNombre, setClienteNombre] = useState("");
   const [destinoSlug, setDestinoSlug] = useState("");
@@ -42,13 +45,20 @@ export function CartSheet() {
   const totalWithShipping = subtotal + shippingCost;
 
   useEffect(() => {
-    if (!isOpen || shippingDestinations.length || loadingDestinations) {
+    if (
+      shippingDestinationsLoaded ||
+      shippingDestinationsLoadFailed ||
+      shippingDestinationsLoadStartedRef.current
+    ) {
       return;
     }
 
+    shippingDestinationsLoadStartedRef.current = true;
     const cachedDestinations = readCachedShippingDestinationRates();
     if (cachedDestinations?.length) {
       setShippingDestinations(cachedDestinations);
+      setShippingDestinationsLoaded(true);
+      setShippingDestinationsLoadFailed(false);
       setError(null);
       return;
     }
@@ -70,10 +80,14 @@ export function CartSheet() {
         if (!ignore) {
           setShippingDestinations(payload.data);
           writeCachedShippingDestinationRates(payload.data);
+          setShippingDestinationsLoaded(true);
+          setShippingDestinationsLoadFailed(false);
           setError(null);
         }
       } catch {
         if (!ignore) {
+          setShippingDestinationsLoaded(false);
+          setShippingDestinationsLoadFailed(true);
           setError("No se pudieron cargar las ciudades de envio.");
         }
       } finally {
@@ -88,7 +102,7 @@ export function CartSheet() {
     return () => {
       ignore = true;
     };
-  }, [isOpen, loadingDestinations, shippingDestinations.length]);
+  }, [shippingDestinationsLoadFailed, shippingDestinationsLoaded]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -143,11 +157,20 @@ export function CartSheet() {
     setNotas("");
   }
 
+  function openCart() {
+    setIsOpen(true);
+
+    if (shippingDestinationsLoadFailed) {
+      shippingDestinationsLoadStartedRef.current = false;
+      setShippingDestinationsLoadFailed(false);
+    }
+  }
+
   return (
     <>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={openCart}
         className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-[var(--accent-contrast)] shadow-lg transition hover:bg-[var(--accent-hover)]"
       >
         <svg
@@ -248,11 +271,15 @@ export function CartSheet() {
                 required
                 value={destinoSlug}
                 onChange={(event) => setDestinoSlug(event.target.value)}
-                disabled={loadingDestinations}
+                disabled={loadingDestinations || !shippingDestinationsLoaded}
                 className="w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
               >
                 <option value="">
-                  {loadingDestinations ? "Cargando ciudades..." : "Ciudad"}
+                  {loadingDestinations
+                    ? "Cargando ciudades..."
+                    : shippingDestinationsLoaded
+                      ? "Ciudad"
+                      : "Ciudades no disponibles"}
                 </option>
                 {shippingDestinations.map((destination) => (
                   <option key={destination.destinoSlug} value={destination.destinoSlug}>
