@@ -358,45 +358,57 @@ export function AdminBlogManager() {
         {renderFeedback("blog-create")}
         <h2 className="text-xl text-[var(--fg-strong)]">Crear artículo</h2>
         <div className="grid gap-2">
-          <input
-            value={newPost.titulo}
-            onChange={(event) => setNewPost((current) => ({ ...current, titulo: event.target.value }))}
-            placeholder="Título del artículo"
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <input
-            value={newPost.autor}
-            onChange={(event) => setNewPost((current) => ({ ...current, autor: event.target.value }))}
-            placeholder="Autor"
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <textarea
-            value={newPost.extracto}
-            onChange={(event) =>
-              setNewPost((current) => ({
-                ...current,
-                extracto: event.target.value.slice(0, BLOG_EXTRACT_MAX_CHARACTERS),
-              }))
-            }
-            maxLength={BLOG_EXTRACT_MAX_CHARACTERS}
-            placeholder="Extracto (resumen corto para la lista del blog)"
-            className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Título del artículo
+            <input
+              value={newPost.titulo}
+              onChange={(event) => setNewPost((current) => ({ ...current, titulo: event.target.value }))}
+              placeholder="Ej: Cómo elegir una vela aromática"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Autor
+            <input
+              value={newPost.autor}
+              onChange={(event) => setNewPost((current) => ({ ...current, autor: event.target.value }))}
+              placeholder="Nombre visible"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Extracto
+            <textarea
+              value={newPost.extracto}
+              onChange={(event) =>
+                setNewPost((current) => ({
+                  ...current,
+                  extracto: event.target.value.slice(0, BLOG_EXTRACT_MAX_CHARACTERS),
+                }))
+              }
+              maxLength={BLOG_EXTRACT_MAX_CHARACTERS}
+              placeholder="Resumen corto para la lista del blog"
+              className="mt-1 min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
           <p className="text-xs text-[var(--fg-soft)]">
             Caracteres disponibles: {BLOG_EXTRACT_MAX_CHARACTERS - newPost.extracto.length}
           </p>
-          <textarea
-            value={newPost.contenido}
-            onChange={(event) =>
-              setNewPost((current) => ({
-                ...current,
-                contenido: event.target.value.slice(0, BLOG_CONTENT_MAX_CHARACTERS),
-              }))
-            }
-            maxLength={BLOG_CONTENT_MAX_CHARACTERS}
-            placeholder="Contenido"
-            className="min-h-40 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Contenido
+            <textarea
+              value={newPost.contenido}
+              onChange={(event) =>
+                setNewPost((current) => ({
+                  ...current,
+                  contenido: event.target.value.slice(0, BLOG_CONTENT_MAX_CHARACTERS),
+                }))
+              }
+              maxLength={BLOG_CONTENT_MAX_CHARACTERS}
+              placeholder="Contenido completo del artículo"
+              className="mt-1 min-h-40 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
           <p className="text-xs text-[var(--fg-soft)]">
             Caracteres disponibles: {BLOG_CONTENT_MAX_CHARACTERS - newPost.contenido.length}
           </p>
@@ -424,47 +436,59 @@ export function AdminBlogManager() {
           >
             {renderFeedback(`blog-post-${post.id}`)}
             <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">{post.slug}</p>
-            <input
-              value={post.titulo}
-              onChange={(event) =>
-                updatePostState(post.id, (current) => ({ ...current, titulo: event.target.value }))
-              }
-              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-            />
-            <input
-              value={post.autor}
-              onChange={(event) =>
-                updatePostState(post.id, (current) => ({ ...current, autor: event.target.value }))
-              }
-              placeholder="Autor"
-              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-            />
-            <textarea
-              value={post.extracto}
-              onChange={(event) =>
-                updatePostState(post.id, (current) => ({
-                  ...current,
-                  extracto: event.target.value.slice(0, BLOG_EXTRACT_MAX_CHARACTERS),
-                }))
-              }
-              maxLength={BLOG_EXTRACT_MAX_CHARACTERS}
-              placeholder="Extracto (resumen corto para la lista del blog)"
-              className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-            />
+            <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+              Título del artículo
+              <input
+                value={post.titulo}
+                onChange={(event) =>
+                  updatePostState(post.id, (current) => ({ ...current, titulo: event.target.value }))
+                }
+                className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+              />
+            </label>
+            <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+              Autor
+              <input
+                value={post.autor}
+                onChange={(event) =>
+                  updatePostState(post.id, (current) => ({ ...current, autor: event.target.value }))
+                }
+                placeholder="Nombre visible"
+                className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+              />
+            </label>
+            <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+              Extracto
+              <textarea
+                value={post.extracto}
+                onChange={(event) =>
+                  updatePostState(post.id, (current) => ({
+                    ...current,
+                    extracto: event.target.value.slice(0, BLOG_EXTRACT_MAX_CHARACTERS),
+                  }))
+                }
+                maxLength={BLOG_EXTRACT_MAX_CHARACTERS}
+                placeholder="Resumen corto para la lista del blog"
+                className="mt-1 min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+              />
+            </label>
             <p className="text-xs text-[var(--fg-soft)]">
               Caracteres disponibles: {BLOG_EXTRACT_MAX_CHARACTERS - post.extracto.length}
             </p>
-            <textarea
-              value={post.contenido}
-              onChange={(event) =>
-                updatePostState(post.id, (current) => ({
-                  ...current,
-                  contenido: event.target.value.slice(0, BLOG_CONTENT_MAX_CHARACTERS),
-                }))
-              }
-              maxLength={BLOG_CONTENT_MAX_CHARACTERS}
-              className="min-h-40 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-            />
+            <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+              Contenido
+              <textarea
+                value={post.contenido}
+                onChange={(event) =>
+                  updatePostState(post.id, (current) => ({
+                    ...current,
+                    contenido: event.target.value.slice(0, BLOG_CONTENT_MAX_CHARACTERS),
+                  }))
+                }
+                maxLength={BLOG_CONTENT_MAX_CHARACTERS}
+                className="mt-1 min-h-40 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+              />
+            </label>
             <p className="text-xs text-[var(--fg-soft)]">
               Caracteres disponibles: {BLOG_CONTENT_MAX_CHARACTERS - post.contenido.length}
             </p>

@@ -105,13 +105,16 @@ export function BlogComments({ slug, initialComments }: Props) {
       </p>
 
       <form className="mt-4 space-y-2" onSubmit={submitComment}>
-        <textarea
-          value={mensaje}
-          onChange={(event) => setMensaje(event.target.value.slice(0, MAX_COMMENT_LENGTH))}
-          maxLength={MAX_COMMENT_LENGTH}
-          placeholder="Cuéntanos tu experiencia"
-          className="min-h-28 w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-        />
+        <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+          Comentario
+          <textarea
+            value={mensaje}
+            onChange={(event) => setMensaje(event.target.value.slice(0, MAX_COMMENT_LENGTH))}
+            maxLength={MAX_COMMENT_LENGTH}
+            placeholder="Cuéntanos tu experiencia"
+            className="mt-1 min-h-28 w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          />
+        </label>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
