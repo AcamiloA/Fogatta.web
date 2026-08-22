@@ -46,11 +46,11 @@ function normalizeQuantityInput(rawValue: string, maxStock: number) {
 
 export function ProductDetailInteractive({ product }: Props) {
   const { addItem, items } = useCart();
-  const [variantId, setVariantId] = useState("");
+  const [variantId, setVariantId] = useState(product.variantes[0]?.id ?? "");
   const [quantityInput, setQuantityInput] = useState("");
 
   const selectedVariant = useMemo(
-    () => product.variantes.find((variant) => variant.id === variantId) ?? null,
+    () => product.variantes.find((variant) => variant.id === variantId) ?? product.variantes[0] ?? null,
     [product.variantes, variantId],
   );
 
@@ -136,7 +136,9 @@ export function ProductDetailInteractive({ product }: Props) {
 
         <div className="mt-4 grid gap-2 text-sm text-[var(--fg-muted)] md:grid-cols-2">
           {product.duracionAprox ? <p>Duración aproximada: <strong>{product.duracionAprox}</strong></p> : null}
-          {product.tamanoPeso ? <p>Tamaño/peso: <strong>{product.tamanoPeso}</strong></p> : null}
+          {selectedVariant?.nombreVariante.trim() ? (
+            <p>Tamaño/peso: <strong>{selectedVariant.nombreVariante}</strong></p>
+          ) : null}
           {product.notasOlfativas ? <p className="md:col-span-2">Notas olfativas: <strong>{product.notasOlfativas}</strong></p> : null}
           {product.idealPara ? <p className="md:col-span-2">Ideal para: <strong>{product.idealPara}</strong></p> : null}
         </div>
@@ -174,7 +176,6 @@ export function ProductDetailInteractive({ product }: Props) {
                 }}
                 className="rounded-lg border border-[var(--input-border)] bg-[var(--card)] px-2 py-2"
               >
-                <option value="">Seleccione una variante</option>
                 {product.variantes.map((variant) => (
                   <option key={variant.id} value={variant.id}>
                     {variant.nombreVariante} - {formatCOP(getDiscountedPrice(variant))}

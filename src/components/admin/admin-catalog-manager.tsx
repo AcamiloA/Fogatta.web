@@ -133,8 +133,7 @@ function truncateText(value: string, maxCharacters: number) {
 
 function buildAutomaticSeo(product: Product) {
   const titleBase = normalizeWhitespace(product.nombre) || "Producto FOGATTA";
-  const descriptionBase =
-    normalizeWhitespace(product.resumen ?? "") || normalizeWhitespace(product.descripcion);
+  const descriptionBase = normalizeWhitespace(product.descripcion);
   const descriptionWithSuffix = descriptionBase
     ? `${descriptionBase} ${SEO_DESCRIPTION_SUFFIX}`
     : SEO_DESCRIPTION_SUFFIX;
@@ -147,9 +146,7 @@ function buildAutomaticSeo(product: Product) {
 
 function getVisibleProductSummary(product: Product) {
   return truncateText(
-    normalizeWhitespace(product.resumen ?? "") ||
-      normalizeWhitespace(product.descripcion) ||
-      "Producto FOGATTA sin descripción.",
+    normalizeWhitespace(product.descripcion) || "Producto FOGATTA sin descripción.",
     150,
   );
 }
@@ -476,7 +473,7 @@ export function AdminCatalogManager() {
       return;
     }
     if (!newProduct.descripcion.trim()) {
-      showFeedback(scope, "warning", "Agrega la descripción larga del producto.");
+      showFeedback(scope, "warning", "Agrega la descripción del producto.");
       return;
     }
     if (!newProduct.imagenes.length) {
@@ -595,7 +592,7 @@ export function AdminCatalogManager() {
   async function saveProduct(product: Product) {
     const scope = `product-${product.id}`;
     if (!product.descripcion.trim()) {
-      showFeedback(scope, "warning", "La descripción larga es obligatoria.");
+      showFeedback(scope, "warning", "La descripción es obligatoria.");
       return;
     }
     if (!product.imagenes.length) {
@@ -612,12 +609,12 @@ export function AdminCatalogManager() {
         body: JSON.stringify({
           slug: product.slug,
           nombre: product.nombre,
-          resumen: product.resumen?.trim() || "",
+          resumen: "",
           descripcion: product.descripcion,
           historiaAroma: product.historiaAroma?.trim() || "",
           notasOlfativas: product.notasOlfativas?.trim() || "",
           duracionAprox: product.duracionAprox?.trim() || "",
-          tamanoPeso: product.tamanoPeso?.trim() || "",
+          tamanoPeso: "",
           idealPara: product.idealPara?.trim() || "",
           instruccionesUso: product.instruccionesUso?.trim() || "",
           estadoComercial: product.estadoComercial,
@@ -909,7 +906,7 @@ export function AdminCatalogManager() {
       }
 
       const productMatch = normalizeForMatch(
-        `${product.nombre} ${product.slug} ${product.resumen ?? ""} ${product.descripcion} ${product.notasOlfativas ?? ""} ${product.categoria.nombre}`,
+        `${product.nombre} ${product.slug} ${product.descripcion} ${product.notasOlfativas ?? ""} ${product.categoria.nombre}`,
       ).includes(normalizedProductFilter);
 
       if (productMatch) {
@@ -1010,7 +1007,7 @@ export function AdminCatalogManager() {
             onChange={(event) =>
               setNewProduct((current) => ({ ...current, descripcion: event.target.value }))
             }
-            placeholder="Descripción larga"
+            placeholder="Descripción"
             className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
           />
           <div className="grid grid-cols-1 gap-2">
@@ -1359,24 +1356,7 @@ export function AdminCatalogManager() {
                         </select>
                       </label>
                       <label className="space-y-1 text-xs text-[var(--fg-muted)] md:col-span-2">
-                        Descripción corta
-                        <input
-                          value={product.resumen ?? ""}
-                          onChange={(event) =>
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              resumen: event.target.value,
-                            }))
-                          }
-                          placeholder="Texto breve para tarjetas, buscadores y vista previa"
-                          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                        />
-                        <span className="block text-[11px] text-[var(--fg-soft)]">
-                          Si lo dejas vacío, el catálogo usará la descripción larga.
-                        </span>
-                      </label>
-                      <label className="space-y-1 text-xs text-[var(--fg-muted)] md:col-span-2">
-                        Descripción larga
+                        Descripción
                         <textarea
                           value={product.descripcion}
                           onChange={(event) =>
@@ -1385,7 +1365,7 @@ export function AdminCatalogManager() {
                               descripcion: event.target.value,
                             }))
                           }
-                          placeholder="Descripción larga"
+                          placeholder="Descripción"
                           className="min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
                         />
                       </label>
@@ -1416,17 +1396,6 @@ export function AdminCatalogManager() {
                             }))
                           }
                           placeholder="Duración aproximada (ej: 35h)"
-                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                        />
-                        <input
-                          value={product.tamanoPeso ?? ""}
-                          onChange={(event) =>
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              tamanoPeso: event.target.value,
-                            }))
-                          }
-                          placeholder="Tamaño / peso (ej: 220g)"
                           className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
                         />
                         <input
@@ -1479,16 +1448,18 @@ export function AdminCatalogManager() {
                           ))}
                         </select>
                         <input
-                          type="number"
-                          min={0}
-                          value={product.sortOrder}
-                          onChange={(event) =>
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={product.sortOrder > 0 ? String(product.sortOrder) : ""}
+                          onChange={(event) => {
+                            const digitsOnly = event.target.value.replace(/\D/g, "");
                             updateProductState(product.id, (current) => ({
                               ...current,
-                              sortOrder: Number.parseInt(event.target.value || "0", 10) || 0,
-                            }))
-                          }
-                          placeholder="Orden"
+                              sortOrder: digitsOnly ? Number.parseInt(digitsOnly, 10) : 0,
+                            }));
+                          }}
+                          placeholder="Orden de aparición"
                           className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
                         />
                         <label className="flex items-center gap-2 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]">
@@ -1525,7 +1496,7 @@ export function AdminCatalogManager() {
                         <div>
                           <h4 className="text-sm font-medium text-[var(--fg-strong)]">SEO automático</h4>
                           <p className="text-xs text-[var(--fg-muted)]">
-                            Se genera desde nombre y descripción corta. Solo personaliza si necesitas un texto distinto.
+                            Se genera desde nombre y descripción. Solo personaliza si necesitas un texto distinto.
                           </p>
                         </div>
                         <span className="rounded-full bg-[var(--accent)]/15 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--accent)]">
@@ -1681,7 +1652,7 @@ export function AdminCatalogManager() {
                         nombreVariante: event.target.value,
                       }))
                     }
-                    placeholder="Nombre variante (ej. 220g)"
+                    placeholder="Tamaño / peso de variante (ej. 220g)"
                     className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
                   />
                   <input
