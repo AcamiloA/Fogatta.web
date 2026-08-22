@@ -126,12 +126,15 @@ export function AdminProductCommercialManager() {
           orden y SEO sin tocar código.
         </p>
       </div>
-      <input
-        value={searchTerm}
-        onChange={(event) => setSearchTerm(event.target.value)}
-        placeholder="Buscar producto por nombre o slug"
-        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-      />
+      <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+        Buscar producto
+        <input
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+          placeholder="Nombre o slug"
+          className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+        />
+      </label>
       {feedback ? (
         <p className="rounded-lg border border-[var(--accent)]/35 bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg-muted)]">
           {feedback}
@@ -153,99 +156,123 @@ export function AdminProductCommercialManager() {
             </div>
 
             <div className="grid gap-2 md:grid-cols-2">
-              <input
-                value={product.resumen ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({ ...current, resumen: event.target.value }))
-                }
-                placeholder="Descripcion corta (ficha)"
-                className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
-              />
-              <input
-                value={product.notasOlfativas ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    notasOlfativas: event.target.value,
-                  }))
-                }
-                placeholder="Notas olfativas (ej: vainilla, canela, madera)"
-                className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
-              />
-              <input
-                value={product.duracionAprox ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    duracionAprox: event.target.value,
-                  }))
-                }
-                placeholder="Duracion aproximada (ej: 35h)"
-                className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
-              />
-              <input
-                value={product.tamanoPeso ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    tamanoPeso: event.target.value,
-                  }))
-                }
-                placeholder="Tamano / peso (ej: 220g)"
-                className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
-              />
-              <input
-                value={product.idealPara ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    idealPara: event.target.value,
-                  }))
-                }
-                placeholder="Ideal para (regalo, lectura, ritual nocturno...)"
-                className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)] md:col-span-2"
-              />
-              <textarea
-                value={product.historiaAroma ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    historiaAroma: event.target.value,
-                  }))
-                }
-                placeholder="Historia del aroma"
-                className="min-h-24 rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)] md:col-span-2"
-              />
-              <textarea
-                value={product.instruccionesUso ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    instruccionesUso: event.target.value,
-                  }))
-                }
-                placeholder="Instrucciones de uso y seguridad"
-                className="min-h-24 rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)] md:col-span-2"
-              />
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                Descripción corta
+                <input
+                  value={product.resumen ?? ""}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({ ...current, resumen: event.target.value }))
+                  }
+                  placeholder="Texto para la ficha"
+                  className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                Notas olfativas
+                <input
+                  value={product.notasOlfativas ?? ""}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      notasOlfativas: event.target.value,
+                    }))
+                  }
+                  placeholder="Ej: vainilla, canela, madera"
+                  className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                Duración aproximada
+                <input
+                  value={product.duracionAprox ?? ""}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      duracionAprox: event.target.value,
+                    }))
+                  }
+                  placeholder="Ej: 35h"
+                  className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                Tamaño / peso
+                <input
+                  value={product.tamanoPeso ?? ""}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      tamanoPeso: event.target.value,
+                    }))
+                  }
+                  placeholder="Ej: 220g"
+                  className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)] md:col-span-2">
+                Ideal para
+                <input
+                  value={product.idealPara ?? ""}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      idealPara: event.target.value,
+                    }))
+                  }
+                  placeholder="Ej: regalo, lectura, ritual nocturno"
+                  className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)] md:col-span-2">
+                Historia del aroma
+                <textarea
+                  value={product.historiaAroma ?? ""}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      historiaAroma: event.target.value,
+                    }))
+                  }
+                  placeholder="Relato comercial del aroma"
+                  className="mt-1 min-h-24 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)] md:col-span-2">
+                Instrucciones de uso y seguridad
+                <textarea
+                  value={product.instruccionesUso ?? ""}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      instruccionesUso: event.target.value,
+                    }))
+                  }
+                  placeholder="Cuidados, uso recomendado o advertencias"
+                  className="mt-1 min-h-24 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
             </div>
 
             <div className="grid gap-2 md:grid-cols-4">
-              <select
-                value={product.estadoComercial}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    estadoComercial: event.target.value as CommercialStatus,
-                  }))
-                }
-                className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
-              >
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                Estado comercial
+                <select
+                  value={product.estadoComercial}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      estadoComercial: event.target.value as CommercialStatus,
+                    }))
+                  }
+                  className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                >
+                  {statusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label className="inline-flex items-center gap-2 rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]">
                 <input
                   type="checkbox"
@@ -259,44 +286,53 @@ export function AdminProductCommercialManager() {
                 />
                 Destacado
               </label>
-              <input
-                type="number"
-                min={0}
-                value={product.sortOrder}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    sortOrder: Number.parseInt(event.target.value || "0", 10) || 0,
-                  }))
-                }
-                placeholder="Orden"
-                className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
-              />
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                Orden
+                <input
+                  type="number"
+                  min={0}
+                  value={product.sortOrder}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      sortOrder: Number.parseInt(event.target.value || "0", 10) || 0,
+                    }))
+                  }
+                  placeholder="Orden"
+                  className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
             </div>
 
             <div className="grid gap-2 md:grid-cols-2">
-              <input
-                value={product.seoTitle ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    seoTitle: event.target.value,
-                  }))
-                }
-                placeholder="SEO title (opcional)"
-                className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
-              />
-              <input
-                value={product.seoDescription ?? ""}
-                onChange={(event) =>
-                  updateProductState(product.id, (current) => ({
-                    ...current,
-                    seoDescription: event.target.value,
-                  }))
-                }
-                placeholder="SEO description (opcional)"
-                className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
-              />
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                SEO title
+                <input
+                  value={product.seoTitle ?? ""}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      seoTitle: event.target.value,
+                    }))
+                  }
+                  placeholder="Opcional"
+                  className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                SEO description
+                <input
+                  value={product.seoDescription ?? ""}
+                  onChange={(event) =>
+                    updateProductState(product.id, (current) => ({
+                      ...current,
+                      seoDescription: event.target.value,
+                    }))
+                  }
+                  placeholder="Opcional"
+                  className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
             </div>
 
             <button

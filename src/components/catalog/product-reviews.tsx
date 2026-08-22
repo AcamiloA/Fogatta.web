@@ -211,15 +211,18 @@ export function ProductReviews({ productSlug }: Props) {
       <form onSubmit={handleSubmit} className="space-y-2 rounded-xl border border-[var(--border)]/35 bg-[var(--surface)] p-4">
         <h3 className="text-base text-[var(--fg-strong)]">Cuéntanos tu experiencia</h3>
         <div className="grid gap-2 md:grid-cols-2">
-          <input
-            type="text"
-            value={nombre}
-            onChange={(event) => setNombre(event.target.value)}
-            placeholder="Tu nombre (opcional)"
-            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm"
-          />
-          <div className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2">
-            <p className="text-xs text-[var(--fg-soft)]">Calificación</p>
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Nombre
+            <input
+              type="text"
+              value={nombre}
+              onChange={(event) => setNombre(event.target.value)}
+              placeholder="Opcional"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm"
+            />
+          </label>
+          <fieldset className="min-w-0 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2">
+            <legend className="px-1 text-sm font-medium text-[var(--fg-muted)]">Calificación</legend>
             <div className="mt-1 flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((value) => {
                 const active = value <= rating;
@@ -242,21 +245,26 @@ export function ProductReviews({ productSlug }: Props) {
                 {rating} estrella{rating === 1 ? "" : "s"}
               </span>
             </div>
-          </div>
+          </fieldset>
         </div>
 
-        <textarea
-          value={mensaje}
-          onChange={(event) => setMensaje(event.target.value.slice(0, MAX_MESSAGE))}
-          placeholder="Comparte aroma, duración y cómo te fue con el producto."
-          className="min-h-28 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm"
-          required
-        />
+        <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+          Experiencia con el producto
+          <textarea
+            value={mensaje}
+            onChange={(event) => setMensaje(event.target.value.slice(0, MAX_MESSAGE))}
+            placeholder="Comparte aroma, duración y cómo te fue con el producto."
+            className="mt-1 min-h-28 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm"
+            required
+          />
+        </label>
         <p className="text-xs text-[var(--fg-soft)]">Caracteres disponibles: {remainingChars}</p>
 
         <div className="space-y-2 rounded-lg border border-[var(--input-border)]/65 bg-[var(--surface-3)] p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-[var(--fg-muted)]">Fotos opcionales ({photoUrls.length}/{MAX_PHOTOS})</p>
+            <p className="text-sm font-medium text-[var(--fg-muted)]">
+              Fotos de la reseña ({photoUrls.length}/{MAX_PHOTOS})
+            </p>
             <label className="inline-flex cursor-pointer rounded-lg border border-[var(--accent)]/45 px-3 py-1.5 text-xs text-[var(--fg-strong)] hover:bg-[var(--surface)]">
               {uploadingPhotos ? "Subiendo..." : "Seleccionar fotos"}
               <input

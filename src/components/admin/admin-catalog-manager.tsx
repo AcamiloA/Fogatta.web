@@ -960,24 +960,33 @@ export function AdminCatalogManager() {
         <div className="space-y-3">
           {renderFeedback("create-category")}
           <h2 className="text-xl text-[var(--fg-strong)]">Crear categoría</h2>
-          <input
-            value={newCategoryName}
-            onChange={(event) => setNewCategoryName(event.target.value)}
-            placeholder="Título de categoría"
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <input
-            value={newCategorySummary}
-            onChange={(event) => setNewCategorySummary(event.target.value)}
-            placeholder="Resumen breve (ficha)"
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <textarea
-            value={newCategoryDescription}
-            onChange={(event) => setNewCategoryDescription(event.target.value)}
-            placeholder="Descripción larga (opcional)"
-            className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Título de categoría
+            <input
+              value={newCategoryName}
+              onChange={(event) => setNewCategoryName(event.target.value)}
+              placeholder="Ej: Aromas relajantes"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Resumen breve
+            <input
+              value={newCategorySummary}
+              onChange={(event) => setNewCategorySummary(event.target.value)}
+              placeholder="Texto para la ficha"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Descripción larga
+            <textarea
+              value={newCategoryDescription}
+              onChange={(event) => setNewCategoryDescription(event.target.value)}
+              placeholder="Opcional"
+              className="mt-1 min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
           <button
             type="button"
             onClick={() => void createCategory()}
@@ -991,40 +1000,49 @@ export function AdminCatalogManager() {
         <div className="space-y-2">
           {renderFeedback("create-product")}
           <h2 className="text-xl text-[var(--fg-strong)]">Crear producto</h2>
-          <input
-            value={newProduct.nombre}
-            onChange={(event) =>
-              setNewProduct((current) => ({
-                ...current,
-                nombre: event.target.value,
-              }))
-            }
-            placeholder="Nombre del producto"
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <textarea
-            value={newProduct.descripcion}
-            onChange={(event) =>
-              setNewProduct((current) => ({ ...current, descripcion: event.target.value }))
-            }
-            placeholder="Descripción"
-            className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <div className="grid grid-cols-1 gap-2">
-            <select
-              value={newProduct.categoryId}
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Nombre del producto
+            <input
+              value={newProduct.nombre}
               onChange={(event) =>
-                setNewProduct((current) => ({ ...current, categoryId: event.target.value }))
+                setNewProduct((current) => ({
+                  ...current,
+                  nombre: event.target.value,
+                }))
               }
-              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-            >
-              <option value="">Seleccione categoría</option>
-              {categoryOptions.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.nombre}
-                </option>
-              ))}
-            </select>
+              placeholder="Ej: Vela Lavanda"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Descripción
+            <textarea
+              value={newProduct.descripcion}
+              onChange={(event) =>
+                setNewProduct((current) => ({ ...current, descripcion: event.target.value }))
+              }
+              placeholder="Descripción visible del producto"
+              className="mt-1 min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <div className="grid grid-cols-1 gap-2">
+            <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+              Categoría
+              <select
+                value={newProduct.categoryId}
+                onChange={(event) =>
+                  setNewProduct((current) => ({ ...current, categoryId: event.target.value }))
+                }
+                className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+              >
+                <option value="">Seleccione categoría</option>
+                {categoryOptions.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
           <label className="block text-xs text-[var(--fg-muted)]">
             Subir imagen
@@ -1123,39 +1141,48 @@ export function AdminCatalogManager() {
                     className="space-y-3 rounded-lg border border-[var(--border)]/50 bg-[var(--surface-3)] p-3"
                   >
                     <div className="grid gap-2">
-                      <input
-                        value={category.nombre}
-                        onChange={(event) =>
-                          updateCategoryState(category.id, (current) => ({
-                            ...current,
-                            nombre: event.target.value,
-                          }))
-                        }
-                        placeholder="Título"
-                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
-                      />
-                      <input
-                        value={category.resumen ?? ""}
-                        onChange={(event) =>
-                          updateCategoryState(category.id, (current) => ({
-                            ...current,
-                            resumen: event.target.value,
-                          }))
-                        }
-                        placeholder="Resumen breve"
-                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
-                      />
-                      <textarea
-                        value={category.descripcion ?? ""}
-                        onChange={(event) =>
-                          updateCategoryState(category.id, (current) => ({
-                            ...current,
-                            descripcion: event.target.value,
-                          }))
-                        }
-                        placeholder="Descripción larga"
-                        className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
-                      />
+                      <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                        Título de categoría
+                        <input
+                          value={category.nombre}
+                          onChange={(event) =>
+                            updateCategoryState(category.id, (current) => ({
+                              ...current,
+                              nombre: event.target.value,
+                            }))
+                          }
+                          placeholder="Título"
+                          className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                      </label>
+                      <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                        Resumen breve
+                        <input
+                          value={category.resumen ?? ""}
+                          onChange={(event) =>
+                            updateCategoryState(category.id, (current) => ({
+                              ...current,
+                              resumen: event.target.value,
+                            }))
+                          }
+                          placeholder="Texto para la ficha"
+                          className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                      </label>
+                      <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                        Descripción larga
+                        <textarea
+                          value={category.descripcion ?? ""}
+                          onChange={(event) =>
+                            updateCategoryState(category.id, (current) => ({
+                              ...current,
+                              descripcion: event.target.value,
+                            }))
+                          }
+                          placeholder="Opcional"
+                          className="mt-1 min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-2)] px-3 py-2 text-sm text-[var(--fg)]"
+                        />
+                      </label>
                       <p className="text-xs text-[var(--fg-muted)]">
                         {productsInCategory === 1
                           ? "1 producto asociado"
@@ -1376,92 +1403,113 @@ export function AdminCatalogManager() {
                         Presentación comercial
                       </summary>
                       <div className="mt-3 grid gap-3 md:grid-cols-2">
-                        <input
-                          value={product.notasOlfativas ?? ""}
-                          onChange={(event) =>
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              notasOlfativas: event.target.value,
-                            }))
-                          }
-                          placeholder="Notas olfativas (ej: vainilla, canela, madera)"
-                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                        />
-                        <input
-                          value={product.duracionAprox ?? ""}
-                          onChange={(event) =>
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              duracionAprox: event.target.value,
-                            }))
-                          }
-                          placeholder="Duración aproximada (ej: 35h)"
-                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                        />
-                        <input
-                          value={product.idealPara ?? ""}
-                          onChange={(event) =>
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              idealPara: event.target.value,
-                            }))
-                          }
-                          placeholder="Ideal para (regalo, lectura, ritual nocturno...)"
-                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                        />
-                        <textarea
-                          value={product.historiaAroma ?? ""}
-                          onChange={(event) =>
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              historiaAroma: event.target.value,
-                            }))
-                          }
-                          placeholder="Historia del aroma"
-                          className="min-h-24 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)] md:col-span-2"
-                        />
-                        <textarea
-                          value={product.instruccionesUso ?? ""}
-                          onChange={(event) =>
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              instruccionesUso: event.target.value,
-                            }))
-                          }
-                          placeholder="Instrucciones de uso y seguridad"
-                          className="min-h-24 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)] md:col-span-2"
-                        />
-                        <select
-                          value={product.estadoComercial}
-                          onChange={(event) =>
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              estadoComercial: event.target.value as ProductCommercialStatus,
-                            }))
-                          }
-                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                        >
-                          {commercialStatusOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={product.sortOrder > 0 ? String(product.sortOrder) : ""}
-                          onChange={(event) => {
-                            const digitsOnly = event.target.value.replace(/\D/g, "");
-                            updateProductState(product.id, (current) => ({
-                              ...current,
-                              sortOrder: digitsOnly ? Number.parseInt(digitsOnly, 10) : 0,
-                            }));
-                          }}
-                          placeholder="Orden de aparición"
-                          className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                        />
+                        <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                          Notas olfativas
+                          <input
+                            value={product.notasOlfativas ?? ""}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                notasOlfativas: event.target.value,
+                              }))
+                            }
+                            placeholder="Ej: vainilla, canela, madera"
+                            className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                          />
+                        </label>
+                        <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                          Duración aproximada
+                          <input
+                            value={product.duracionAprox ?? ""}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                duracionAprox: event.target.value,
+                              }))
+                            }
+                            placeholder="Ej: 35h"
+                            className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                          />
+                        </label>
+                        <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                          Ideal para
+                          <input
+                            value={product.idealPara ?? ""}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                idealPara: event.target.value,
+                              }))
+                            }
+                            placeholder="Ej: regalo, lectura, ritual nocturno"
+                            className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                          />
+                        </label>
+                        <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)] md:col-span-2">
+                          Historia del aroma
+                          <textarea
+                            value={product.historiaAroma ?? ""}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                historiaAroma: event.target.value,
+                              }))
+                            }
+                            placeholder="Relato comercial del aroma"
+                            className="mt-1 min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                          />
+                        </label>
+                        <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)] md:col-span-2">
+                          Instrucciones de uso y seguridad
+                          <textarea
+                            value={product.instruccionesUso ?? ""}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                instruccionesUso: event.target.value,
+                              }))
+                            }
+                            placeholder="Cuidados, uso recomendado o advertencias"
+                            className="mt-1 min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                          />
+                        </label>
+                        <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                          Estado comercial
+                          <select
+                            value={product.estadoComercial}
+                            onChange={(event) =>
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                estadoComercial: event.target.value as ProductCommercialStatus,
+                              }))
+                            }
+                            className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                          >
+                            {commercialStatusOptions.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                          Orden de aparición
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={product.sortOrder > 0 ? String(product.sortOrder) : ""}
+                            onChange={(event) => {
+                              const digitsOnly = event.target.value.replace(/\D/g, "");
+                              updateProductState(product.id, (current) => ({
+                                ...current,
+                                sortOrder: digitsOnly ? Number.parseInt(digitsOnly, 10) : 0,
+                              }));
+                            }}
+                            placeholder="Ej: 1"
+                            className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                          />
+                        </label>
                         <label className="flex items-center gap-2 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]">
                           <input
                             type="checkbox"
@@ -1513,28 +1561,34 @@ export function AdminCatalogManager() {
                           Personalizar SEO avanzado
                         </summary>
                         <div className="mt-3 grid gap-3 md:grid-cols-2">
-                          <input
-                            value={product.seoTitle ?? ""}
-                            onChange={(event) =>
-                              updateProductState(product.id, (current) => ({
-                                ...current,
-                                seoTitle: event.target.value,
-                              }))
-                            }
-                            placeholder={automaticSeo.title}
-                            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                          />
-                          <input
-                            value={product.seoDescription ?? ""}
-                            onChange={(event) =>
-                              updateProductState(product.id, (current) => ({
-                                ...current,
-                                seoDescription: event.target.value,
-                              }))
-                            }
-                            placeholder={automaticSeo.description}
-                            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                          />
+                          <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                            SEO title
+                            <input
+                              value={product.seoTitle ?? ""}
+                              onChange={(event) =>
+                                updateProductState(product.id, (current) => ({
+                                  ...current,
+                                  seoTitle: event.target.value,
+                                }))
+                              }
+                              placeholder={automaticSeo.title}
+                              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                            />
+                          </label>
+                          <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                            SEO description
+                            <input
+                              value={product.seoDescription ?? ""}
+                              onChange={(event) =>
+                                updateProductState(product.id, (current) => ({
+                                  ...current,
+                                  seoDescription: event.target.value,
+                                }))
+                              }
+                              placeholder={automaticSeo.description}
+                              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                            />
+                          </label>
                         </div>
                       </details>
                     </div>
@@ -1644,68 +1698,83 @@ export function AdminCatalogManager() {
                   className="grid gap-2 rounded-lg border border-[var(--border)]/30 bg-[var(--surface-2)] p-3 md:grid-cols-6"
                 >
                   <div className="md:col-span-6">{renderFeedback(`variant-${variant.id}`)}</div>
-                  <input
-                    value={variant.nombreVariante}
-                    onChange={(event) =>
-                      updateVariantState(product.id, variant.id, (current) => ({
-                        ...current,
-                        nombreVariante: event.target.value,
-                      }))
-                    }
-                    placeholder="Tamaño / peso de variante (ej. 220g)"
-                    className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
-                  />
-                  <input
-                    value={variant.sku}
-                    onChange={(event) =>
-                      updateVariantState(product.id, variant.id, (current) => ({
-                        ...current,
-                        sku: event.target.value,
-                      }))
-                    }
-                    placeholder="SKU"
-                    className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    value={variant.stockVirtual}
-                    onChange={(event) =>
-                      updateVariantState(product.id, variant.id, (current) => ({
-                        ...current,
-                        stockVirtual: event.target.value,
-                      }))
-                    }
-                    placeholder="Stock"
-                    className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    value={variant.stockMinimoAlerta}
-                    onChange={(event) =>
-                      updateVariantState(product.id, variant.id, (current) => ({
-                        ...current,
-                        stockMinimoAlerta: event.target.value,
-                      }))
-                    }
-                    placeholder="Stock mínimo alerta (0 desactiva)"
-                    className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    value={variant.precio}
-                    onChange={(event) =>
-                      updateVariantState(product.id, variant.id, (current) => ({
-                        ...current,
-                        precio: event.target.value,
-                      }))
-                    }
-                    placeholder="Precio final"
-                    className="rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
-                  />
-                  <div className="flex items-center gap-2 rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2">
+                  <label className="block min-w-0 text-[11px] font-medium text-[var(--fg-muted)]">
+                    Tamaño / peso
+                    <input
+                      value={variant.nombreVariante}
+                      onChange={(event) =>
+                        updateVariantState(product.id, variant.id, (current) => ({
+                          ...current,
+                          nombreVariante: event.target.value,
+                        }))
+                      }
+                      placeholder="Ej. 220g"
+                      className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
+                    />
+                  </label>
+                  <label className="block min-w-0 text-[11px] font-medium text-[var(--fg-muted)]">
+                    SKU
+                    <input
+                      value={variant.sku}
+                      onChange={(event) =>
+                        updateVariantState(product.id, variant.id, (current) => ({
+                          ...current,
+                          sku: event.target.value,
+                        }))
+                      }
+                      placeholder="SKU"
+                      className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
+                    />
+                  </label>
+                  <label className="block min-w-0 text-[11px] font-medium text-[var(--fg-muted)]">
+                    Stock
+                    <input
+                      type="number"
+                      min={0}
+                      value={variant.stockVirtual}
+                      onChange={(event) =>
+                        updateVariantState(product.id, variant.id, (current) => ({
+                          ...current,
+                          stockVirtual: event.target.value,
+                        }))
+                      }
+                      placeholder="Stock"
+                      className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
+                    />
+                  </label>
+                  <label className="block min-w-0 text-[11px] font-medium text-[var(--fg-muted)]">
+                    Stock mínimo alerta
+                    <input
+                      type="number"
+                      min={0}
+                      value={variant.stockMinimoAlerta}
+                      onChange={(event) =>
+                        updateVariantState(product.id, variant.id, (current) => ({
+                          ...current,
+                          stockMinimoAlerta: event.target.value,
+                        }))
+                      }
+                      placeholder="0 desactiva"
+                      className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
+                    />
+                  </label>
+                  <label className="block min-w-0 text-[11px] font-medium text-[var(--fg-muted)]">
+                    Precio final
+                    <input
+                      type="number"
+                      min={0}
+                      value={variant.precio}
+                      onChange={(event) =>
+                        updateVariantState(product.id, variant.id, (current) => ({
+                          ...current,
+                          precio: event.target.value,
+                        }))
+                      }
+                      placeholder="Precio final"
+                      className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2 text-xs text-[var(--fg)]"
+                    />
+                  </label>
+                  <div className="flex items-end gap-2 rounded-md border border-[var(--input-border)] bg-[var(--surface-3)] px-2 py-2">
                     <label className="flex items-center gap-2 text-xs text-[var(--fg)]">
                       <input
                         type="checkbox"
@@ -1722,21 +1791,24 @@ export function AdminCatalogManager() {
                       />
                       Aplicar descuento
                     </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={100}
-                      disabled={!variant.descuentoActivo}
-                      value={variant.descuentoPorcentaje}
-                      onChange={(event) =>
-                        updateVariantState(product.id, variant.id, (current) => ({
-                          ...current,
-                          descuentoPorcentaje: normalizeDiscountPercentageInput(event.target.value),
-                        }))
-                      }
-                      placeholder="Porcentaje (%)"
-                      className="w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-2)] px-2 py-2 text-xs text-[var(--fg)] disabled:cursor-not-allowed disabled:opacity-60"
-                    />
+                    <label className="block min-w-0 flex-1 text-[11px] font-medium text-[var(--fg-muted)]">
+                      Porcentaje
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        disabled={!variant.descuentoActivo}
+                        value={variant.descuentoPorcentaje}
+                        onChange={(event) =>
+                          updateVariantState(product.id, variant.id, (current) => ({
+                            ...current,
+                            descuentoPorcentaje: normalizeDiscountPercentageInput(event.target.value),
+                          }))
+                        }
+                        placeholder="%"
+                        className="mt-1 w-full rounded-md border border-[var(--input-border)] bg-[var(--surface-2)] px-2 py-2 text-xs text-[var(--fg)] disabled:cursor-not-allowed disabled:opacity-60"
+                      />
+                    </label>
                   </div>
                   <div className="md:col-span-6">
                     <p className="text-xs text-[var(--fg-muted)]">

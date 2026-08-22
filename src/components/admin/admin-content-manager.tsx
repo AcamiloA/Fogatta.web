@@ -508,44 +508,59 @@ export function AdminContentManager() {
       <section className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-5">
         {renderFeedback("site-content")}
         <h2 className="text-xl text-[var(--fg-strong)]">Hero y Nosotros</h2>
-        <input
-          value={site.heroTitulo}
-          onChange={(event) => setSite((current) => (current ? { ...current, heroTitulo: event.target.value } : current))}
-          placeholder="Título principal del hero"
-          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-        />
-        <textarea
-          value={site.heroDescripcion}
-          onChange={(event) =>
-            setSite((current) => (current ? { ...current, heroDescripcion: event.target.value } : current))
-          }
-          placeholder="Descripción del hero"
-          className="min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-        />
-        <input
-          value={site.nosotrosTitulo}
-          onChange={(event) =>
-            setSite((current) => (current ? { ...current, nosotrosTitulo: event.target.value } : current))
-          }
-          placeholder="Título de sección Nosotros"
-          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-        />
-        <textarea
-          value={site.nosotrosHistoria}
-          onChange={(event) =>
-            setSite((current) => (current ? { ...current, nosotrosHistoria: event.target.value } : current))
-          }
-          placeholder="Historia de marca"
-          className="min-h-28 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-        />
-        <textarea
-          value={site.nosotrosPromesa}
-          onChange={(event) =>
-            setSite((current) => (current ? { ...current, nosotrosPromesa: event.target.value } : current))
-          }
-          placeholder="Promesa de marca"
-          className="min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-        />
+        <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+          Título principal del hero
+          <input
+            value={site.heroTitulo}
+            onChange={(event) => setSite((current) => (current ? { ...current, heroTitulo: event.target.value } : current))}
+            placeholder="Título visible en la portada"
+            className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          />
+        </label>
+        <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+          Descripción del hero
+          <textarea
+            value={site.heroDescripcion}
+            onChange={(event) =>
+              setSite((current) => (current ? { ...current, heroDescripcion: event.target.value } : current))
+            }
+            placeholder="Texto de apoyo del hero"
+            className="mt-1 min-h-20 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          />
+        </label>
+        <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+          Título de sección Nosotros
+          <input
+            value={site.nosotrosTitulo}
+            onChange={(event) =>
+              setSite((current) => (current ? { ...current, nosotrosTitulo: event.target.value } : current))
+            }
+            placeholder="Título visible en Nosotros"
+            className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          />
+        </label>
+        <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+          Historia de marca
+          <textarea
+            value={site.nosotrosHistoria}
+            onChange={(event) =>
+              setSite((current) => (current ? { ...current, nosotrosHistoria: event.target.value } : current))
+            }
+            placeholder="Historia que aparece en la sección Nosotros"
+            className="mt-1 min-h-28 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          />
+        </label>
+        <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+          Promesa de marca
+          <textarea
+            value={site.nosotrosPromesa}
+            onChange={(event) =>
+              setSite((current) => (current ? { ...current, nosotrosPromesa: event.target.value } : current))
+            }
+            placeholder="Promesa que acompaña la sección Nosotros"
+            className="mt-1 min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+          />
+        </label>
         <button
           type="button"
           onClick={() => void saveSiteContent()}
@@ -565,39 +580,48 @@ export function AdminContentManager() {
             Categorías FAQ
           </h3>
           <div className="grid gap-2 md:grid-cols-[1.4fr,2fr,100px,auto]">
-            <input
-              value={newFaqCategory.nombre}
-              onChange={(event) =>
-                setNewFaqCategory((current) => ({ ...current, nombre: event.target.value }))
-              }
-              placeholder="Nombre de categoría"
-              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-            />
-            <input
-              value={newFaqCategory.descripcion}
-              onChange={(event) =>
-                setNewFaqCategory((current) => ({ ...current, descripcion: event.target.value }))
-              }
-              placeholder="Descripción breve (opcional)"
-              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-            />
-            <input
-              type="number"
-              min={1}
-              value={newFaqCategory.orden}
-              onChange={(event) =>
-                setNewFaqCategory((current) => ({
-                  ...current,
-                  orden: Number(event.target.value) || 1,
-                }))
-              }
-              className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-            />
+            <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+              Nombre de categoría
+              <input
+                value={newFaqCategory.nombre}
+                onChange={(event) =>
+                  setNewFaqCategory((current) => ({ ...current, nombre: event.target.value }))
+                }
+                placeholder="Ej: Envíos"
+                className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+              />
+            </label>
+            <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+              Descripción breve
+              <input
+                value={newFaqCategory.descripcion}
+                onChange={(event) =>
+                  setNewFaqCategory((current) => ({ ...current, descripcion: event.target.value }))
+                }
+                placeholder="Opcional"
+                className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+              />
+            </label>
+            <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+              Orden
+              <input
+                type="number"
+                min={1}
+                value={newFaqCategory.orden}
+                onChange={(event) =>
+                  setNewFaqCategory((current) => ({
+                    ...current,
+                    orden: Number(event.target.value) || 1,
+                  }))
+                }
+                className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+              />
+            </label>
             <button
               type="button"
               onClick={() => void createFaqCategory()}
               disabled={busyId === "create-faq-category"}
-              className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
+              className="self-end rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
             >
               {busyId === "create-faq-category" ? "Creando..." : "Crear"}
             </button>
@@ -611,45 +635,54 @@ export function AdminContentManager() {
               >
                 {renderFeedback(`faq-category-${category.id}`)}
                 <div className="grid gap-2 md:grid-cols-[1.4fr,2fr,100px]">
-                  <input
-                    value={category.nombre}
-                    onChange={(event) =>
-                      setFaqCategories((current) =>
-                        current.map((entry) =>
-                          entry.id === category.id ? { ...entry, nombre: event.target.value } : entry,
-                        ),
-                      )
-                    }
-                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                  />
-                  <input
-                    value={category.descripcion ?? ""}
-                    onChange={(event) =>
-                      setFaqCategories((current) =>
-                        current.map((entry) =>
-                          entry.id === category.id
-                            ? { ...entry, descripcion: event.target.value || null }
-                            : entry,
-                        ),
-                      )
-                    }
-                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                  />
-                  <input
-                    type="number"
-                    min={1}
-                    value={category.orden}
-                    onChange={(event) =>
-                      setFaqCategories((current) =>
-                        current.map((entry) =>
-                          entry.id === category.id
-                            ? { ...entry, orden: Number(event.target.value) || 1 }
-                            : entry,
-                        ),
-                      )
-                    }
-                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                  />
+                  <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                    Nombre de categoría
+                    <input
+                      value={category.nombre}
+                      onChange={(event) =>
+                        setFaqCategories((current) =>
+                          current.map((entry) =>
+                            entry.id === category.id ? { ...entry, nombre: event.target.value } : entry,
+                          ),
+                        )
+                      }
+                      className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    />
+                  </label>
+                  <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                    Descripción breve
+                    <input
+                      value={category.descripcion ?? ""}
+                      onChange={(event) =>
+                        setFaqCategories((current) =>
+                          current.map((entry) =>
+                            entry.id === category.id
+                              ? { ...entry, descripcion: event.target.value || null }
+                              : entry,
+                          ),
+                        )
+                      }
+                      className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    />
+                  </label>
+                  <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                    Orden
+                    <input
+                      type="number"
+                      min={1}
+                      value={category.orden}
+                      onChange={(event) =>
+                        setFaqCategories((current) =>
+                          current.map((entry) =>
+                            entry.id === category.id
+                              ? { ...entry, orden: Number(event.target.value) || 1 }
+                              : entry,
+                          ),
+                        )
+                      }
+                      className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    />
+                  </label>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -680,46 +713,58 @@ export function AdminContentManager() {
         </div>
 
         <div className="grid gap-2">
-          <select
-            value={newFaq.faqCategoryId}
-            onChange={(event) =>
-              setNewFaq((current) => ({ ...current, faqCategoryId: event.target.value }))
-            }
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          >
-            <option value="">Seleccione categoría FAQ</option>
-            {faqCategories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.nombre}
-              </option>
-            ))}
-          </select>
-          <input
-            value={newFaq.pregunta}
-            onChange={(event) => setNewFaq((current) => ({ ...current, pregunta: event.target.value }))}
-            placeholder="Pregunta"
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <textarea
-            value={newFaq.respuesta}
-            onChange={(event) => setNewFaq((current) => ({ ...current, respuesta: event.target.value }))}
-            maxLength={FAQ_RESPONSE_MAX_CHARACTERS}
-            placeholder="Respuesta"
-            className="min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Categoría FAQ
+            <select
+              value={newFaq.faqCategoryId}
+              onChange={(event) =>
+                setNewFaq((current) => ({ ...current, faqCategoryId: event.target.value }))
+              }
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            >
+              <option value="">Seleccione categoría FAQ</option>
+              {faqCategories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.nombre}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Pregunta
+            <input
+              value={newFaq.pregunta}
+              onChange={(event) => setNewFaq((current) => ({ ...current, pregunta: event.target.value }))}
+              placeholder="Pregunta frecuente"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Respuesta
+            <textarea
+              value={newFaq.respuesta}
+              onChange={(event) => setNewFaq((current) => ({ ...current, respuesta: event.target.value }))}
+              maxLength={FAQ_RESPONSE_MAX_CHARACTERS}
+              placeholder="Respuesta visible para clientes"
+              className="mt-1 min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
           <p className="text-xs text-[var(--fg-soft)]">
             Caracteres disponibles: {FAQ_RESPONSE_MAX_CHARACTERS - newFaq.respuesta.length}
           </p>
-          <input
-            type="number"
-            min={1}
-            value={newFaq.orden}
-            onChange={(event) =>
-              setNewFaq((current) => ({ ...current, orden: Number(event.target.value) || 1 }))
-            }
-            placeholder="Orden"
-            className="w-28 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
+          <label className="block w-28 min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Orden
+            <input
+              type="number"
+              min={1}
+              value={newFaq.orden}
+              onChange={(event) =>
+                setNewFaq((current) => ({ ...current, orden: Number(event.target.value) || 1 }))
+              }
+              placeholder="Orden"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
           <button
             type="button"
             onClick={() => void createFaq()}
@@ -737,68 +782,80 @@ export function AdminContentManager() {
               className="space-y-2 rounded-xl border border-[var(--border)]/40 bg-[var(--surface-3)] p-4"
             >
               {renderFeedback(`faq-${item.id}`)}
-              <select
-                value={item.faqCategoryId ?? ""}
-                onChange={(event) =>
-                  setFaq((current) =>
-                    current.map((entry) =>
-                      entry.id === item.id
-                        ? { ...entry, faqCategoryId: event.target.value || null }
-                        : entry,
-                    ),
-                  )
-                }
-                className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-              >
-                <option value="">Sin categoría</option>
-                {faqCategories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.nombre}
-                  </option>
-                ))}
-              </select>
-              <input
-                value={item.pregunta}
-                onChange={(event) =>
-                  setFaq((current) =>
-                    current.map((entry) =>
-                      entry.id === item.id ? { ...entry, pregunta: event.target.value } : entry,
-                    ),
-                  )
-                }
-                className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
-              <textarea
-                value={item.respuesta}
-                onChange={(event) =>
-                  setFaq((current) =>
-                    current.map((entry) =>
-                      entry.id === item.id ? { ...entry, respuesta: event.target.value } : entry,
-                    ),
-                  )
-                }
-                maxLength={FAQ_RESPONSE_MAX_CHARACTERS}
-                className="min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
-              <p className="text-xs text-[var(--fg-soft)]">
-                Caracteres disponibles: {FAQ_RESPONSE_MAX_CHARACTERS - item.respuesta.length}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  value={item.orden}
+              <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                Categoría FAQ
+                <select
+                  value={item.faqCategoryId ?? ""}
                   onChange={(event) =>
                     setFaq((current) =>
                       current.map((entry) =>
                         entry.id === item.id
-                          ? { ...entry, orden: Number(event.target.value) || 1 }
+                          ? { ...entry, faqCategoryId: event.target.value || null }
                           : entry,
                       ),
                     )
                   }
-                  className="w-24 rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-2 py-2 text-sm text-[var(--fg)]"
+                  className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+                >
+                  <option value="">Sin categoría</option>
+                  {faqCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                Pregunta
+                <input
+                  value={item.pregunta}
+                  onChange={(event) =>
+                    setFaq((current) =>
+                      current.map((entry) =>
+                        entry.id === item.id ? { ...entry, pregunta: event.target.value } : entry,
+                      ),
+                    )
+                  }
+                  className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
                 />
+              </label>
+              <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                Respuesta
+                <textarea
+                  value={item.respuesta}
+                  onChange={(event) =>
+                    setFaq((current) =>
+                      current.map((entry) =>
+                        entry.id === item.id ? { ...entry, respuesta: event.target.value } : entry,
+                      ),
+                    )
+                  }
+                  maxLength={FAQ_RESPONSE_MAX_CHARACTERS}
+                  className="mt-1 min-h-24 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <p className="text-xs text-[var(--fg-soft)]">
+                Caracteres disponibles: {FAQ_RESPONSE_MAX_CHARACTERS - item.respuesta.length}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="block w-24 min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                  Orden
+                  <input
+                    type="number"
+                    min={1}
+                    value={item.orden}
+                    onChange={(event) =>
+                      setFaq((current) =>
+                        current.map((entry) =>
+                          entry.id === item.id
+                            ? { ...entry, orden: Number(event.target.value) || 1 }
+                            : entry,
+                        ),
+                      )
+                    }
+                    className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-2 py-2 text-sm text-[var(--fg)]"
+                  />
+                </label>
                 <button
                   type="button"
                   onClick={() => void saveFaq(item)}
@@ -831,31 +888,37 @@ export function AdminContentManager() {
               <h3 className="text-sm uppercase tracking-wide text-[var(--fg-soft)]">
                 {item.tipo === "privacidad" ? "Privacidad" : "Terminos"}
               </h3>
-              <input
-                type="date"
-                value={item.fechaVigencia}
-                onChange={(event) =>
-                  setLegales((current) =>
-                    current.map((entry) =>
-                      entry.tipo === item.tipo
-                        ? { ...entry, fechaVigencia: event.target.value }
-                        : entry,
-                    ),
-                  )
-                }
-                className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
-              <textarea
-                value={item.contenido}
-                onChange={(event) =>
-                  setLegales((current) =>
-                    current.map((entry) =>
-                      entry.tipo === item.tipo ? { ...entry, contenido: event.target.value } : entry,
-                    ),
-                  )
-                }
-                className="min-h-40 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
+              <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                Fecha de vigencia
+                <input
+                  type="date"
+                  value={item.fechaVigencia}
+                  onChange={(event) =>
+                    setLegales((current) =>
+                      current.map((entry) =>
+                        entry.tipo === item.tipo
+                          ? { ...entry, fechaVigencia: event.target.value }
+                          : entry,
+                      ),
+                    )
+                  }
+                  className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                Contenido legal
+                <textarea
+                  value={item.contenido}
+                  onChange={(event) =>
+                    setLegales((current) =>
+                      current.map((entry) =>
+                        entry.tipo === item.tipo ? { ...entry, contenido: event.target.value } : entry,
+                      ),
+                    )
+                  }
+                  className="mt-1 min-h-40 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
               <button
                 type="button"
                 onClick={() => void saveLegal(item)}

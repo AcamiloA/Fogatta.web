@@ -260,46 +260,58 @@ export function CartSheet() {
               <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--fg-soft)]">
                 Datos para pedido por WhatsApp
               </h3>
-              <input
-                required
-                placeholder="Nombre completo"
-                value={clienteNombre}
-                onChange={(event) => setClienteNombre(event.target.value)}
-                className="w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
-              <select
-                required
-                value={destinoSlug}
-                onChange={(event) => setDestinoSlug(event.target.value)}
-                disabled={loadingDestinations || !shippingDestinationsLoaded}
-                className="w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-              >
-                <option value="">
-                  {loadingDestinations
-                    ? "Cargando ciudades..."
-                    : shippingDestinationsLoaded
-                      ? "Ciudad"
-                      : "Ciudades no disponibles"}
-                </option>
-                {shippingDestinations.map((destination) => (
-                  <option key={destination.destinoSlug} value={destination.destinoSlug}>
-                    {destination.destino} - {destination.departamento}
+              <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                Nombre completo
+                <input
+                  required
+                  placeholder="Ej: Ana Pérez"
+                  value={clienteNombre}
+                  onChange={(event) => setClienteNombre(event.target.value)}
+                  className="mt-1 w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                Ciudad de envío
+                <select
+                  required
+                  value={destinoSlug}
+                  onChange={(event) => setDestinoSlug(event.target.value)}
+                  disabled={loadingDestinations || !shippingDestinationsLoaded}
+                  className="mt-1 w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                >
+                  <option value="">
+                    {loadingDestinations
+                      ? "Cargando ciudades..."
+                      : shippingDestinationsLoaded
+                        ? "Selecciona una ciudad"
+                        : "Ciudades no disponibles"}
                   </option>
-                ))}
-              </select>
-              <input
-                required
-                placeholder="Teléfono"
-                value={telefono}
-                onChange={(event) => setTelefono(event.target.value)}
-                className="w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
-              <textarea
-                placeholder="Notas (opcional)"
-                value={notas}
-                onChange={(event) => setNotas(event.target.value)}
-                className="min-h-20 w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-              />
+                  {shippingDestinations.map((destination) => (
+                    <option key={destination.destinoSlug} value={destination.destinoSlug}>
+                      {destination.destino} - {destination.departamento}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                Teléfono
+                <input
+                  required
+                  placeholder="Ej: 300 123 4567"
+                  value={telefono}
+                  onChange={(event) => setTelefono(event.target.value)}
+                  className="mt-1 w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
+              <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                Notas del pedido
+                <textarea
+                  placeholder="Opcional"
+                  value={notas}
+                  onChange={(event) => setNotas(event.target.value)}
+                  className="mt-1 min-h-20 w-full rounded-xl border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                />
+              </label>
               <div className="space-y-2 rounded-xl bg-[var(--surface-2)] p-3 text-sm text-[var(--fg-muted)]">
                 <p className="font-medium text-[var(--fg-strong)]">Detalle del pedido</p>
                 <div className="space-y-1">

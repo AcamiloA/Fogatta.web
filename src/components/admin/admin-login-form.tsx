@@ -280,7 +280,7 @@ export function AdminLoginForm() {
         </>
       ) : (
         <div className="rounded-xl border border-[var(--accent)]/35 bg-[var(--surface-3)]/65 p-3 sm:p-4">
-          <label className="block text-sm text-[var(--fg-muted)]"></label>
+          <p className="text-sm font-medium text-[var(--fg-muted)]">Código de verificación</p>
           <div className="mt-2 grid grid-cols-6 gap-1.5 sm:gap-2">
             {otpDigits.map((digit, index) => (
               <input

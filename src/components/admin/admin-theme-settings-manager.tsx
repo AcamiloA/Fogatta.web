@@ -458,84 +458,99 @@ export function AdminThemeSettingsManager() {
           animaciones.
         </p>
         <div className="grid gap-2 md:grid-cols-[2fr_2fr_1fr_1fr_1fr_auto]">
-          <input
-            value={newTheme.nombre}
-            onChange={(event) =>
-              setNewTheme((current) => {
-                const nextName = event.target.value;
-                return {
+          <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+            Nombre del tema
+            <input
+              value={newTheme.nombre}
+              onChange={(event) =>
+                setNewTheme((current) => {
+                  const nextName = event.target.value;
+                  return {
+                    ...current,
+                    nombre: nextName,
+                    slug: current.slugEdited ? current.slug : toSlug(nextName),
+                  };
+                })
+              }
+              placeholder="Ej. Enero Brillante"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+            Slug
+            <input
+              value={newTheme.slug}
+              onChange={(event) =>
+                setNewTheme((current) => ({
                   ...current,
-                  nombre: nextName,
-                  slug: current.slugEdited ? current.slug : toSlug(nextName),
-                };
-              })
-            }
-            placeholder="Nombre del tema (ej. Enero Brillante)"
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <input
-            value={newTheme.slug}
-            onChange={(event) =>
-              setNewTheme((current) => ({
-                ...current,
-                slug: event.target.value,
-                slugEdited: true,
-              }))
-            }
-            placeholder="slug (ej. enero-brillante)"
-            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <select
-            value={newTheme.palette}
-            onChange={(event) =>
-              setNewTheme((current) => ({
-                ...current,
-                palette: event.target.value as ThemePalette,
-              }))
-            }
-            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          >
-            {paletteOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={newTheme.animationType}
-            onChange={(event) =>
-              setNewTheme((current) => ({
-                ...current,
-                animationType: event.target.value as ThemeAnimationType,
-              }))
-            }
-            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          >
-            {animationOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={newTheme.animationIntensity}
-            onChange={(event) =>
-              setNewTheme((current) => ({
-                ...current,
-                animationIntensity: Math.min(3, Math.max(1, Number(event.target.value) || 1)),
-              }))
-            }
-            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          >
-            <option value={1}>Intensidad baja</option>
-            <option value={2}>Intensidad media</option>
-            <option value={3}>Intensidad alta</option>
-          </select>
+                  slug: event.target.value,
+                  slugEdited: true,
+                }))
+              }
+              placeholder="ej. enero-brillante"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+            Paleta
+            <select
+              value={newTheme.palette}
+              onChange={(event) =>
+                setNewTheme((current) => ({
+                  ...current,
+                  palette: event.target.value as ThemePalette,
+                }))
+              }
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            >
+              {paletteOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+            Animación
+            <select
+              value={newTheme.animationType}
+              onChange={(event) =>
+                setNewTheme((current) => ({
+                  ...current,
+                  animationType: event.target.value as ThemeAnimationType,
+                }))
+              }
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            >
+              {animationOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+            Intensidad
+            <select
+              value={newTheme.animationIntensity}
+              onChange={(event) =>
+                setNewTheme((current) => ({
+                  ...current,
+                  animationIntensity: Math.min(3, Math.max(1, Number(event.target.value) || 1)),
+                }))
+              }
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            >
+              <option value={1}>Intensidad baja</option>
+              <option value={2}>Intensidad media</option>
+              <option value={3}>Intensidad alta</option>
+            </select>
+          </label>
           <button
             type="button"
             onClick={() => void createTheme()}
             disabled={busyId === "create-theme" || !canCreateTheme}
-            className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
+            className="self-end rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]"
           >
             {busyId === "create-theme" ? "Creando..." : "Crear"}
           </button>
@@ -600,78 +615,93 @@ export function AdminThemeSettingsManager() {
                 </div>
 
                 <div className="grid gap-2 md:grid-cols-2">
-                  <input
-                    value={theme.nombre}
-                    onChange={(event) =>
-                      updateThemeState(theme.id, (current) => ({ ...current, nombre: event.target.value }))
-                    }
-                    className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                  />
-                  <select
-                    value={theme.palette}
-                    onChange={(event) =>
-                      updateThemeState(theme.id, (current) => ({
-                        ...current,
-                        palette: event.target.value as ThemePalette,
-                      }))
-                    }
-                    className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                  >
-                    {paletteOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                    Nombre del tema
+                    <input
+                      value={theme.nombre}
+                      onChange={(event) =>
+                        updateThemeState(theme.id, (current) => ({ ...current, nombre: event.target.value }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    />
+                  </label>
+                  <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                    Paleta
+                    <select
+                      value={theme.palette}
+                      onChange={(event) =>
+                        updateThemeState(theme.id, (current) => ({
+                          ...current,
+                          palette: event.target.value as ThemePalette,
+                        }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    >
+                      {paletteOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
 
                 <div className="grid gap-2 md:grid-cols-[2fr_1fr]">
-                  <select
-                    value={theme.animationType}
-                    onChange={(event) =>
-                      updateThemeState(theme.id, (current) => ({
-                        ...current,
-                        animationType: event.target.value as ThemeAnimationType,
-                      }))
-                    }
-                    className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                  >
-                    {animationOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={Math.min(3, Math.max(1, theme.animationIntensity || 1))}
-                    onChange={(event) =>
-                      updateThemeState(theme.id, (current) => ({
-                        ...current,
-                        animationIntensity: Math.min(3, Math.max(1, Number(event.target.value) || 1)),
-                      }))
-                    }
-                    className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                  >
-                    <option value={1}>Intensidad baja</option>
-                    <option value={2}>Intensidad media</option>
-                    <option value={3}>Intensidad alta</option>
-                  </select>
+                  <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                    Animación
+                    <select
+                      value={theme.animationType}
+                      onChange={(event) =>
+                        updateThemeState(theme.id, (current) => ({
+                          ...current,
+                          animationType: event.target.value as ThemeAnimationType,
+                        }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    >
+                      {animationOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+                    Intensidad
+                    <select
+                      value={Math.min(3, Math.max(1, theme.animationIntensity || 1))}
+                      onChange={(event) =>
+                        updateThemeState(theme.id, (current) => ({
+                          ...current,
+                          animationIntensity: Math.min(3, Math.max(1, Number(event.target.value) || 1)),
+                        }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    >
+                      <option value={1}>Intensidad baja</option>
+                      <option value={2}>Intensidad media</option>
+                      <option value={3}>Intensidad alta</option>
+                    </select>
+                  </label>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-3">
                   <div className="space-y-2 rounded-xl border border-[var(--border)]/35 bg-[var(--surface-3)] p-4">
                     <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">Imagen de fondo global</p>
-                    <input
-                      value={theme.backgroundImageUrl ?? ""}
-                      onChange={(event) =>
-                        updateThemeState(theme.id, (current) => ({
-                          ...current,
-                          backgroundImageUrl: event.target.value.trim() || null,
-                        }))
-                      }
-                      placeholder="https://..."
-                      className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-                    />
+                    <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                      URL de fondo global
+                      <input
+                        value={theme.backgroundImageUrl ?? ""}
+                        onChange={(event) =>
+                          updateThemeState(theme.id, (current) => ({
+                            ...current,
+                            backgroundImageUrl: event.target.value.trim() || null,
+                          }))
+                        }
+                        placeholder="https://..."
+                        className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+                      />
+                    </label>
                     <label className="inline-flex cursor-pointer rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)]">
                       Subir fondo
                       <input
@@ -687,11 +717,12 @@ export function AdminThemeSettingsManager() {
                         }}
                       />
                     </label>
-                    <label className="block">
+                    <div className="block">
                       <span className="text-xs text-[var(--fg-soft)]">Opacidad fondo: {clampOpacity(theme.backgroundOpacity)}%</span>
                       <div className="mt-1 flex items-center gap-2">
                         <input
                           type="range"
+                          aria-label="Opacidad fondo"
                           min={0}
                           max={100}
                           value={clampOpacity(theme.backgroundOpacity)}
@@ -703,36 +734,42 @@ export function AdminThemeSettingsManager() {
                           }
                           className="w-full"
                         />
-                        <input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={clampOpacity(theme.backgroundOpacity)}
-                          onChange={(event) =>
-                            updateThemeState(theme.id, (current) => ({
-                              ...current,
-                              backgroundOpacity: clampOpacity(Number(event.target.value)),
-                            }))
-                          }
-                          className="w-20 rounded border border-[var(--input-border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--fg)]"
-                        />
+                        <label className="block w-20 text-[11px] text-[var(--fg-soft)]">
+                          Valor
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={clampOpacity(theme.backgroundOpacity)}
+                            onChange={(event) =>
+                              updateThemeState(theme.id, (current) => ({
+                                ...current,
+                                backgroundOpacity: clampOpacity(Number(event.target.value)),
+                              }))
+                            }
+                            className="mt-1 w-full rounded border border-[var(--input-border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--fg)]"
+                          />
+                        </label>
                       </div>
-                    </label>
+                    </div>
                   </div>
 
                   <div className="space-y-2 rounded-xl border border-[var(--border)]/35 bg-[var(--surface-3)] p-4">
                     <p className="text-xs uppercase tracking-wide text-[var(--fg-soft)]">Arte de hero</p>
-                    <input
-                      value={theme.heroImageUrl ?? ""}
-                      onChange={(event) =>
-                        updateThemeState(theme.id, (current) => ({
-                          ...current,
-                          heroImageUrl: event.target.value.trim() || null,
-                        }))
-                      }
-                      placeholder="https://..."
-                      className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
-                    />
+                    <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                      URL del arte de hero
+                      <input
+                        value={theme.heroImageUrl ?? ""}
+                        onChange={(event) =>
+                          updateThemeState(theme.id, (current) => ({
+                            ...current,
+                            heroImageUrl: event.target.value.trim() || null,
+                          }))
+                        }
+                        placeholder="https://..."
+                        className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)]"
+                      />
+                    </label>
                     <label className="inline-flex cursor-pointer rounded-lg border border-[var(--border)] px-3 py-2 text-xs text-[var(--fg-muted)]">
                       Subir arte hero
                       <input
@@ -748,11 +785,12 @@ export function AdminThemeSettingsManager() {
                         }}
                       />
                     </label>
-                    <label className="block">
+                    <div className="block">
                       <span className="text-xs text-[var(--fg-soft)]">Opacidad hero: {clampOpacity(theme.heroOpacity)}%</span>
                       <div className="mt-1 flex items-center gap-2">
                         <input
                           type="range"
+                          aria-label="Opacidad hero"
                           min={0}
                           max={100}
                           value={clampOpacity(theme.heroOpacity)}
@@ -764,21 +802,24 @@ export function AdminThemeSettingsManager() {
                           }
                           className="w-full"
                         />
-                        <input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={clampOpacity(theme.heroOpacity)}
-                          onChange={(event) =>
-                            updateThemeState(theme.id, (current) => ({
-                              ...current,
-                              heroOpacity: clampOpacity(Number(event.target.value)),
-                            }))
-                          }
-                          className="w-20 rounded border border-[var(--input-border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--fg)]"
-                        />
+                        <label className="block w-20 text-[11px] text-[var(--fg-soft)]">
+                          Valor
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={clampOpacity(theme.heroOpacity)}
+                            onChange={(event) =>
+                              updateThemeState(theme.id, (current) => ({
+                                ...current,
+                                heroOpacity: clampOpacity(Number(event.target.value)),
+                              }))
+                            }
+                            className="mt-1 w-full rounded border border-[var(--input-border)] bg-[var(--surface)] px-2 py-1 text-xs text-[var(--fg)]"
+                          />
+                        </label>
                       </div>
-                    </label>
+                    </div>
                   </div>
 
                   <div className="space-y-2 rounded-xl border border-[var(--border)]/35 bg-[var(--surface-3)] p-4">
@@ -788,19 +829,21 @@ export function AdminThemeSettingsManager() {
                     <div className="space-y-2">
                       {Array.from({ length: MAX_THEME_ICONS }).map((_, iconIndex) => (
                         <div key={`${theme.id}-icon-slot-${iconIndex}`} className="rounded-lg border border-[var(--border)]/45 p-2">
-                          <p className="mb-2 text-[11px] text-[var(--fg-soft)]">Icono {iconIndex + 1}</p>
-                          <input
-                            value={theme.iconImageUrls[iconIndex] ?? ""}
-                            onChange={(event) =>
-                              updateThemeState(theme.id, (current) => {
-                                const nextIcons = normalizeIconSlots(current.iconImageUrls);
-                                nextIcons[iconIndex] = event.target.value.trim();
-                                return { ...current, iconImageUrls: nextIcons };
-                              })
-                            }
-                            placeholder="https://..."
-                            className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--fg)]"
-                          />
+                          <label className="block min-w-0 text-[11px] font-medium text-[var(--fg-soft)]">
+                            URL del icono {iconIndex + 1}
+                            <input
+                              value={theme.iconImageUrls[iconIndex] ?? ""}
+                              onChange={(event) =>
+                                updateThemeState(theme.id, (current) => {
+                                  const nextIcons = normalizeIconSlots(current.iconImageUrls);
+                                  nextIcons[iconIndex] = event.target.value.trim();
+                                  return { ...current, iconImageUrls: nextIcons };
+                                })
+                              }
+                              placeholder="https://..."
+                              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--fg)]"
+                            />
+                          </label>
                           <div className="mt-2 flex flex-wrap gap-2">
                             <label className="inline-flex cursor-pointer rounded-lg border border-[var(--border)] px-3 py-1.5 text-[11px] text-[var(--fg-muted)]">
                               Subir

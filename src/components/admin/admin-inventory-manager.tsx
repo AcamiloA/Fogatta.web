@@ -451,23 +451,29 @@ function updateVariantDraft(variantId: string, field: keyof VariantDraft, value:
         {renderFeedback("inventory-stock")}
         <h3 className="text-xl text-[var(--fg-strong)]">Stock por producto y variante</h3>
         <div className="grid gap-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4 md:grid-cols-[2fr,1fr,auto]">
-          <input
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Buscar por producto, variante o SKU"
-            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          />
-          <select
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-            className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-          >
-            <option value="all">Todas las categorías</option>
-            {(catalog?.categories ?? []).map((category) => (
-              <option key={category.id} value={category.id}>{category.nombre}</option>
-            ))}
-          </select>
-          <button type="button" onClick={() => void loadInventory()} className="rounded-lg border border-[var(--accent)] px-4 py-2 text-sm text-[var(--fg-strong)]">
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Buscar variante
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Producto, variante o SKU"
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            />
+          </label>
+          <label className="block min-w-0 text-sm font-medium text-[var(--fg-muted)]">
+            Categoría
+            <select
+              value={categoryFilter}
+              onChange={(event) => setCategoryFilter(event.target.value)}
+              className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+            >
+              <option value="all">Todas las categorías</option>
+              {(catalog?.categories ?? []).map((category) => (
+                <option key={category.id} value={category.id}>{category.nombre}</option>
+              ))}
+            </select>
+          </label>
+          <button type="button" onClick={() => void loadInventory()} className="self-end rounded-lg border border-[var(--accent)] px-4 py-2 text-sm text-[var(--fg-strong)]">
             Refrescar
           </button>
         </div>
@@ -497,21 +503,27 @@ function updateVariantDraft(variantId: string, field: keyof VariantDraft, value:
                   </span>
                 </div>
                 <div className="grid gap-2 md:grid-cols-[1fr,1fr,auto]">
-                  <input
-                    value={draft.stockVirtual}
-                    onChange={(e) => updateVariantDraft(row.variantId, "stockVirtual", e.target.value)}
-                    inputMode="numeric"
-                    placeholder="Stock virtual"
-                    className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                  />
-                  <input
-                    value={draft.stockMinimoAlerta}
-                    onChange={(e) => updateVariantDraft(row.variantId, "stockMinimoAlerta", e.target.value)}
-                    inputMode="numeric"
-                    placeholder="Stock mínimo alerta"
-                    className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
-                  />
-                  <button type="button" onClick={() => void saveVariant(row.variantId)} disabled={busyVariantId === row.variantId} className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]">
+                  <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                    Stock virtual
+                    <input
+                      value={draft.stockVirtual}
+                      onChange={(e) => updateVariantDraft(row.variantId, "stockVirtual", e.target.value)}
+                      inputMode="numeric"
+                      placeholder="Cantidad disponible"
+                      className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    />
+                  </label>
+                  <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                    Stock mínimo alerta
+                    <input
+                      value={draft.stockMinimoAlerta}
+                      onChange={(e) => updateVariantDraft(row.variantId, "stockMinimoAlerta", e.target.value)}
+                      inputMode="numeric"
+                      placeholder="0 desactiva la alerta"
+                      className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]"
+                    />
+                  </label>
+                  <button type="button" onClick={() => void saveVariant(row.variantId)} disabled={busyVariantId === row.variantId} className="self-end rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]">
                     {busyVariantId === row.variantId ? "Guardando..." : "Guardar"}
                   </button>
                 </div>
@@ -547,12 +559,24 @@ function updateVariantDraft(variantId: string, field: keyof VariantDraft, value:
         <div className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4">
           <h4 className="text-lg text-[var(--fg-strong)]">Crear insumo</h4>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-            <input value={newSupply.nombre} onChange={(e) => setNewSupply((c) => ({ ...c, nombre: e.target.value }))} placeholder="Nombre del insumo" className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
-            <select value={newSupply.unidad} onChange={(e) => setNewSupply((c) => ({ ...c, unidad: e.target.value }))} className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]">
-              {UNIT_OPTIONS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
-            </select>
-            <input value={newSupply.cantidadTotal} onChange={(e) => setNewSupply((c) => ({ ...c, cantidadTotal: e.target.value.replace(/[^0-9.,]/g, "") }))} placeholder="Cantidad comprada" inputMode="decimal" className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
-            <input value={newSupply.precioTotal} onChange={(e) => setNewSupply((c) => ({ ...c, precioTotal: sanitizeIntegerInput(e.target.value) }))} placeholder="Costo total (COP)" inputMode="numeric" className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
+            <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+              Nombre del insumo
+              <input value={newSupply.nombre} onChange={(e) => setNewSupply((c) => ({ ...c, nombre: e.target.value }))} placeholder="Ej: cera de soya" className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
+            </label>
+            <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+              Unidad
+              <select value={newSupply.unidad} onChange={(e) => setNewSupply((c) => ({ ...c, unidad: e.target.value }))} className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]">
+                {UNIT_OPTIONS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
+              </select>
+            </label>
+            <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+              Cantidad comprada
+              <input value={newSupply.cantidadTotal} onChange={(e) => setNewSupply((c) => ({ ...c, cantidadTotal: e.target.value.replace(/[^0-9.,]/g, "") }))} placeholder="Ej: 1000" inputMode="decimal" className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
+            </label>
+            <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+              Costo total (COP)
+              <input value={newSupply.precioTotal} onChange={(e) => setNewSupply((c) => ({ ...c, precioTotal: sanitizeIntegerInput(e.target.value) }))} placeholder="Ej: 45000" inputMode="numeric" className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
+            </label>
             <label className="flex items-center gap-2 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg-muted)]"><input type="checkbox" checked={newSupply.activo} onChange={(e) => setNewSupply((c) => ({ ...c, activo: e.target.checked }))} />Activo</label>
           </div>
           <button type="button" onClick={() => void createSupply()} disabled={isCreatingSupply} className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--accent-contrast)] disabled:bg-[var(--accent-disabled)]">
@@ -571,12 +595,24 @@ function updateVariantDraft(variantId: string, field: keyof VariantDraft, value:
               <article key={supply.id} className="space-y-3 rounded-2xl border border-[var(--border)]/40 bg-[var(--surface-2)] p-4">
                 {renderFeedback(`inventory-supply-${supply.id}`)}
                 <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
-                  <input value={draft.nombre} onChange={(e) => updateSupplyDraft(supply.id, "nombre", e.target.value)} className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
-                  <select value={draft.unidad} onChange={(e) => updateSupplyDraft(supply.id, "unidad", e.target.value)} className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]">
-                    {Array.from(new Set([...UNIT_OPTIONS, draft.unidad])).map((unit) => <option key={`${supply.id}-${unit}`} value={unit}>{unit}</option>)}
-                  </select>
-                  <input value={draft.cantidadTotal} onChange={(e) => updateSupplyDraft(supply.id, "cantidadTotal", e.target.value.replace(/[^0-9.,]/g, ""))} inputMode="decimal" className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
-                  <input value={draft.precioTotal} onChange={(e) => updateSupplyDraft(supply.id, "precioTotal", sanitizeIntegerInput(e.target.value))} inputMode="numeric" className="rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
+                  <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                    Nombre del insumo
+                    <input value={draft.nombre} onChange={(e) => updateSupplyDraft(supply.id, "nombre", e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
+                  </label>
+                  <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                    Unidad
+                    <select value={draft.unidad} onChange={(e) => updateSupplyDraft(supply.id, "unidad", e.target.value)} className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]">
+                      {Array.from(new Set([...UNIT_OPTIONS, draft.unidad])).map((unit) => <option key={`${supply.id}-${unit}`} value={unit}>{unit}</option>)}
+                    </select>
+                  </label>
+                  <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                    Cantidad comprada
+                    <input value={draft.cantidadTotal} onChange={(e) => updateSupplyDraft(supply.id, "cantidadTotal", e.target.value.replace(/[^0-9.,]/g, ""))} inputMode="decimal" className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
+                  </label>
+                  <label className="block min-w-0 text-xs font-medium text-[var(--fg-muted)]">
+                    Costo total (COP)
+                    <input value={draft.precioTotal} onChange={(e) => updateSupplyDraft(supply.id, "precioTotal", sanitizeIntegerInput(e.target.value))} inputMode="numeric" className="mt-1 w-full rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg)]" />
+                  </label>
                   <label className="flex items-center gap-2 rounded-lg border border-[var(--input-border)] bg-[var(--surface-3)] px-3 py-2 text-sm text-[var(--fg-muted)]"><input type="checkbox" checked={draft.activo} onChange={(e) => updateSupplyDraft(supply.id, "activo", e.target.checked)} />Activo</label>
                 </div>
 
